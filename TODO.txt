@@ -1,0 +1,34 @@
+- asteroids initial state
+  - creation and distribution
+    - with for loop whose size increments with each level ("wall")
+    - set random position and rotation values to each asteroid
+    - pick a sprite randomly from an array for each asteroid
+      (or check whats the pattern in the og game)
+    - pos update is set depending on where it's first created:
+      the screen its divided in four quadrants so for example,
+      asteroids created in the top left quadrant move towards
+      the lower right etc.
+      
+- trig
+  - get ship's angle for thrust and shooting
+
+- collisions
+  - ship to asteroid and ufos
+  - shots to asteroid and ufos
+  - ufos to asteroids
+
+- physics
+  - thrust
+  - asteroid blast
+
+- animations
+  - asteroid blast
+  - ship explosion
+  - thrust
+
+- screens
+  - initial
+  - enter initials
+  - high score
+
+- levels
