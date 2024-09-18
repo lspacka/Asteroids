@@ -2,7 +2,7 @@
   - creation and distribution
     - with for loop whose size increments on each level ("wall")
     + set random position and rotation values to each asteroid
-    - pick a sprite randomly from an array for each asteroid
+    + pick a sprite randomly from an array for each asteroid
       (or check whats the pattern in the og game)
     - pos update is set depending on where it's first created:
       the screen its divided in four quadrants so for example,
