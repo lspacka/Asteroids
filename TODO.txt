@@ -4,10 +4,7 @@
     + set random position and rotation values to each asteroid
     + pick a sprite randomly from an array for each asteroid
       (or check whats the pattern in the og game)
-    - pos update is set depending on where it's first created:
-      the screen its divided in four quadrants so for example,
-      asteroids created in the top left quadrant move towards
-      the lower right etc.
+    + asteroid init direction
       
 - trig
   - get ship's angle for thrust and shooting
@@ -23,6 +20,10 @@
   - shots to asteroid and ufos
   - ufos to asteroids
 
+- input handling
+  ctrl -> shoot, up -> thrust, or viceversa
+
+
 - scoring system
 
 - animations
@@ -36,3 +37,4 @@
   - high score
 
 - levels
+
