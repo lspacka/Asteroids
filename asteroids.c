@@ -9,36 +9,21 @@
 #include <time.h>
 #include <math.h>
 
-// explosion animation function:
-//  - pass texture as argument
-//  - unload texture
-//  - do animation
-//  - if its ship texture, load it again after a certain time
-
 int RandPos(int a, int b)
 {
     return a + rand() % (b - a+1);
 }
-
-// float RandSpeed(float a, float b)
-// {
-//     return a + ((float)rand() / (float)RAND_MAX) * (b - a);
-// }
-
-// float RandSpeed(float a, float b) {
-//     float randValue = (float)rand() / (float)RAND_MAX;
-//     float scaledValue = randValue * (b - a);
-//     float finalValue = a + scaledValue;
-
-//     return finalValue;
-// }
 
 typedef struct Ship {
     Vector2 pos;
     Vector2 speed;
     Vector2 accel;
     Vector2 size;
+    Vector2 dir;
+    Vector2 center;
     Rectangle bounds;
+    Rectangle rect;
+    Texture2D tex;
     float rotation;
     float scale;
     int lifes;
@@ -73,68 +58,67 @@ int main()
     SetTraceLogLevel(LOG_WARNING);
     srand(time(NULL));
 
-    // float rand_speed;
-    // rand_speed = RandSpeed(-1.5f, 1.5f);
-    // printf("rand: %f\n", rand_speed);
-
     int width = 800;
     int height = 800;
 
     InitWindow(width, height, "Asteroids");
     SetTargetFPS(60);
 
-    const float ship_rotation = 0.5;
+    const float rotation_speed = 1.5;
     const float ufo_speed = 0.9;
-    const float astr_scale =  0.703125;
-    const float astr_speed = 1.5;
-    const int astr_num = 8;
+    const float ast_scale =  0.703125;
+    const float ast_speed = 1.5;
+    const int ast_num = 8;
+    bool debug = false;
     int i;
 
     Texture2D tex_ship  = LoadTexture("./resources/images/ship.png");
     Texture2D tex_ufo   = LoadTexture("./resources/images/ufo.png");
-    Texture2D tex_astr1 = LoadTexture("./resources/images/rock1.png");
-    Texture2D tex_astr2 = LoadTexture("./resources/images/rock2.png");
-    Texture2D tex_astr3 = LoadTexture("./resources/images/rock3.png");
-    Texture2D tex_astr4 = LoadTexture("./resources/images/rock4.png");
-    Texture2D astr_sprites[4] = {tex_astr1, tex_astr2, tex_astr3, tex_astr4};
-
-    // divide screen into 4 quadrants
-    // Rectangle quad_1 = {0, 0, width/2, height/2};           // top left
-    // Rectangle quad_2 = {width/2, 0, width, height/2};       // top right
-    // Rectangle quad_3 = {0, height/2, width/2, height};      // bottom left
-    // Rectangle quad_4 = {width/2, height/2, width, height};  // bottom right
+    Texture2D tex_ast1 = LoadTexture("./resources/images/rock1.png");
+    Texture2D tex_ast2 = LoadTexture("./resources/images/rock2.png");
+    Texture2D tex_ast3 = LoadTexture("./resources/images/rock3.png");
+    Texture2D tex_ast4 = LoadTexture("./resources/images/rock4.png");
+    Texture2D ast_sprites[4] = {tex_ast1, tex_ast2, tex_ast3, tex_ast4};
 
     Ship ship = { 0 };
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
     Asteroid asteroids[10] = { 0 };
 
-    ship.pos = (Vector2){50, 50};
+    ship.tex = tex_ship;
+    ship.pos = (Vector2){width/2, height/2};
+    ship.speed = (Vector2){1.5f, 0.0f};
     ship.size = (Vector2){96, 80};
-    // ship.speed = (Vector2){1.5f, 0.0f};
-    ship.scale = 1.0;
-    ship.active = true;
+    ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
+    ship.rect = (Rectangle){0, 0, ship.tex.width, ship.tex.height};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
+    // ship.rotation = 40;
+    ship.scale = 0.5;
+    ship.active = true;
+    // ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
+    
+    Rectangle ship_rect = {0, 0, tex_ship.width, tex_ship.height};
+    Vector2 ship_center = {tex_ship.width/2, tex_ship.height/2};
 
     sluggo.pos = (Vector2){100, 100};
 
     // init asteroids
-    Texture2D tex_astr;
+    Texture2D tex_ast;
     int x_pos;
     int y_pos;
     int spr_ind;
     // float size;
     float rotation;
     int direction;
-    // size = 128 * astr_scale;
+    // size = 128 * ast_scale;
 
-    for (i = 0; i < astr_num; i++) {
+    for (i = 0; i < ast_num; i++) {
         x_pos = RandPos(-10, width+10);
         y_pos = RandPos(-10, height+10);
         rotation = ((float)rand() / RAND_MAX) * 360.0f;
         direction = rand() % 4;
         spr_ind = rand() % 4;
-        tex_astr = astr_sprites[spr_ind];
+        tex_ast = ast_sprites[spr_ind];
 
         asteroids[i].pos = (Vector2){x_pos, y_pos};
         asteroids[i].speed = (Vector2){1.7, 1.7};
@@ -144,33 +128,31 @@ int main()
         asteroids[i].dir = direction;
         asteroids[i].scale = 1.0;
         asteroids[i].active = true;
-        asteroids[i].tex = tex_astr;
-
-        // printf("sprite size: %f\n", size);
-        // printf("asteroid - pos.x: %f, pos.y: %f\n", asteroids[i].pos.x, asteroids[i].pos.y);
-        // printf("spr_ind: %d\n", spr_ind);
+        asteroids[i].tex = tex_ast;
     }
-    
+
     ////////////////////////////////////////////////////////// GAME LOOP //////////////////////////////////////////////////////////
 
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        if (IsKeyDown(KEY_RIGHT)) ship.pos.x += ship.speed.x;
-        if (IsKeyDown(KEY_LEFT)) ship.pos.x -= ship.speed.x;
+        if (IsKeyPressed(KEY_D)) debug = !debug;
 
-        for (i = 0; i < astr_num; i++) {
-            // ship movement and collisions
-            if (CheckCollisionPointRec(asteroids[i].pos, ship.bounds)) {
-                asteroids[i].active = false;
-                ship.active = false;
-                break;
-            }
-        }
+        if (IsKeyDown(KEY_RIGHT)) ship.rotation += rotation_speed;
+        if (IsKeyDown(KEY_LEFT)) ship.rotation -= rotation_speed;
+
+        // for (i = 0; i < ast_num; i++) {
+        //     // ship movement and collisions
+        //     if (CheckCollisionPointRec(asteroids[i].pos, ship.bounds)) {
+        //         asteroids[i].active = false;
+        //         ship.active = false;
+        //         break;
+        //     }
+        // }
 
         // asteroids pos update and wrap-around logic
-        for (i = 0; i < astr_num; i++) {
+        for (i = 0; i < ast_num; i++) {
             // shitty wrap-around for full size sprites
             if (asteroids[i].pos.x-asteroids[i].size.x >= width) asteroids[i].pos.x = 0 - asteroids[i].size.x;
             else if (asteroids[i].pos.x+asteroids[i].size.x <= 0) asteroids[i].pos.x = width + asteroids[i].size.x;
@@ -181,25 +163,26 @@ int main()
             // pos update
             switch(asteroids[i].dir) {
                 case 0:
-                    asteroids[i].pos.x += astr_speed;
-                    asteroids[i].pos.y += astr_speed;
+                    asteroids[i].pos.x += ast_speed;
+                    asteroids[i].pos.y += ast_speed;
                     break;
                 case 1:
-                    asteroids[i].pos.x -= astr_speed;
-                    asteroids[i].pos.y -= astr_speed;
+                    asteroids[i].pos.x -= ast_speed;
+                    asteroids[i].pos.y -= ast_speed;
                     break;
                 case 2:
-                    asteroids[i].pos.x += astr_speed;
-                    asteroids[i].pos.y -= astr_speed;
+                    asteroids[i].pos.x += ast_speed;
+                    asteroids[i].pos.y -= ast_speed;
                     break;
                 case 3:
-                    asteroids[i].pos.x -= astr_speed;
-                    asteroids[i].pos.y += astr_speed;
+                    asteroids[i].pos.x -= ast_speed;
+                    asteroids[i].pos.y += ast_speed;
+                    break;
             }
         }
 
-        // draw sprites
-        for (i = 0; i < astr_num; i++) {
+        // draw asteroids
+        for (i = 0; i < ast_num; i++) {
             if (asteroids[i].active) {
                 DrawTextureEx(asteroids[i].tex, asteroids[i].pos, asteroids[i].rotation, asteroids[i].scale, RAYWHITE);
             }
@@ -207,13 +190,16 @@ int main()
 
         // draw ship and ufos
         if (ship.active) {
-            DrawTextureEx(tex_ship, ship.pos, ship.rotation, ship.scale, RAYWHITE);
+            DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
         }
 
-        //  wrap around tests
-        // if ((rock2.pos.x ) >= width) {
-        //     rock2.pos.x = 0 - rock2.size.x;
-        // }
+        // debug section
+        if (debug) {
+            // DrawText("Ship Data:", 20, height-80, 20, WHITE);
+            DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, height-70, 20, WHITE);
+            DrawText(TextFormat("Angle: %.2f", ship.dir), 20, height-50, 20, WHITE);
+            DrawText(TextFormat("Direction: %.2f", ship.dir), 20, height-30, 20, WHITE);
+        }
 
         EndDrawing();
     }

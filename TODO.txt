@@ -23,18 +23,19 @@
 - input handling
   ctrl -> shoot, up -> thrust, or viceversa
 
-
 - scoring system
+
+- levels
 
 - animations
   - asteroid blast
   - ship explosion
   - thrust
 
+- high scores record
+
 - screens
   - initial
-  - enter initials
-  - high score
-
-- levels
-
+  - pause
+  - game over
+  - player scores
