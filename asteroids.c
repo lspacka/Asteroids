@@ -18,12 +18,13 @@ typedef struct Ship {
     Vector2 size;
     Vector2 dir;
     Vector2 center;
+    Vector2 tip;
     Rectangle bounds;
     Rectangle rect;
     Texture2D tex;
     float rotation;
-    float tipX;
-    float tipY;
+    // float tipX;
+    // float tipY;
     float scale;
     int lifes;
     bool active;
@@ -55,7 +56,9 @@ typedef struct UFO {
 typedef struct Torp {
     Vector2 pos;
     Vector2 speed;
+    Vector2 dir;
     Texture2D tex;
+    Rectangle bounds;
     bool active;
 } Torp;
 
@@ -69,10 +72,17 @@ void AstBlast(Asteroid ast)
     // 
 }
 
-Torp Fire(Ship ship)
-{
-    // 
-}
+// Torp Fire(Ship ship, Texture2D tex)
+// {
+//     Torp torp = { 0 };
+//     torp.active = true;
+//     torp.pos = (Vector2){ship.tip.x, ship.tip.y};
+//     torp.speed = (Vector2){1.0, 1.0};
+//     torp.dir = (Vector2){ship.dir.x, ship.dir.y};
+//     torp.tex = tex;
+
+//     return torp;
+// }
 
 int main()
 {
@@ -106,6 +116,7 @@ int main()
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
     Asteroid asteroids[10] = { 0 };
+    Torp torps[4] = { 0 };
 
     ship.tex = tex_ship;
     ship.pos = (Vector2){screen_width/2, screen_height/2};
@@ -114,7 +125,7 @@ int main()
     ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
     ship.rect = (Rectangle){0, 0, ship.tex.width, ship.tex.height};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
-    // ship.rotation = 40;
+    ship.rotation = -90;
     ship.scale = 0.5;
     ship.active = true;
     // ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
@@ -153,6 +164,14 @@ int main()
         asteroids[i].tex = tex_ast;
     }
 
+    // init torps
+    int torp_index = 0;
+    for (i = 0; i < 4; i++) {
+        torps[i].active = false;
+        torps[i].speed = (Vector2){3.0, 3.0};
+        torps[i].tex = tex_torp;
+    }
+
     ////////////////////////////////////////////////////////// GAME LOOP //////////////////////////////////////////////////////////
 
     while(!WindowShouldClose()) {
@@ -161,8 +180,20 @@ int main()
 
         if (IsKeyPressed(KEY_D)) debug = !debug;
 
-        if (IsKeyDown(KEY_RIGHT)) ship.rotation += rotation_speed;
-        if (IsKeyDown(KEY_LEFT)) ship.rotation -= rotation_speed;
+        if (IsKeyDown(KEY_RIGHT)) {
+            ship.rotation += rotation_speed;
+            // for (i = 0; i < 4; i++) {
+            //     torps[i].pos = (Vector2){ship.tip.x, ship.tip.y};
+            //     torps[i].dir = (Vector2){ship.dir.x, ship.dir.y};
+            // }
+        }
+        if (IsKeyDown(KEY_LEFT)) {
+            ship.rotation -= rotation_speed;
+            // for (i = 0; i < 4; i++) {
+            //     torps[i].pos = (Vector2){ship.tip.x, ship.tip.y};
+            //     torps[i].dir = (Vector2){ship.dir.x, ship.dir.y};
+            // }
+        }
         // if (IsKeyDown(KEY_UP)) ship.thrust;
         // if (IsKeyDown(KEY_LEFT_CONTROL)) ship.fire;
         // if (IsKeyDown(KEY_SPACE)) ship.hyperspace;
@@ -185,16 +216,48 @@ int main()
         float rota_offset_y = cannon_offset_x * sin(angle) + cannon_offset_y * cos(angle);
 
         // calculate the absolute coords of the cannon tip
-        // float tip_x = ship.pos.x + rota_offset_x;
-        // float tip_y = ship.pos.y + rota_offset_y;
-        ship.tipX = ship.pos.x + rota_offset_x;
-        ship.tipY = ship.pos.y + rota_offset_y;
+        ship.tip.x = ship.pos.x + rota_offset_x;
+        ship.tip.y = ship.pos.y + rota_offset_y;
 
-        // create torp
-        Vector2 cannon_tip = {ship.tipX, ship.tipY};
+        // // update tip coords in torps before shooting
+        // for (i = 0; i < 4; i++) {
+        //     torps[i].pos = (Vector2){ship.tip.x, ship.tip.y};
+        //     torps[i].dir = (Vector2){ship.dir.x, ship.dir.y};
+        // }
+        
+        if (IsKeyPressed(KEY_LEFT_CONTROL)) {
+            // DrawCircle(ship.tip.x, ship.tip.y, 5.0, RED);
+            // Torp torp = Fire(ship, tex_torp);
+            // torp.active = true;
+            // torp.pos = (Vector2){ship.tip.x, ship.tip.y};
+            // torp.speed = (Vector2){1.0, 1.0};
+            // torp.dir = (Vector2){ship.dir.x, ship.dir.y};
+            // torp.tex = tex_torp;
+            // update tip coords in torps before shooting
+            for (i = 0; i < 4; i++) {
+                torps[i].pos = (Vector2){ship.tip.x, ship.tip.y};
+                torps[i].dir = (Vector2){ship.dir.x, ship.dir.y};
+            }
+            
+            if (torp_index == 3) {
+                torp_index = 0;
+                // after some time:
+                // for (i = 0; i < 4; i++) {
+                //     torps[i].active = false;
+                // }
+            }
+            torps[torp_index].active = true;
+            // torps[torp_index].pos.x += torps[torp_index].dir.x * torps[torp_index].speed.x;
+            // torps[torp_index].pos.y += torps[torp_index].dir.y * torps[torp_index].speed.y;
+            // DrawTextureEx(tex_torp, torps[torp_index].pos, 0.0, 1.0, RAYWHITE);
 
-        if (IsKeyDown(KEY_LEFT_CONTROL)) {
-            DrawCircle(ship.tipX, ship.tipY, 5.0, RED);
+            // torp_index++;
+        }
+
+        if (torps[torp_index].active) {
+                torps[torp_index].pos.x += torps[torp_index].dir.x * torps[torp_index].speed.x;
+                torps[torp_index].pos.y += torps[torp_index].dir.y * torps[torp_index].speed.y;
+                DrawTextureEx(tex_torp, torps[torp_index].pos, 0.0, 1.0, RAYWHITE);
         }
 
         // for (i = 0; i < ast_num; i++) {
@@ -250,9 +313,10 @@ int main()
 
         // debug section
         if (debug) {
-            DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tipX, ship.tipY), 20, screen_height-90, 20, WHITE);
+            DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tip.x, ship.tip.y), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("Direction: %.2f", ship.dir), 20, screen_height-50, 20, WHITE);
+            DrawText(TextFormat("Torp Index: %d", torp_index), 20, screen_height-30, 20, WHITE);
         }
 
         EndDrawing();
