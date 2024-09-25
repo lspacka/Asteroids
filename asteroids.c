@@ -9,10 +9,7 @@
 #include <time.h>
 #include <math.h>
 
-int RandPos(int a, int b)
-{
-    return a + rand() % (b - a+1);
-}
+#define PI 3.14159265358979323846
 
 typedef struct Ship {
     Vector2 pos;
@@ -25,6 +22,8 @@ typedef struct Ship {
     Rectangle rect;
     Texture2D tex;
     float rotation;
+    float tipX;
+    float tipY;
     float scale;
     int lifes;
     bool active;
@@ -53,15 +52,37 @@ typedef struct UFO {
     bool active;
 } UFO;
 
+typedef struct Torp {
+    Vector2 pos;
+    Vector2 speed;
+    Texture2D tex;
+    bool active;
+} Torp;
+
+int RandPos(int a, int b)
+{
+    return a + rand() % (b - a+1);
+}
+
+void AstBlast(Asteroid ast)
+{
+    // 
+}
+
+Torp Fire(Ship ship)
+{
+    // 
+}
+
 int main()
 {
     SetTraceLogLevel(LOG_WARNING);
     srand(time(NULL));
 
-    int width = 800;
-    int height = 800;
+    int screen_width = 900;
+    int screen_height = 900;
 
-    InitWindow(width, height, "Asteroids");
+    InitWindow(screen_width, screen_height, "Asteroids");
     SetTargetFPS(60);
 
     const float rotation_speed = 1.5;
@@ -73,6 +94,7 @@ int main()
     int i;
 
     Texture2D tex_ship  = LoadTexture("./resources/images/ship.png");
+    Texture2D tex_torp = LoadTexture("./resources/images/torp.png");
     Texture2D tex_ufo   = LoadTexture("./resources/images/ufo.png");
     Texture2D tex_ast1 = LoadTexture("./resources/images/rock1.png");
     Texture2D tex_ast2 = LoadTexture("./resources/images/rock2.png");
@@ -86,9 +108,9 @@ int main()
     Asteroid asteroids[10] = { 0 };
 
     ship.tex = tex_ship;
-    ship.pos = (Vector2){width/2, height/2};
+    ship.pos = (Vector2){screen_width/2, screen_height/2};
     ship.speed = (Vector2){1.5f, 0.0f};
-    ship.size = (Vector2){96, 80};
+    ship.size = (Vector2){ship.tex.width, ship.tex.height};
     ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
     ship.rect = (Rectangle){0, 0, ship.tex.width, ship.tex.height};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
@@ -113,8 +135,8 @@ int main()
     // size = 128 * ast_scale;
 
     for (i = 0; i < ast_num; i++) {
-        x_pos = RandPos(-10, width+10);
-        y_pos = RandPos(-10, height+10);
+        x_pos = RandPos(-10, screen_width+10);
+        y_pos = RandPos(-10, screen_height+10);
         rotation = ((float)rand() / RAND_MAX) * 360.0f;
         direction = rand() % 4;
         spr_ind = rand() % 4;
@@ -141,6 +163,39 @@ int main()
 
         if (IsKeyDown(KEY_RIGHT)) ship.rotation += rotation_speed;
         if (IsKeyDown(KEY_LEFT)) ship.rotation -= rotation_speed;
+        // if (IsKeyDown(KEY_UP)) ship.thrust;
+        // if (IsKeyDown(KEY_LEFT_CONTROL)) ship.fire;
+        // if (IsKeyDown(KEY_SPACE)) ship.hyperspace;
+
+        // calc ship's direction
+        float angle = ship.rotation * (PI/180.0);
+        float dir_x = cos(angle - PI/2);
+        float dir_y = sin(angle - PI/2);
+
+        ship.dir.x = dir_x;
+        ship.dir.y = dir_y;
+
+        // shooting calc
+        Vector2 dir = ship.dir;
+        float cannon_offset_x = 0;
+        float cannon_offset_y = -ship.tex.height/2;
+
+        // rotate the offset based on the ship's rotation angle
+        float rota_offset_x = cannon_offset_x * cos(angle) - cannon_offset_y * sin(angle);
+        float rota_offset_y = cannon_offset_x * sin(angle) + cannon_offset_y * cos(angle);
+
+        // calculate the absolute coords of the cannon tip
+        // float tip_x = ship.pos.x + rota_offset_x;
+        // float tip_y = ship.pos.y + rota_offset_y;
+        ship.tipX = ship.pos.x + rota_offset_x;
+        ship.tipY = ship.pos.y + rota_offset_y;
+
+        // create torp
+        Vector2 cannon_tip = {ship.tipX, ship.tipY};
+
+        if (IsKeyDown(KEY_LEFT_CONTROL)) {
+            DrawCircle(ship.tipX, ship.tipY, 5.0, RED);
+        }
 
         // for (i = 0; i < ast_num; i++) {
         //     // ship movement and collisions
@@ -154,11 +209,11 @@ int main()
         // asteroids pos update and wrap-around logic
         for (i = 0; i < ast_num; i++) {
             // shitty wrap-around for full size sprites
-            if (asteroids[i].pos.x-asteroids[i].size.x >= width) asteroids[i].pos.x = 0 - asteroids[i].size.x;
-            else if (asteroids[i].pos.x+asteroids[i].size.x <= 0) asteroids[i].pos.x = width + asteroids[i].size.x;
+            if (asteroids[i].pos.x-asteroids[i].size.x >= screen_width) asteroids[i].pos.x = 0 - asteroids[i].size.x;
+            else if (asteroids[i].pos.x+asteroids[i].size.x <= 0) asteroids[i].pos.x = screen_width + asteroids[i].size.x;
 
-            if (asteroids[i].pos.y-asteroids[i].size.y >= height) asteroids[i].pos.y = 0 - asteroids[i].size.y;
-            else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) asteroids[i].pos.y = height +  asteroids[i].size.y;
+            if (asteroids[i].pos.y-asteroids[i].size.y >= screen_height) asteroids[i].pos.y = 0 - asteroids[i].size.y;
+            else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) asteroids[i].pos.y = screen_height +  asteroids[i].size.y;
 
             // pos update
             switch(asteroids[i].dir) {
@@ -195,10 +250,9 @@ int main()
 
         // debug section
         if (debug) {
-            // DrawText("Ship Data:", 20, height-80, 20, WHITE);
-            DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, height-70, 20, WHITE);
-            DrawText(TextFormat("Angle: %.2f", ship.dir), 20, height-50, 20, WHITE);
-            DrawText(TextFormat("Direction: %.2f", ship.dir), 20, height-30, 20, WHITE);
+            DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tipX, ship.tipY), 20, screen_height-90, 20, WHITE);
+            DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-70, 20, WHITE);
+            DrawText(TextFormat("Direction: %.2f", ship.dir), 20, screen_height-50, 20, WHITE);
         }
 
         EndDrawing();

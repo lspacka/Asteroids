@@ -1,6 +1,6 @@
-- asteroids initial state
-  - creation and distribution
-    - with for loop whose size increments on each level ("wall")
++ asteroids initial state
+  + creation and distribution
+    + with for loop whose size increments on each level ("wall")
     + set random position and rotation values to each asteroid
     + pick a sprite randomly from an array for each asteroid
       (or check whats the pattern in the og game)
