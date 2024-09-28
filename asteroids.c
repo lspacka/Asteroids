@@ -73,18 +73,6 @@ void AstBlast(Asteroid ast)
     // 
 }
 
-// Torp Fire(Ship ship, Texture2D tex)
-// {
-//     Torp torp = { 0 };
-//     torp.active = true;
-//     torp.pos = (Vector2){ship.tip.x, ship.tip.y};
-//     torp.speed = (Vector2){1.0, 1.0};
-//     torp.dir = (Vector2){ship.dir.x, ship.dir.y};
-//     torp.tex = tex;
-
-//     return torp;
-// }
-
 int main()
 {
     SetTraceLogLevel(LOG_WARNING);
@@ -100,9 +88,9 @@ int main()
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
     const float ast_speed = 1.5;
-    const int ast_num = 10;
+    const int ast_num = 8;
     bool debug = false;
-    int i;
+    int i, j;
 
     Texture2D tex_ship  = LoadTexture("./resources/images/ship.png");
     Texture2D tex_torp = LoadTexture("./resources/images/torp.png");
@@ -160,13 +148,13 @@ int main()
         // asteroids[i].pos = (Vector2){150, 150};
         asteroids[i].speed = (Vector2){1.7, 1.7};
         asteroids[i].size = (Vector2){128, 128};
-        // asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
+        // asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].tex.width, asteroids[i].tex.height};
+        asteroids[i].rotation = rotation;
         asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].tex.width, asteroids[i].tex.height};
-        // asteroids[i].rotation = rotation;
         asteroids[i].dir = direction;
         asteroids[i].scale = 1.0;
         asteroids[i].active = true;
-    }
+    }   
 
     // init torps
     int torp_index = 0;
@@ -175,10 +163,9 @@ int main()
         torps[i].active = false;
         torps[i].speed = (Vector2){3.0, 3.0};
         torps[i].size = (Vector2){4, 4};
-        // torps[i].bounds = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].tex.width, torps[i].tex.height};
-        torps[i].bounds = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].size.x, torps[i].size.y};
+        torps[i].bounds = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].tex.width, torps[i].tex.height};
+        // torps[i].bounds = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].size.x, torps[i].size.y};
     }
-
 
     ////////////////////////////////////////////////////////// GAME LOOP //////////////////////////////////////////////////////////
 
@@ -214,32 +201,28 @@ int main()
         // calculate the absolute coords of the cannon tip
         ship.tip.x = ship.pos.x + rota_offset_x;
         ship.tip.y = ship.pos.y + rota_offset_y;
-        
+
         if (IsKeyPressed(KEY_LEFT_CONTROL)) {
-            // update tip coords in torps before shooting
-            for (i = 0; i < 4; i++) {
-                torps[i].pos = (Vector2){ship.tip.x, ship.tip.y};
-                torps[i].dir = (Vector2){ship.dir.x, ship.dir.y};
+            if (torp_index == 4) {
+                // return;
+                torp_index = 0;
             }
 
-            if (torp_index == 4) {
-                torp_index = 0;
-                // after some time:
-                // for (i = 0; i < 4; i++) {
-                //     torps[i].active = false;
-                // }
-            }
-            torps[torp_index].active = true;
+            // update tip coords in torps before shooting
+                torps[torp_index].pos = (Vector2){ship.tip.x, ship.tip.y};
+                torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
+                torps[torp_index].active = true;
 
             torp_index++;
         }
 
-        if (torps[torp_index-1].active) {
-                torps[torp_index-1].pos.x += torps[torp_index-1].dir.x * torps[torp_index-1].speed.x;
-                torps[torp_index-1].pos.y += torps[torp_index-1].dir.y * torps[torp_index-1].speed.y;
-                DrawTextureEx(tex_torp, torps[torp_index-1].pos, 0.0, 1.0, RAYWHITE);
+        for (i = 0; i < 4; i++) {
+            if (torps[i].active) {
+                torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
+                torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
+                DrawTextureEx(tex_torp, torps[i].pos, 0.0, 1.0, RAYWHITE);
+            }
         }
-
 
         // asteroids pos update and wrap-around logic
         for (i = 0; i < ast_num; i++) {
@@ -281,11 +264,6 @@ int main()
             }
         }
 
-        // stationary asteroid test
-        // if (asteroids[0].active) {
-        //     DrawTextureEx(asteroids[0].tex, asteroids[0].pos, asteroids[0].rotation, asteroids[0].scale, RAYWHITE);
-        // }
-
         // draw ship and ufos
         if (ship.active) {
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
@@ -293,27 +271,29 @@ int main()
         }
 
         // asteroids collisions
-        // for (i = 0; i < ast_num; i++) {
-        //     if (asteroids[i].active && ship.active) {
-        //         if (CheckCollisionRecs(asteroids[i].bounds, ship.bounds)) {
-        //             asteroids[i].active = false;
-        //             ship.active = false;
-        //             // break;
-        //         }
-        //     }
-            
-        //     if (asteroids[i].active && torps[torp_index-1].active) {
-        //         if (CheckCollisionPointRec(torps[torp_index-1].pos, asteroids[i].bounds)) {
-        //             asteroids[i].active = false;
-        //             torps[torp_index-1].active = false;
-        //             // break;
-        //         }
-        //     }
-        // }
+        for (i = 0; i < ast_num; i++) {
+            // if (asteroids[i].active && ship.active) {
+            //     if (CheckCollisionRecs(asteroids[i].bounds, ship.bounds)) {
+            //         asteroids[i].active = false;
+            //         ship.active = false;
+            //         // break;
+            //     }
+            // }
+
+            for (j = 0; j < 4; j++) {
+                if (asteroids[i].active && torps[j].active) {
+                    if (CheckCollisionPointRec(torps[j].pos, asteroids[i].bounds)) {
+                        asteroids[i].active = false;
+                        torps[j].active = false;
+                        // break;
+                    }
+                }
+            }
+        }
 
         // debug section
         if (debug) {
-            DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tip.x, ship.tip.y), 20, screen_height-90, 20, WHITE);
+            // DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tip.x, ship.tip.y), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("Direction: %.2f", ship.dir), 20, screen_height-50, 20, WHITE);
             // DrawText(TextFormat("Torp Index: %d", torp_index), 20, screen_height-30, 20, WHITE);  // test 
@@ -325,8 +305,6 @@ int main()
                 DrawRectangleLinesEx(asteroids[i].bounds, 1.0, ORANGE);
                 DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3.0, GREEN);
             }
-            // DrawRectangleLinesEx(asteroids[0].bounds, 1.0, ORANGE); // stationary bbox test
-            // DrawCircle(asteroids[0].pos.x, asteroids[0].pos.y, 3.0, GREEN);
             
             for (i = 0; i < 4; i++) {
                 DrawRectangleLinesEx(torps[i].bounds, 1.0, RED);
