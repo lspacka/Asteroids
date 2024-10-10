@@ -1,6 +1,7 @@
-//  -lraylib -lgdi32 -lwinmm -Wall -std=c99
+//  -lraylib -lgdi32 -lwinmm -Wall -std=c99 -I c:/raylib/raylib/src
 
 #include "raylib.h"
+#include "raymath.h"
 // #include "physics.h"
 // #include "raysynth.h"
 // #include "animations.h"
@@ -13,9 +14,9 @@
 
 typedef struct Ship {
     Vector2 pos;
-    Vector2 speed;
+    Vector2 vel;
     Vector2 accel;
-    Vector2 size;
+    Vector2 size;       // 
     Vector2 dir;
     Vector2 center;
     Vector2 tip;
@@ -23,9 +24,11 @@ typedef struct Ship {
     Rectangle rect;
     Texture2D tex;
     float rotation;
+    float lowSpeed;
     // float tipX;
     // float tipY;
     float scale;
+    float mass;        //
     int lifes;
     bool active;
 } Ship;
@@ -35,6 +38,8 @@ typedef struct Asteroid {
     Vector2 speed;
     Vector2 accel;
     Vector2 size;
+    Vector2 center;
+    Rectangle rect;
     Rectangle bounds;
     Texture2D tex;
     float rotation;
@@ -109,19 +114,19 @@ int main()
 
     ship.tex = tex_ship;
     ship.pos = (Vector2){screen_width/2, screen_height/2};
-    ship.speed = (Vector2){1.5f, 0.0f};
     ship.size = (Vector2){ship.tex.width, ship.tex.height};
     ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
+    // ship.center = (Vector2){ship.pos.x, ship.pos.y};
     ship.rect = (Rectangle){0, 0, ship.tex.width, ship.tex.height};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
     // ship.bounds = (Rectangle){ship.pos.x-ship.center.x, ship.pos.y-ship.center.y, ship.size.x, ship.size.y}; // offset bbox
     // ship.rotation = -90;
     ship.scale = 0.5;
+    ship.mass = 0.5;
+    // ship.vel = (Vector2){1.0, 1.0};
+    ship.lowSpeed = 0.004;
     ship.active = true;
     // ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
-    
-    // Rectangle ship_rect = {0, 0, tex_ship.width, tex_ship.height};
-    // Vector2 ship_center = {tex_ship.width/2, tex_ship.height/2};
 
     sluggo.pos = (Vector2){100, 100};
 
@@ -145,12 +150,13 @@ int main()
 
         asteroids[i].tex = tex_ast;
         asteroids[i].pos = (Vector2){x_pos, y_pos};
-        // asteroids[i].pos = (Vector2){150, 150};
         asteroids[i].speed = (Vector2){1.7, 1.7};
         asteroids[i].size = (Vector2){128, 128};
-        // asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].tex.width, asteroids[i].tex.height};
+        asteroids[i].center = (Vector2){asteroids[i].tex.width/2, asteroids[i].tex.height/2};
+        asteroids[i].rect = (Rectangle){0, 0, asteroids[i].tex.width, asteroids[i].tex.height};
         asteroids[i].rotation = rotation;
         asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].tex.width, asteroids[i].tex.height};
+        // asteroids[i].bounds = (Rectangle){asteroids[i].center.x, asteroids[i].center.y, asteroids[i].tex.width, asteroids[i].tex.height};
         asteroids[i].dir = direction;
         asteroids[i].scale = 1.0;
         asteroids[i].active = true;
@@ -167,71 +173,191 @@ int main()
         // torps[i].bounds = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].size.x, torps[i].size.y};
     }
 
+    // vars 4 trig calcs
+    Vector2 thrust;
+    Vector2 dir;
+    float angle;
+    float dir_x;
+    float dir_y;
+    float cannon_offset_x;
+    float cannon_offset_y;
+    float rota_offset_x;
+    float rota_offset_y;
+    float top_speed = 50.0f;
+    float thrust_force = 0.1f;
+    float friction = 0.99f;
+    float drag = 0.01f; 
+    float speed;
+
     ////////////////////////////////////////////////////////// GAME LOOP //////////////////////////////////////////////////////////
 
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        if (IsKeyPressed(KEY_D)) debug = !debug;
+        if (IsKeyPressed(KEY_D)) 
+            debug = !debug;
 
-        if (IsKeyDown(KEY_RIGHT)) ship.rotation += rotation_speed;
-        if (IsKeyDown(KEY_LEFT))  ship.rotation -= rotation_speed;
-        // if (IsKeyDown(KEY_UP)) ship.thrust;
-        // if (IsKeyDown(KEY_LEFT_CONTROL)) ship.fire;
-        // if (IsKeyDown(KEY_SPACE)) ship.hyperspace;
+        if (IsKeyDown(KEY_RIGHT)) 
+            ship.rotation += rotation_speed;
+        if (IsKeyDown(KEY_LEFT))  
+            ship.rotation -= rotation_speed;
 
         // calc ship's direction
-        float angle = ship.rotation * (PI/180.0);
-        float dir_x = cos(angle - PI/2);
-        float dir_y = sin(angle - PI/2);
+        angle = ship.rotation * (PI/180.0);
+        dir_x = cos(angle - PI/2);
+        dir_y = sin(angle - PI/2);
 
         ship.dir.x = dir_x;
         ship.dir.y = dir_y;
 
         // shooting calc
-        Vector2 dir = ship.dir;
-        float cannon_offset_x = 0;
-        float cannon_offset_y = -ship.tex.height/2;
+        dir = ship.dir;
+        cannon_offset_x = 0;
+        cannon_offset_y = -ship.tex.height/2;
 
         // rotate the offset based on the ship's rotation angle
-        float rota_offset_x = cannon_offset_x * cos(angle) - cannon_offset_y * sin(angle);
-        float rota_offset_y = cannon_offset_x * sin(angle) + cannon_offset_y * cos(angle);
+        rota_offset_x = cannon_offset_x * cos(angle) - cannon_offset_y * sin(angle);
+        rota_offset_y = cannon_offset_x * sin(angle) + cannon_offset_y * cos(angle);
 
         // calculate the absolute coords of the cannon tip
         ship.tip.x = ship.pos.x + rota_offset_x;
         ship.tip.y = ship.pos.y + rota_offset_y;
 
+        /////////////// SHOOTING ///////////////
+
         if (IsKeyPressed(KEY_LEFT_CONTROL)) {
             if (torp_index == 4) {
-                // return;
                 torp_index = 0;
             }
 
             // update tip coords in torps before shooting
-                torps[torp_index].pos = (Vector2){ship.tip.x, ship.tip.y};
-                torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
-                torps[torp_index].active = true;
+            torps[torp_index].pos = (Vector2){ship.tip.x, ship.tip.y};
+            torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
+            torps[torp_index].active = true;
 
             torp_index++;
         }
 
+        // draw torps
         for (i = 0; i < 4; i++) {
             if (torps[i].active) {
                 torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
                 torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
                 DrawTextureEx(tex_torp, torps[i].pos, 0.0, 1.0, RAYWHITE);
             }
+            // wrap-around
         }
+
+        /////////////// THRUST ///////////////
+
+        // if (IsKeyDown(KEY_UP)) {
+        //     thrust = ship.dir;
+        //     Vector2Normalize(thrust);
+
+        //     thrust.x *= top_speed;
+        //     thrust.y *= top_speed;
+        //     // thrust.x /= ship.mass;
+        //     // thrust.y /= ship.mass;
+        //     ship.accel.x = thrust.x;
+        //     ship.accel.y = thrust.y;
+
+        //     ship.vel.x += ship.accel.x;
+        //     ship.vel.y += ship.accel.y;
+            
+        //     ship.pos.x += ship.vel.x;
+        //     ship.pos.y += ship.vel.y;
+        //     // ship.center.x = ship.pos.x;
+        //     // ship.center.y = ship.pos.y;
+
+        //     // if (Vector2Length(ship.vel) > ship.lowSpeed) {
+        //     //     Vector2Normalize(ship.vel);
+        //     //     ship.accel.x *= top_speed;
+        //     //     ship.accel.y *= top_speed;
+        //     // }
+        // }
+
+        // THIS WORKS
+        if (IsKeyDown(KEY_UP)) {
+
+            // Recalculate thrust direction based on the ship's current rotation
+            thrust = ship.dir;
+            Vector2Normalize(thrust);  // Normalize to get direction only
+
+            // Apply thrust to velocity (incremental acceleration)
+            ship.vel.x += thrust.x * thrust_force;
+            ship.vel.y += thrust.y * thrust_force;
+
+            // Optional: Cap the velocity to top speed
+            speed = Vector2Length(ship.vel);
+            if (speed > top_speed) {
+                Vector2Normalize(ship.vel);
+                ship.vel.x *= ship.lowSpeed;
+                ship.vel.y *= ship.lowSpeed;
+            }
+        } else {
+            // No thrust, but apply slight friction to slow down gradually
+            ship.vel.x *= friction;
+            ship.vel.y *= friction;
+        }
+
+        // Update the ship's position based on velocity
+        ship.pos.x += ship.vel.x;
+        ship.pos.y += ship.vel.y;
+
+        // ALT DRAG METHOD
+        // if (IsKeyDown(KEY_UP)) {
+        //     // Apply thrust
+        //     thrust = ship.dir;
+        //     Vector2Normalize(thrust);
+            
+        //     ship.vel.x += thrust.x * thrust_force;
+        //     ship.vel.y += thrust.y * thrust_force;
+        // } 
+
+        // // Apply drag/friction every frame
+        // ship.vel.x -= ship.vel.x * drag;
+        // ship.vel.y -= ship.vel.y * drag;
+
+        // // Update the ship's position based on velocity
+        // ship.pos.x += ship.vel.x;
+        // ship.pos.y += ship.vel.y;
+
+        // ship wrap-around test
+        if (ship.pos.x >= screen_width) 
+            ship.pos.x = 0;
+        else if (ship.pos.x <= 0)
+            ship.pos.x = screen_width;
+
+        if (ship.pos.y >= screen_height)
+            ship.pos.y = 0;
+        else if (ship.pos.y <= 0)
+            ship.pos.y = screen_height;
+
+
+
+        // // draw torps
+        // for (i = 0; i < 4; i++) {
+        //     if (torps[i].active) {
+        //         torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
+        //         torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
+        //         DrawTextureEx(tex_torp, torps[i].pos, 0.0, 1.0, RAYWHITE);
+        //     }
+        //     // wrap-around
+        // }
 
         // asteroids pos update and wrap-around logic
         for (i = 0; i < ast_num; i++) {
             // shitty wrap-around for full size sprites
-            if (asteroids[i].pos.x-asteroids[i].size.x >= screen_width) asteroids[i].pos.x = 0 - asteroids[i].size.x;
-            else if (asteroids[i].pos.x+asteroids[i].size.x <= 0) asteroids[i].pos.x = screen_width + asteroids[i].size.x;
+            if (asteroids[i].pos.x-asteroids[i].size.x >= screen_width) 
+                asteroids[i].pos.x = 0 - asteroids[i].size.x;
+            else if (asteroids[i].pos.x+asteroids[i].size.x <= 0) 
+                asteroids[i].pos.x = screen_width + asteroids[i].size.x;
 
-            if (asteroids[i].pos.y-asteroids[i].size.y >= screen_height) asteroids[i].pos.y = 0 - asteroids[i].size.y;
-            else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) asteroids[i].pos.y = screen_height +  asteroids[i].size.y;
+            if (asteroids[i].pos.y-asteroids[i].size.y >= screen_height) 
+                asteroids[i].pos.y = 0 - asteroids[i].size.y;
+            else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) 
+                asteroids[i].pos.y = screen_height +  asteroids[i].size.y;
 
             // pos update
             switch(asteroids[i].dir) {
@@ -257,10 +383,13 @@ int main()
             asteroids[i].bounds.y = asteroids[i].pos.y;
         }
 
+        // basic wrap-around for ship
+
         // draw asteroids
         for (i = 0; i < ast_num; i++) {
             if (asteroids[i].active) {
                 DrawTextureEx(asteroids[i].tex, asteroids[i].pos, asteroids[i].rotation, asteroids[i].scale, RAYWHITE);
+                // DrawTexturePro(asteroids[i].tex, asteroids[i].rect, asteroids[i].bounds, asteroids[i].center, asteroids[i].rotation, RAYWHITE);
             }
         }
 
@@ -294,9 +423,12 @@ int main()
         // debug section
         if (debug) {
             // DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tip.x, ship.tip.y), 20, screen_height-90, 20, WHITE);
-            DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-70, 20, WHITE);
-            DrawText(TextFormat("Direction: %.2f", ship.dir), 20, screen_height-50, 20, WHITE);
-            // DrawText(TextFormat("Torp Index: %d", torp_index), 20, screen_height-30, 20, WHITE);  // test 
+            DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-90, 20, WHITE);
+            DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
+            DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
+            DrawText(TextFormat("Thrust: %.2f", thrust), 20, screen_height-50, 20, WHITE);   // test 
+            DrawText(TextFormat("Vel: %.2f, ", ship.vel.x), 20, screen_height-30, 20, WHITE);  // test
+            // DrawText(TextFormat("Accel X: %.2f", ship.accel.x), 160, screen_height-30, 20, WHITE);         // test
 
             // show bounding boxes
             DrawRectangleLinesEx(ship.bounds, 1.0, GREEN);
