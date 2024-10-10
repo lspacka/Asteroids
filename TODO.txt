@@ -13,21 +13,21 @@
     + asteroid init direction
     - set rectangle around the ship so the asteroids dont spawn next to it
       
-- trig
-  - get ship's angle for thrust and shooting
++ trig
+  + get ship's angle for thrust and shooting
 
 - shooting
+  - set timer after every round
 
-- physics
-  - thrust
-  - asteroid blast
++ physics
+  + thrust
 
 - collisions
   - ship to asteroid and ufos
   - shots to asteroid and ufos
   - ufos to asteroids
 
-- input handling
++ input handling
   ctrl -> shoot, up -> thrust, or viceversa
 
 - scoring system

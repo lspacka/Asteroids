@@ -15,8 +15,8 @@
 typedef struct Ship {
     Vector2 pos;
     Vector2 vel;
-    Vector2 accel;
-    Vector2 size;       // 
+    Vector2 accel;      // 
+    Vector2 size;
     Vector2 dir;
     Vector2 center;
     Vector2 tip;
@@ -25,10 +25,7 @@ typedef struct Ship {
     Texture2D tex;
     float rotation;
     float lowSpeed;
-    // float tipX;
-    // float tipY;
     float scale;
-    float mass;        //
     int lifes;
     bool active;
 } Ship;
@@ -93,8 +90,8 @@ int main()
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
     const float ast_speed = 1.5;
-    const int ast_num = 8;
     bool debug = false;
+    int ast_num = 8;
     int i, j;
 
     Texture2D tex_ship  = LoadTexture("./resources/images/ship.png");
@@ -116,17 +113,13 @@ int main()
     ship.pos = (Vector2){screen_width/2, screen_height/2};
     ship.size = (Vector2){ship.tex.width, ship.tex.height};
     ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
-    // ship.center = (Vector2){ship.pos.x, ship.pos.y};
     ship.rect = (Rectangle){0, 0, ship.tex.width, ship.tex.height};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
     // ship.bounds = (Rectangle){ship.pos.x-ship.center.x, ship.pos.y-ship.center.y, ship.size.x, ship.size.y}; // offset bbox
     // ship.rotation = -90;
     ship.scale = 0.5;
-    ship.mass = 0.5;
-    // ship.vel = (Vector2){1.0, 1.0};
     ship.lowSpeed = 0.004;
     ship.active = true;
-    // ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
 
     sluggo.pos = (Vector2){100, 100};
 
@@ -232,7 +225,7 @@ int main()
             }
 
             // update tip coords in torps before shooting
-            torps[torp_index].pos = (Vector2){ship.tip.x, ship.tip.y};
+            torps[torp_index].pos = (Vector2){ship.tip.x-ship.size.x/2, ship.tip.y-ship.size.y/2};
             torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
             torps[torp_index].active = true;
 
@@ -250,34 +243,6 @@ int main()
         }
 
         /////////////// THRUST ///////////////
-
-        // if (IsKeyDown(KEY_UP)) {
-        //     thrust = ship.dir;
-        //     Vector2Normalize(thrust);
-
-        //     thrust.x *= top_speed;
-        //     thrust.y *= top_speed;
-        //     // thrust.x /= ship.mass;
-        //     // thrust.y /= ship.mass;
-        //     ship.accel.x = thrust.x;
-        //     ship.accel.y = thrust.y;
-
-        //     ship.vel.x += ship.accel.x;
-        //     ship.vel.y += ship.accel.y;
-            
-        //     ship.pos.x += ship.vel.x;
-        //     ship.pos.y += ship.vel.y;
-        //     // ship.center.x = ship.pos.x;
-        //     // ship.center.y = ship.pos.y;
-
-        //     // if (Vector2Length(ship.vel) > ship.lowSpeed) {
-        //     //     Vector2Normalize(ship.vel);
-        //     //     ship.accel.x *= top_speed;
-        //     //     ship.accel.y *= top_speed;
-        //     // }
-        // }
-
-        // THIS WORKS
         if (IsKeyDown(KEY_UP)) {
 
             // Recalculate thrust direction based on the ship's current rotation
@@ -305,46 +270,24 @@ int main()
         ship.pos.x += ship.vel.x;
         ship.pos.y += ship.vel.y;
 
-        // ALT DRAG METHOD
-        // if (IsKeyDown(KEY_UP)) {
-        //     // Apply thrust
-        //     thrust = ship.dir;
-        //     Vector2Normalize(thrust);
-            
-        //     ship.vel.x += thrust.x * thrust_force;
-        //     ship.vel.y += thrust.y * thrust_force;
-        // } 
+        // update ship's bounds to match the new position
+        ship.bounds.x = ship.pos.x - ship.center.x;
+        ship.bounds.y = ship.pos.y - ship.center.y;
 
-        // // Apply drag/friction every frame
-        // ship.vel.x -= ship.vel.x * drag;
-        // ship.vel.y -= ship.vel.y * drag;
-
-        // // Update the ship's position based on velocity
-        // ship.pos.x += ship.vel.x;
-        // ship.pos.y += ship.vel.y;
-
+        if (ship.active) {
+            DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+        }
+        
         // ship wrap-around test
-        if (ship.pos.x >= screen_width) 
-            ship.pos.x = 0;
-        else if (ship.pos.x <= 0)
-            ship.pos.x = screen_width;
+        if (ship.pos.x-ship.size.x >= screen_width) 
+            ship.pos.x = 0 - ship.size.x;
+        else if (ship.pos.x+ship.size.x <= 0)
+            ship.pos.x = screen_width + ship.size.x;
 
-        if (ship.pos.y >= screen_height)
-            ship.pos.y = 0;
-        else if (ship.pos.y <= 0)
-            ship.pos.y = screen_height;
-
-
-
-        // // draw torps
-        // for (i = 0; i < 4; i++) {
-        //     if (torps[i].active) {
-        //         torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
-        //         torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
-        //         DrawTextureEx(tex_torp, torps[i].pos, 0.0, 1.0, RAYWHITE);
-        //     }
-        //     // wrap-around
-        // }
+        if (ship.pos.y-ship.size.y >= screen_height)
+            ship.pos.y = 0 - ship.size.y;
+        else if (ship.pos.y+ship.size.y <= 0)
+            ship.pos.y = screen_height + ship.size.y;
 
         // asteroids pos update and wrap-around logic
         for (i = 0; i < ast_num; i++) {
@@ -420,7 +363,7 @@ int main()
             }
         }
 
-        // debug section
+        /////////////// DEBUGGING DISPLAY ///////////////
         if (debug) {
             // DrawText(TextFormat("Cannon Tip - X: %.2f, Y: %.2f", ship.tip.x, ship.tip.y), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-90, 20, WHITE);
