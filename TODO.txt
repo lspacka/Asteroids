@@ -1,7 +1,5 @@
 ///////////////////// MISC BUGS /////////////////////
-  - shooting breaks at 12 asteroids
-  - ship dissapears and one of the asteroids doesnt move at 13 asteroids
-  - program doesnt run at 18 asteroids
+
 ////////////////////////////////////////////////////
 
 - asteroids initial state
