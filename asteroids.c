@@ -1,8 +1,11 @@
 //  -lraylib -lgdi32 -lwinmm -Wall -std=c99 -I c:/raylib/raylib/src
+//  asteroids: #636363
+//  ufo: #c6c6c6
+//  ship: #b9b9b9
 
 #include "raylib.h"
 #include "raymath.h"
-// #include "raysynth.h"
+// #include "assynth.h"
 // #include "animations.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +26,7 @@ typedef struct Ship {
     Rectangle rect;
     Texture2D tex;
     Color* pix;
-    float rotation;
+    float rotation;     //
     float lowSpeed;
     float scale;
     float radius;
@@ -107,40 +110,95 @@ int main()
     Asteroid asteroids[10] = { 0 };
     Torp torps[4] = { 0 };
 
-    // Texture2D tex_ship = LoadTexture("./resources/images/ship.png");
-    // Texture2D tex_torp = LoadTexture("./resources/images/torp.png");
-    // Texture2D tex_ufo  = LoadTexture("./resources/images/ufo.png");
-    // Texture2D tex_ast1 = LoadTexture("./resources/images/rock1.png");
-    // Texture2D tex_ast2 = LoadTexture("./resources/images/rock2.png");
-    // Texture2D tex_ast3 = LoadTexture("./resources/images/rock3.png");
-    // Texture2D tex_ast4 = LoadTexture("./resources/images/rock4.png");
+    /////////////// IMAGES AND TEXTURES SETUP ///////////////
 
     Image ship_img = LoadImage("./resources/images/ship.png");
-    Image torp = LoadImage("./resources/images/torp.png");
-    Image ufo  = LoadImage("./resources/images/ufo.png");
-    Image ast1 = LoadImage("./resources/images/rock1.png");
-    Image ast2 = LoadImage("./resources/images/rock2.png");
-    Image ast3 = LoadImage("./resources/images/rock3.png");
-    Image ast4 = LoadImage("./resources/images/rock4.png");
+    Image torp     = LoadImage("./resources/images/torp.png");
+    Image ufo      = LoadImage("./resources/images/ufo.png");
 
-    // Color* ship_pix = LoadImageColors(ship_img);
+    Image ast1   = LoadImage("./resources/images/ast1.png");
+    Image ast1_1 = LoadImage("./resources/images/ast1_1.png");
+    Image ast1_2 = LoadImage("./resources/images/ast1_2.png");
+    Image ast1_3 = LoadImage("./resources/images/ast1_3.png");
+
+    Image ast2   = LoadImage("./resources/images/ast2.png");
+    Image ast2_1 = LoadImage("./resources/images/ast2_1.png");
+    Image ast2_2 = LoadImage("./resources/images/ast2_2.png");
+    Image ast2_3 = LoadImage("./resources/images/ast2_3.png");
+
+    Image ast3   = LoadImage("./resources/images/ast3.png");
+    Image ast3_1 = LoadImage("./resources/images/ast3_1.png");
+    Image ast3_2 = LoadImage("./resources/images/ast3_2.png");
+    Image ast3_3 = LoadImage("./resources/images/ast3_3.png");
+    
+    Image ast4   = LoadImage("./resources/images/ast4.png");
+    Image ast4_1 = LoadImage("./resources/images/ast4_1.png");
+    Image ast4_2 = LoadImage("./resources/images/ast4_2.png");
+    Image ast4_3 = LoadImage("./resources/images/ast4_3.png");
+
+    // get pixel data from images
     Color* torp_pix = LoadImageColors(torp);
-    // Color* ufo_pix  = LoadImageColors(ufo);
-    Color* ast1_pix = LoadImageColors(ast1);
-    Color* ast2_pix = LoadImageColors(ast2);
-    Color* ast3_pix = LoadImageColors(ast3);
-    Color* ast4_pix = LoadImageColors(ast4);
 
+    Color* ast1_pix   = LoadImageColors(ast1);
+    Color* ast1_1_pix = LoadImageColors(ast1_1);
+    Color* ast1_2_pix = LoadImageColors(ast1_2);
+    Color* ast1_3_pix = LoadImageColors(ast1_3);
+    
+    Color* ast2_pix   = LoadImageColors(ast2);
+    Color* ast2_1_pix = LoadImageColors(ast2_1);
+    Color* ast2_2_pix = LoadImageColors(ast2_2);
+    Color* ast2_3_pix = LoadImageColors(ast2_3);
+    
+    Color* ast3_pix   = LoadImageColors(ast3);
+    Color* ast3_1_pix = LoadImageColors(ast3_1);
+    Color* ast3_2_pix = LoadImageColors(ast3_2);
+    Color* ast3_3_pix = LoadImageColors(ast3_3);
+    
+    Color* ast4_pix   = LoadImageColors(ast4);
+    Color* ast4_1_pix = LoadImageColors(ast4_1);
+    Color* ast4_2_pix = LoadImageColors(ast4_2);
+    Color* ast4_3_pix = LoadImageColors(ast4_3);
+
+    // load texture from images
     Texture2D tex_ship = LoadTextureFromImage(ship_img);
     Texture2D tex_torp = LoadTextureFromImage(torp);
     Texture2D tex_ufo  = LoadTextureFromImage(ufo);
-    Texture2D tex_ast1 = LoadTextureFromImage(ast1);
-    Texture2D tex_ast2 = LoadTextureFromImage(ast2);
-    Texture2D tex_ast3 = LoadTextureFromImage(ast3);
-    Texture2D tex_ast4 = LoadTextureFromImage(ast4);
 
-    Color*    ast_pixels[4]  = {ast1_pix, ast2_pix, ast3_pix, ast4_pix};
-    Texture2D ast_sprites[4] = {tex_ast1, tex_ast2, tex_ast3, tex_ast4};
+    Texture2D tex_ast1   = LoadTextureFromImage(ast1);
+    Texture2D tex_ast1_1 = LoadTextureFromImage(ast1_1);
+    Texture2D tex_ast1_2 = LoadTextureFromImage(ast1_2);
+    Texture2D tex_ast1_3 = LoadTextureFromImage(ast1_3);
+    
+    Texture2D tex_ast2   = LoadTextureFromImage(ast2);
+    Texture2D tex_ast2_1 = LoadTextureFromImage(ast2_1);
+    Texture2D tex_ast2_2 = LoadTextureFromImage(ast2_2);
+    Texture2D tex_ast2_3 = LoadTextureFromImage(ast2_3);
+    
+    Texture2D tex_ast3   = LoadTextureFromImage(ast3);
+    Texture2D tex_ast3_1 = LoadTextureFromImage(ast3_1);
+    Texture2D tex_ast3_2 = LoadTextureFromImage(ast3_2);
+    Texture2D tex_ast3_3 = LoadTextureFromImage(ast3_3);
+    
+    Texture2D tex_ast4 = LoadTextureFromImage(ast4);
+    Texture2D tex_ast4_1 = LoadTextureFromImage(ast4_1);
+    Texture2D tex_ast4_2 = LoadTextureFromImage(ast4_2);
+    Texture2D tex_ast4_3 = LoadTextureFromImage(ast4_3);
+
+    Color* ast_pixels[16]  = {
+        ast1_pix, ast1_1_pix, ast1_2_pix, ast1_3_pix,
+        ast2_pix, ast2_1_pix, ast2_2_pix, ast2_3_pix,
+        ast3_pix, ast3_1_pix, ast3_2_pix, ast3_3_pix,
+        ast4_pix, ast4_1_pix, ast4_2_pix, ast4_3_pix
+    };
+
+    Texture2D ast_sprites[16] = {
+        tex_ast1, tex_ast1_1, tex_ast1_2, tex_ast1_3,
+        tex_ast2, tex_ast2_1, tex_ast2_2, tex_ast2_3,
+        tex_ast3, tex_ast3_1, tex_ast3_2, tex_ast3_3,
+        tex_ast4, tex_ast4_1, tex_ast4_2, tex_ast4_3
+    };
+
+    ///////////////////////////////////////////////////////
 
     ship.tex = tex_ship;
     ship.pix = LoadImageColors(ship_img);
@@ -154,8 +212,8 @@ int main()
     // ship.bounds = (Rectangle){ship.pos.x-ship.center.x, ship.pos.y-ship.center.y, ship.size.x, ship.size.y}; // offset bbox
     // ship.rotation = -90;
     // ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
-    ship.radius = ship.tex.width / 1.7;
-    ship.scale = 0.5;
+    ship.radius = ship.tex.width / 3.33f;
+    // ship.scale = 0.5;
     ship.lowSpeed = 0.004;
     ship.active = true;
 
@@ -181,7 +239,7 @@ int main()
         y_pos = RandPos(-10, screen_height+10);
         rotation = ((float)rand() / RAND_MAX) * 360.0f;
         direction = rand() % 4;
-        spr_ind = rand() % 4;
+        spr_ind = rand() % 16;
         tex_ast = ast_sprites[spr_ind];
 
         asteroids[i].tex = tex_ast;
@@ -198,7 +256,7 @@ int main()
         asteroids[i].dir = direction;
         asteroids[i].scale = 1.0;
         asteroids[i].active = true;
-        asteroids[i].radius = asteroids[i].tex.width / 1.7;
+        asteroids[i].radius = asteroids[i].tex.width / 2.0f;
     }   
 
     // init torps
@@ -230,7 +288,7 @@ int main()
     float drag = 0.01f; 
     float speed;
 
-    ////////////////////////////////////////////////////////// GAME LOOP //////////////////////////////////////////////////////////
+    //////////////////////////////////////////// GAME LOOP //////////////////////////////////////////
 
     while(!WindowShouldClose()) {
         BeginDrawing();
@@ -415,30 +473,30 @@ int main()
 
             if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
                 collision_found = false;
-                DrawText("1st Check", 10, 20, 30, GREEN);
+                DrawText("Collision!", 10, 50, 40, RED);
 
-                for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
-                    for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
-                        int ast_local_x  = x;
-                        int ast_local_y  = y;
-                        // int ship_local_x = (x + (int)(asteroids[i].pos.x - ship.pos.x));
-                        // int ship_local_y = (y + (int)(asteroids[i].pos.y - ship.pos.y));
-                        int ship_local_x = (x + (int)(asteroid_top_left.x - ship_top_left.x));
-                        int ship_local_y = (y + (int)(asteroid_top_left.y - ship_top_left.y));
+                // for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
+                //     for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
+                //         int ast_local_x  = x;
+                //         int ast_local_y  = y;
+                //         // int ship_local_x = (x + (int)(asteroids[i].pos.x - ship.pos.x));
+                //         // int ship_local_y = (y + (int)(asteroids[i].pos.y - ship.pos.y));
+                //         int ship_local_x = (x + (int)(asteroid_top_left.x - ship_top_left.x));
+                //         int ship_local_y = (y + (int)(asteroid_top_left.y - ship_top_left.y));
 
-                        if (ship_local_x>=0 && ship_local_y>=0 && ship_local_x < ship.tex.width && ship_local_y < ship.tex.height) {
-                            Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
-                            Color ship_pixel = ship.pix[ship_local_y * ship.tex.width + ship_local_x];
+                //         if (ship_local_x>=0 && ship_local_y>=0 && ship_local_x < ship.tex.width && ship_local_y < ship.tex.height) {
+                //             Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
+                //             Color ship_pixel = ship.pix[ship_local_y * ship.tex.width + ship_local_x];
 
-                            if (ast_pixel.a > 0 && ship_pixel.a > 0) {
-                                collision_found = true;
-                                DrawText("Collision!", 10, 50, 40, RED);
-                                // asteroids[i].active = false;
-                                // ship.active = false;
-                            }  
-                        }
-                    }
-                }
+                //             if (ast_pixel.a > 0 && ship_pixel.a > 0) {
+                //                 collision_found = true;
+                //                 DrawText("Collision!", 10, 50, 40, RED);
+                //                 // asteroids[i].active = false;
+                //                 // ship.active = false;
+                //             }  
+                //         }
+                //     }
+                // }
             }
 
             // asteroids vs torps
@@ -446,8 +504,8 @@ int main()
                 if (asteroids[i].active && torps[j].active) {
                     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, torps[j].pos, torps[j].radius)) {
                         DrawText("1st Check", 10, 20, 30, GREEN);
-                    //     asteroids[i].active = false;
-                    //     torps[j].active = false;
+                        asteroids[i].active = false;
+                        torps[j].active = false;
                     }
                 }
             }
@@ -482,6 +540,55 @@ int main()
 
         EndDrawing();
     }
+
+    // unload images
+    UnloadImage(ship_img);
+    UnloadImage(torp);
+    UnloadImage(ufo);
+
+    UnloadImage(ast1);
+    UnloadImage(ast1_1);
+    UnloadImage(ast1_2);
+    UnloadImage(ast1_3);
+
+    UnloadImage(ast2);
+    UnloadImage(ast2_1);
+    UnloadImage(ast2_2);
+    UnloadImage(ast2_3);
+
+    UnloadImage(ast3);
+    UnloadImage(ast3_1);
+    UnloadImage(ast3_2);
+    UnloadImage(ast3_3);
+
+    UnloadImage(ast4);
+    UnloadImage(ast4_1);
+    UnloadImage(ast4_2);
+    UnloadImage(ast4_3);
+
+    // free all pixel data
+    UnloadImageColors(ship.pix);
+    UnloadImageColors(torp_pix);
+
+    UnloadImageColors(ast1_pix);
+    UnloadImageColors(ast1_1_pix);
+    UnloadImageColors(ast1_2_pix);
+    UnloadImageColors(ast1_3_pix);
+
+    UnloadImageColors(ast2_pix);
+    UnloadImageColors(ast2_1_pix);
+    UnloadImageColors(ast2_2_pix);
+    UnloadImageColors(ast2_3_pix);
+
+    UnloadImageColors(ast3_pix);
+    UnloadImageColors(ast3_1_pix);
+    UnloadImageColors(ast3_2_pix);
+    UnloadImageColors(ast3_3_pix);
+
+    UnloadImageColors(ast4_pix);
+    UnloadImageColors(ast4_1_pix);
+    UnloadImageColors(ast4_2_pix);
+    UnloadImageColors(ast4_3_pix);
 
     CloseWindow();
 
