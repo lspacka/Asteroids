@@ -263,9 +263,9 @@ int main()
     int torp_index = 0;
     for (i = 0; i < 4; i++) {
         torps[i].tex = tex_torp;
-        torps[i].pix = torp_pix;
+        torps[i].pix = LoadImageColors(torp);
         torps[i].active = false;
-        torps[i].speed = (Vector2){3.0, 3.0};
+        torps[i].speed = (Vector2){0.5, 0.5};
         torps[i].size = (Vector2){4, 4};
         torps[i].source = (Rectangle){0, 0, torps[i].tex.width, torps[i].tex.height};
         torps[i].center = (Vector2){torps[i].pos.x+torps[i].tex.width/2, torps[i].pos.y+torps[i].tex.height/2};
@@ -328,7 +328,7 @@ int main()
         ship.tip.x = ship.pos.x + rota_offset_x;
         ship.tip.y = ship.pos.y + rota_offset_y;
 
-        /////////////// SHOOTING ///////////////
+        // /////////////// SHOOTING ///////////////
 
         if (IsKeyPressed(KEY_LEFT_CONTROL)) {
             if (torp_index == 4) {
@@ -462,17 +462,18 @@ int main()
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
         /////////////// COLLISIONS ///////////////
-        // asteroids vs ship
+
+        // asteroids vs ship (simple cirle collisions)
         for (i = 0; i < ast_num; i++) {
             // float rotation_radians = asteroids[i].rotation * DEG2RAD;
             Vector2 asteroid_top_left = { asteroids[i].pos.x - asteroids[i].tex.width / 2,
                               asteroids[i].pos.y - asteroids[i].tex.height / 2 };
 
-            Vector2 ship_top_left = { ship.pos.x - ship.tex.width,
-                                    ship.pos.y - ship.tex.height};
+            // Vector2 ship_top_left = { ship.pos.x - ship.tex.width,
+            //                         ship.pos.y - ship.tex.height};
 
             if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
-                collision_found = false;
+                // collision_found = false;
                 DrawText("Collision!", 10, 50, 40, RED);
 
                 // for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
@@ -499,13 +500,69 @@ int main()
                 // }
             }
 
-            // asteroids vs torps
+            // asteroids vs torps (pixel-perfect using alpha channels)
+            // for (j = 0; j < 4; j++) {
+            //      Vector2 torp_top_left = {torps[j].pos.x - torps[j].tex.width, torps[j].pos.y - torps[j].tex.height};
+            //     // if (asteroids[i].active && torps[j].active) {
+            //         if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, torps[j].pos, torps[j].radius)) {
+            //             collision_found = false;
+            //             DrawText("1st Check", 10, 20, 30, GREEN);
+            //             for (int y = 0; y < asteroids[i].tex.height; y++) {
+            //                 for (int x = 0; x < asteroids[i].tex.width; x++) {
+            //                     int ast_local_x  = (x + (int)(asteroids[i].pos.x - torps[j].pos.x));
+            //                     int ast_local_y  = (y + (int)(asteroids[i].pos.y - torps[j].pos.y));
+            //                     int torp_local_x = (x + (int)(asteroid_top_left.x - torps[j].pos.x));
+            //                     int torp_local_y = (y + (int)(asteroid_top_left.y - torps[j].pos.y));
+            //                     // int torp_local_x = (x + (int)(asteroid_top_left.x - torp_top_left.x));
+            //                     // int torp_local_y = (y + (int)(asteroid_top_left.y - torp_top_left.y));
+
+            //                     if (torp_local_x>=0 && torp_local_y>=0 && torp_local_x<torps[j].tex.width && torp_local_y<torps[j].tex.height) {
+            //                         Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
+            //                         Color torp_pixel = torps[j].pix[torp_local_y * torps[j].tex.width + torp_local_x];
+
+            //                         if (ast_pixel.a > 0 && torp_pixel.a > 0) {
+            //                             collision_found = true;
+            //                             DrawText("Coliision!", 10, 50, 40, RED);
+            //                             // asteroids[i].active = false;
+            //                             // torps[j].active = false;
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     // }
+            // }
+
             for (j = 0; j < 4; j++) {
+                 Vector2 torp_top_left = {torps[j].pos.x - torps[j].tex.width, torps[j].pos.y - torps[j].tex.height};
                 if (asteroids[i].active && torps[j].active) {
                     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, torps[j].pos, torps[j].radius)) {
+                        collision_found = false;
                         DrawText("1st Check", 10, 20, 30, GREEN);
-                        asteroids[i].active = false;
-                        torps[j].active = false;
+                        for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
+                            for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
+                                int ast_local_x  = (x + (int)(asteroids[i].pos.x - torps[j].pos.x));
+                                int ast_local_y  = (y + (int)(asteroids[i].pos.y - torps[j].pos.y));
+                                int torp_local_x = (x + (int)(asteroids[i].pos.x - torp_top_left.x));
+                                int torp_local_y = (y + (int)(asteroids[i].pos.y - torp_top_left.y));
+                                // int torp_local_x = (x + (int)(asteroid_top_left.x - torp_top_left.x));
+                                // int torp_local_y = (y + (int)(asteroid_top_left.y - torp_top_left.y));
+
+                                if (torp_local_x >= 0 && torp_local_y >= 0 
+                                    && torp_local_x < torps[j].tex.width && torp_local_y < torps[j].tex.height) {
+
+                                    Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
+                                    Color torp_pixel = torps[j].pix[torp_local_y * torps[j].tex.width + torp_local_x];
+
+                                    if (ast_pixel.a > 0 && torp_pixel.a > 0) {
+                                        collision_found = true;
+                                        DrawText("Coliision!", 10, 50, 40, RED);
+                                        // asteroids[i].active = false;
+                                        // torps[j].active = false;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
