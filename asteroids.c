@@ -1,7 +1,4 @@
 //  -lraylib -lgdi32 -lwinmm -Wall -std=c99 -I c:/raylib/raylib/src
-//  asteroids: #636363
-//  ufo: #c6c6c6
-//  ship: #b9b9b9
 
 #include "raylib.h"
 #include "raymath.h"
@@ -97,7 +94,7 @@ int main()
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
     const float ast_speed = 1.5;
-    const float scale = 0.7f;
+    // const float scale = 0.7f;
     int ast_num = 10;
     int i, j;
     bool debug = false;
@@ -270,8 +267,8 @@ int main()
         torps[i].source = (Rectangle){0, 0, torps[i].tex.width, torps[i].tex.height};
         torps[i].center = (Vector2){torps[i].pos.x+torps[i].tex.width/2, torps[i].pos.y+torps[i].tex.height/2};
         torps[i].radius = torps[i].tex.width / 1.7;
-        // torps[i].tex.width *= 2.0;
-        // torps[i].tex.height *= 2.0;
+        // torps[i].tex.width *= 0.9;
+        // torps[i].tex.height *= 0.9;
     }
 
     // vars 4 trig calcs
@@ -297,9 +294,9 @@ int main()
         ClearBackground(BLACK);
 
         // moves ship with mouse for testing collisions
-        HideCursor();
-        mouse_pos = GetMousePosition();
-        ship.pos = (Vector2){mouse_pos.x-ship.tex.width/2, mouse_pos.y-ship.tex.height/2};
+        // HideCursor();
+        // mouse_pos = GetMousePosition();
+        // ship.pos = (Vector2){mouse_pos.x-ship.tex.width/2, mouse_pos.y-ship.tex.height/2};
 
         if (IsKeyPressed(KEY_D)) 
             debug = !debug;
@@ -405,15 +402,15 @@ int main()
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
         }
         
-        // ship wrap-around test
+        // ship wrap-around
         if (ship.pos.x-ship.size.x >= screen_width) 
-            ship.pos.x = 0 - ship.size.x;
-        else if (ship.pos.x+ship.size.x <= 0)
+            ship.pos.x = 0 - ship.size.x/2;
+        else if (ship.pos.x+ship.size.x/2 <= 0)
             ship.pos.x = screen_width + ship.size.x;
 
         if (ship.pos.y-ship.size.y >= screen_height)
-            ship.pos.y = 0 - ship.size.y;
-        else if (ship.pos.y+ship.size.y <= 0)
+            ship.pos.y = 0 - ship.size.y/2;
+        else if (ship.pos.y+ship.size.y/2 <= 0)
             ship.pos.y = screen_height + ship.size.y;
 
         // asteroids pos update and wrap-around logic
@@ -465,51 +462,27 @@ int main()
 
         /////////////// COLLISIONS ///////////////
 
-        // asteroids vs ship (simple cirle collisions)
+        Vector2 asteroid_top_left;
         for (i = 0; i < ast_num; i++) {
-            // float rotation_radians = asteroids[i].rotation * DEG2RAD;
-            Vector2 asteroid_top_left = { 
+            asteroid_top_left = (Vector2){ 
                 asteroids[i].pos.x - asteroids[i].tex.width / 2,
                 asteroids[i].pos.y - asteroids[i].tex.height / 2 
             };
 
-            // Vector2 ship_top_left = { ship.pos.x - ship.tex.width,
-            //                         ship.pos.y - ship.tex.height};
-
+            // asteroids vs ship (simple cirle collisions)
             if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
                 // collision_found = false;
                 DrawText("Collision!", 10, 50, 40, RED);
-
-                // for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
-                //     for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
-                //         int ast_local_x  = x;
-                //         int ast_local_y  = y;
-                //         // int ship_local_x = (x + (int)(asteroids[i].pos.x - ship.pos.x));
-                //         // int ship_local_y = (y + (int)(asteroids[i].pos.y - ship.pos.y));
-                //         int ship_local_x = (x + (int)(asteroid_top_left.x - ship_top_left.x));
-                //         int ship_local_y = (y + (int)(asteroid_top_left.y - ship_top_left.y));
-
-                //         if (ship_local_x>=0 && ship_local_y>=0 && ship_local_x < ship.tex.width && ship_local_y < ship.tex.height) {
-                //             Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
-                //             Color ship_pixel = ship.pix[ship_local_y * ship.tex.width + ship_local_x];
-
-                //             if (ast_pixel.a > 0 && ship_pixel.a > 0) {
-                //                 collision_found = true;
-                //                 DrawText("Collision!", 10, 50, 40, RED);
-                //                 // asteroids[i].active = false;
-                //                 // ship.active = false;
-                //             }  
-                //         }
-                //     }
-                // }
+                // asteroids[i].active = false;
+                // ship.active = false;
             }
 
+            // asteroids vs torps (pixel-perfect using alpha channels)
             for (j = 0; j < 4; j++) {
-                 Vector2 torp_top_left = {torps[j].pos.x - torps[j].tex.width, torps[j].pos.y - torps[j].tex.height};
                 if (asteroids[i].active && torps[j].active) {
                     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*1.2f, torps[j].pos, torps[j].radius)) {
                         collision_found = false;
-                        DrawText("1st Check", 10, 20, 30, GREEN);
+                        // DrawText("1st Check", 10, 20, 30, GREEN);
                         for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
                             for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
                                 int ast_local_x  = x;
@@ -551,17 +524,18 @@ int main()
                 if (asteroids[i].active) {
                     DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);
                     DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*1.2, RED);   // 1st check for torps
-                    DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);
+                    DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                            // center coords  
                 }       
             }
             
             for (i = 0; i < 4; i++) {
                 if (torps[i].active)
                     DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
-                    DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
+                    // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
             } 
 
-            DrawCircle(ship.pos.x, ship.pos.y, 3.0, ORANGE);        }
+            // DrawCircle(ship.pos.x, ship.pos.y, 3.0, ORANGE);   
+        }
 
         EndDrawing();
     }
