@@ -95,7 +95,7 @@ int main()
     const float ast_scale =  0.703125;
     const float ast_speed = 1.5;
     // const float scale = 0.7f;
-    int ast_num = 10;
+    int ast_num = 8;
     int i, j;
     bool debug = false;
     bool collision_found = false;
@@ -245,7 +245,7 @@ int main()
         // asteroids[i].tex.height *= scale;
         asteroids[i].pos = (Vector2){x_pos, y_pos};
         asteroids[i].speed = (Vector2){1.7, 1.7};
-        asteroids[i].size = (Vector2){128, 128};
+        asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
         asteroids[i].center = (Vector2){asteroids[i].tex.width/2, asteroids[i].tex.height/2};
         asteroids[i].rect = (Rectangle){0, 0, asteroids[i].tex.width, asteroids[i].tex.height};
         // asteroids[i].rotation = rotation;
@@ -413,41 +413,77 @@ int main()
         else if (ship.pos.y+ship.size.y/2 <= 0)
             ship.pos.y = screen_height + ship.size.y;
 
+        /////////// asteroids wrap-around test ////////////
+        // for (i = 0; i < ast_num; i++) {
+        //     asteroids[i].pos.y += ast_speed;
+        //     asteroids[i].bounds.x = asteroids[i].pos.x;
+        //     asteroids[i].bounds.y = asteroids[i].pos.y;
+        //     // asteroids[0].pos.y = 0.0;
+
+        //     BEST ONE SO FAR
+        //     if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
+        //         asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
+        //     else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
+        //         asteroids[i].pos.x = screen_width + asteroids[i].size.x/2;
+
+        //     if (asteroids[i].pos.y-asteroids[i].size.y/2 >= screen_height) 
+        //         asteroids[i].pos.y = 0 - asteroids[i].size.y/2;
+        //     else if (asteroids[i].pos.y+asteroids[i].size.y/2 <= 0) 
+        //         asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
+        // }
+
+        // asteroids[0].pos.x += ast_speed / 4;
+        // asteroids[0].bounds.x = asteroids[0].pos.x;
+        // asteroids[0].bounds.y = asteroids[0].pos.y;
+        // // asteroids[0].pos.y = 0.0;
+
+        /////////////////////////////////////////////////////
+
         // asteroids pos update and wrap-around logic
         for (i = 0; i < ast_num; i++) {
             // shitty wrap-around for full size sprites
-            if (asteroids[i].pos.x-asteroids[i].size.x >= screen_width) 
-                asteroids[i].pos.x = 0 - asteroids[i].size.x;
-            else if (asteroids[i].pos.x+asteroids[i].size.x <= 0) 
-                asteroids[i].pos.x = screen_width + asteroids[i].size.x;
+            // if (asteroids[i].pos.x-asteroids[i].size.x >= screen_width) 
+            //     asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
+            // else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
+            //     asteroids[i].pos.x = screen_width + asteroids[i].size.x;
 
-            if (asteroids[i].pos.y-asteroids[i].size.y >= screen_height) 
-                asteroids[i].pos.y = 0 - asteroids[i].size.y;
-            else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) 
-                asteroids[i].pos.y = screen_height +  asteroids[i].size.y;
+            // if (asteroids[i].pos.y-asteroids[i].size.y >= screen_height) 
+            //     asteroids[i].pos.y = 0 - asteroids[i].size.y;
+            // else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) 
+            //     asteroids[i].pos.y = screen_height +  asteroids[i].size.y;
+
+            if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
+                asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
+            else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
+                asteroids[i].pos.x = screen_width + asteroids[i].size.x/2;
+
+            if (asteroids[i].pos.y-asteroids[i].size.y/2 >= screen_height) 
+                asteroids[i].pos.y = 0 - asteroids[i].size.y/2;
+            else if (asteroids[i].pos.y+asteroids[i].size.y/2 <= 0) 
+                asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
 
             // pos update
-            // switch(asteroids[i].dir) {
-            //     case 0:
-            //         asteroids[i].pos.x += ast_speed;
-            //         asteroids[i].pos.y += ast_speed;
-            //         break;
-            //     case 1:
-            //         asteroids[i].pos.x -= ast_speed;
-            //         asteroids[i].pos.y -= ast_speed;
-            //         break;
-            //     case 2:
-            //         asteroids[i].pos.x += ast_speed;
-            //         asteroids[i].pos.y -= ast_speed;
-            //         break;
-            //     case 3:
-            //         asteroids[i].pos.x -= ast_speed;
-            //         asteroids[i].pos.y += ast_speed;
-            //         break;
-            // }
+            switch(asteroids[i].dir) {
+                case 0:
+                    asteroids[i].pos.x += ast_speed;
+                    asteroids[i].pos.y += ast_speed;
+                    break;
+                case 1:
+                    asteroids[i].pos.x -= ast_speed;
+                    asteroids[i].pos.y -= ast_speed;
+                    break;
+                case 2:
+                    asteroids[i].pos.x += ast_speed;
+                    asteroids[i].pos.y -= ast_speed;
+                    break;
+                case 3:
+                    asteroids[i].pos.x -= ast_speed;
+                    asteroids[i].pos.y += ast_speed;
+                    break;
+            }
 
-            // asteroids[i].bounds.x = asteroids[i].pos.x;
-            // asteroids[i].bounds.y = asteroids[i].pos.y;
+            asteroids[i].bounds.x = asteroids[i].pos.x;
+            asteroids[i].bounds.y = asteroids[i].pos.y;
         }
 
         // draw asteroids
