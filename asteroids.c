@@ -262,7 +262,7 @@ int main()
         torps[i].tex = tex_torp;
         torps[i].pix = LoadImageColors(torp);
         torps[i].active = false;
-        torps[i].speed = (Vector2){0.5, 0.5};
+        torps[i].speed = (Vector2){3.0, 3.0};
         torps[i].size = (Vector2){4, 4};
         torps[i].source = (Rectangle){0, 0, torps[i].tex.width, torps[i].tex.height};
         torps[i].center = (Vector2){torps[i].pos.x+torps[i].tex.width/2, torps[i].pos.y+torps[i].tex.height/2};
@@ -398,6 +398,7 @@ int main()
         ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
 
         /////////////// SHIP AND ASTEROIDS MOVEMENT ///////////////
+        
         if (ship.active) {
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
         }
@@ -413,45 +414,9 @@ int main()
         else if (ship.pos.y+ship.size.y/2 <= 0)
             ship.pos.y = screen_height + ship.size.y;
 
-        /////////// asteroids wrap-around test ////////////
-        // for (i = 0; i < ast_num; i++) {
-        //     asteroids[i].pos.y += ast_speed;
-        //     asteroids[i].bounds.x = asteroids[i].pos.x;
-        //     asteroids[i].bounds.y = asteroids[i].pos.y;
-        //     // asteroids[0].pos.y = 0.0;
-
-        //     BEST ONE SO FAR
-        //     if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
-        //         asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
-        //     else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
-        //         asteroids[i].pos.x = screen_width + asteroids[i].size.x/2;
-
-        //     if (asteroids[i].pos.y-asteroids[i].size.y/2 >= screen_height) 
-        //         asteroids[i].pos.y = 0 - asteroids[i].size.y/2;
-        //     else if (asteroids[i].pos.y+asteroids[i].size.y/2 <= 0) 
-        //         asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
-        // }
-
-        // asteroids[0].pos.x += ast_speed / 4;
-        // asteroids[0].bounds.x = asteroids[0].pos.x;
-        // asteroids[0].bounds.y = asteroids[0].pos.y;
-        // // asteroids[0].pos.y = 0.0;
-
-        /////////////////////////////////////////////////////
-
         // asteroids pos update and wrap-around logic
         for (i = 0; i < ast_num; i++) {
-            // shitty wrap-around for full size sprites
-            // if (asteroids[i].pos.x-asteroids[i].size.x >= screen_width) 
-            //     asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
-            // else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
-            //     asteroids[i].pos.x = screen_width + asteroids[i].size.x;
-
-            // if (asteroids[i].pos.y-asteroids[i].size.y >= screen_height) 
-            //     asteroids[i].pos.y = 0 - asteroids[i].size.y;
-            // else if (asteroids[i].pos.y+asteroids[i].size.y <= 0) 
-            //     asteroids[i].pos.y = screen_height +  asteroids[i].size.y;
-
+            // wrap-around
             if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
                 asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
             else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
@@ -481,7 +446,6 @@ int main()
                     asteroids[i].pos.y += ast_speed;
                     break;
             }
-
             asteroids[i].bounds.x = asteroids[i].pos.x;
             asteroids[i].bounds.y = asteroids[i].pos.y;
         }
@@ -506,11 +470,13 @@ int main()
             };
 
             // asteroids vs ship (simple cirle collisions)
-            if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
-                // collision_found = false;
-                DrawText("Collision!", 10, 50, 40, RED);
-                // asteroids[i].active = false;
-                // ship.active = false;
+            if (asteroids[i].active && ship.active) {
+                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
+                    // collision_found = false;
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    asteroids[i].active = false;
+                    ship.active = false;
+                }
             }
 
             // asteroids vs torps (pixel-perfect using alpha channels)
@@ -535,8 +501,8 @@ int main()
                                     if (ast_pixel.a > 0 && torp_pixel.a > 0) {
                                         collision_found = true;
                                         DrawText("Coliision!", 10, 50, 40, RED);
-                                        // asteroids[i].active = false;
-                                        // torps[j].active = false;
+                                        asteroids[i].active = false;
+                                        torps[j].active = false;
                                     }
                                 }
                             }
