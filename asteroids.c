@@ -296,8 +296,9 @@ int main()
     Timer burst_timer = { 0 };
     Timer shot_timers[4] = { 0 };
     // Timer shot_timer  = { 0 };
-    float burst_time  = 1.0f;
+    float burst_time  = 0.4f;
     float shot_time   = 1.5f;
+    bool cooldown_active = false;
 
     //////////////////////////////////////////// GAME LOOP //////////////////////////////////////////
 
@@ -339,15 +340,25 @@ int main()
         ship.tip.x = ship.pos.x + rota_offset_x;
         ship.tip.y = ship.pos.y + rota_offset_y;
 
-        // /////////////// SHOOTING ///////////////
+        ///////////////// SHOOTING ///////////////
+        // if (torp_index == 4) {
+        //     if (getElapsed(burst_timer) == 0)
+        //         startTimer(&burst_timer, burst_time);
 
-        if (IsKeyPressed(KEY_LEFT_CONTROL)) {
-            if (torp_index == 4) {
-                // timer then torp_index=0
-                torp_index = 0;
-            }
+        //     if (getElapsed(burst_timer) >= burst_time)
+        //         torp_index = 0;
+        // }
 
-            startTimer(&shot_timers[torp_index], shot_time);  // start single shot timer
+        if (IsKeyPressed(KEY_LEFT_CONTROL) && torp_index < 4 && !cooldown_active) {
+            // if (torp_index == 4) {
+            //     // timer then torp_index=0
+            //     startTimer(&burst_timer, burst_time);
+            //     if (getElapsed(burst_timer) >= burst_time)
+            //         torp_index = 0;
+            // }
+
+            // start single shot timer
+            startTimer(&shot_timers[torp_index], shot_time);  
 
             // update tip coords in torps before shooting
             torps[torp_index].pos = (Vector2){ship.tip.x-ship.size.x/2, ship.tip.y-ship.size.y/2};
@@ -355,6 +366,15 @@ int main()
             torps[torp_index].active = true;
 
             torp_index++;
+        }
+
+        if (torp_index == 4 && !cooldown_active) {
+            startTimer(&burst_timer, burst_time);
+            cooldown_active = true;
+        }
+        if (cooldown_active && getElapsed(burst_timer) >= burst_time) {
+            torp_index = 0;
+            cooldown_active = false;
         }
 
         // draw torps
@@ -537,6 +557,7 @@ int main()
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
+            DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
 
             // show bounding circles
             if (ship.active)
