@@ -19,7 +19,8 @@
   + get ship's angle for thrust and shooting
 
 - shooting
-  - set timer after every round
+  - set timer after every 4 shot round
+  - set timer for each shot
 
 + physics
   + thrust

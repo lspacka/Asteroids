@@ -2,7 +2,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
-// #include "assynth.h"
+// #include "synth.h"
 // #include "animations.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,8 +76,16 @@ typedef struct Torp {
     bool active;
 } Torp;
 
+typedef struct Timer {
+    double startTime;
+    double lifeTime;
+} Timer;
+
 int RandPos(int a, int b);
-void AstBlast(Asteroid ast);
+void startTimer(Timer* timer, double lifetime);
+bool TimerDone(Timer timer);
+double getElapsed(Timer timer);
+// void AstBlast(Asteroid ast);
 
 int main()
 {
@@ -228,8 +236,6 @@ int main()
     float rotated_center_x;
     float rotated_center_y;
     float radians;
-    
-    // size = 128 * ast_scale;
 
     for (i = 0; i < ast_num; i++) {
         x_pos = RandPos(-10, screen_width+10);
@@ -262,7 +268,7 @@ int main()
         torps[i].tex = tex_torp;
         torps[i].pix = LoadImageColors(torp);
         torps[i].active = false;
-        torps[i].speed = (Vector2){3.0, 3.0};
+        torps[i].speed = (Vector2){11.0, 11.0};
         torps[i].size = (Vector2){4, 4};
         torps[i].source = (Rectangle){0, 0, torps[i].tex.width, torps[i].tex.height};
         torps[i].center = (Vector2){torps[i].pos.x+torps[i].tex.width/2, torps[i].pos.y+torps[i].tex.height/2};
@@ -286,6 +292,12 @@ int main()
     float friction = 0.99f;
     float drag = 0.01f; 
     float speed;
+
+    Timer burst_timer = { 0 };
+    Timer shot_timers[4] = { 0 };
+    // Timer shot_timer  = { 0 };
+    float burst_time  = 1.0f;
+    float shot_time   = 1.5f;
 
     //////////////////////////////////////////// GAME LOOP //////////////////////////////////////////
 
@@ -331,9 +343,11 @@ int main()
 
         if (IsKeyPressed(KEY_LEFT_CONTROL)) {
             if (torp_index == 4) {
-                // if torp_index==3: timer, then i=0
+                // timer then torp_index=0
                 torp_index = 0;
             }
+
+            startTimer(&shot_timers[torp_index], shot_time);  // start single shot timer
 
             // update tip coords in torps before shooting
             torps[torp_index].pos = (Vector2){ship.tip.x-ship.size.x/2, ship.tip.y-ship.size.y/2};
@@ -350,6 +364,10 @@ int main()
                 torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
                 torps[i].dest = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].tex.width, torps[i].tex.height};
                 DrawTexturePro(tex_torp, torps[i].source, torps[i].dest, torps[i].center, 0.0f, WHITE);
+
+                // torp dissapears after 1.5 seconds
+                if (getElapsed(shot_timers[i]) >= shot_time)
+                    torps[i].active = false;
             }
             // wrap-around
             if (torps[i].pos.x-torps[i].tex.width >= screen_width)
@@ -361,6 +379,8 @@ int main()
                 torps[i].pos.y = 0 - torps[i].tex.height;
             else if (torps[i].pos.y+torps[i].tex.height <= 0)
                 torps[i].pos.y = screen_height + torps[i].tex.height;
+
+            // single shot timer. 1.5sec
         }
 
         /////////////// THRUST ///////////////
@@ -474,8 +494,8 @@ int main()
                 if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
                     // collision_found = false;
                     DrawText("Collision!", 10, 50, 40, RED);
-                    asteroids[i].active = false;
-                    ship.active = false;
+                    // asteroids[i].active = false;
+                    // ship.active = false;
                 }
             }
 
@@ -501,8 +521,8 @@ int main()
                                     if (ast_pixel.a > 0 && torp_pixel.a > 0) {
                                         collision_found = true;
                                         DrawText("Coliision!", 10, 50, 40, RED);
-                                        asteroids[i].active = false;
-                                        torps[j].active = false;
+                                        // asteroids[i].active = false;
+                                        // torps[j].active = false;
                                     }
                                 }
                             }
@@ -599,4 +619,20 @@ int main()
 int RandPos(int a, int b)
 {
     return a + rand() % (b - a+1);
+}
+
+void startTimer(Timer* timer, double lifetime)
+{
+    timer->startTime = GetTime();
+    timer->lifeTime = lifetime;
+}
+
+bool TimerDone(Timer timer)
+{
+    return GetTime() - timer.startTime >= timer.lifeTime;
+}
+
+double getElapsed(Timer timer)
+{
+    return GetTime() - timer.startTime;
 }
