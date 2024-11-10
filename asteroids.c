@@ -98,7 +98,7 @@ int main()
     InitWindow(screen_width, screen_height, "Asteroids");
     SetTargetFPS(60);
 
-    const float rotation_speed = 1.5;
+    const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
     const float ast_speed = 1.5;
@@ -118,7 +118,7 @@ int main()
     /////////////// IMAGES AND TEXTURES SETUP ///////////////
 
     Image ship_img = LoadImage("./resources/images/ship.png");
-    Image torp     = LoadImage("./resources/images/torp.png");
+    Image torp     = LoadImage("./resources/images/torp2.png");
     Image ufo      = LoadImage("./resources/images/ufo.png");
 
     Image ast1   = LoadImage("./resources/images/ast1.png");
@@ -130,6 +130,10 @@ int main()
     Image ast2_1 = LoadImage("./resources/images/ast2_1.png");
     Image ast2_2 = LoadImage("./resources/images/ast2_2.png");
     Image ast2_3 = LoadImage("./resources/images/ast2_3.png");
+    // Image ast2   = LoadImage("./resources/images/3ast2.png");
+    // Image ast2_1 = LoadImage("./resources/images/3ast2_1.png");
+    // Image ast2_2 = LoadImage("./resources/images/3ast2_2.png");
+    // Image ast2_3 = LoadImage("./resources/images/3ast2_3.png");
 
     Image ast3   = LoadImage("./resources/images/ast3.png");
     Image ast3_1 = LoadImage("./resources/images/ast3_1.png");
@@ -236,6 +240,7 @@ int main()
     float rotated_center_x;
     float rotated_center_y;
     float radians;
+    float check1_radius = 1.2f;     // 1st check for torps collision
 
     for (i = 0; i < ast_num; i++) {
         x_pos = RandPos(-10, screen_width+10);
@@ -268,7 +273,7 @@ int main()
         torps[i].tex = tex_torp;
         torps[i].pix = LoadImageColors(torp);
         torps[i].active = false;
-        torps[i].speed = (Vector2){11.0, 11.0};
+        torps[i].speed = (Vector2){9.0, 9.0};
         torps[i].size = (Vector2){4, 4};
         torps[i].source = (Rectangle){0, 0, torps[i].tex.width, torps[i].tex.height};
         torps[i].center = (Vector2){torps[i].pos.x+torps[i].tex.width/2, torps[i].pos.y+torps[i].tex.height/2};
@@ -341,21 +346,10 @@ int main()
         ship.tip.y = ship.pos.y + rota_offset_y;
 
         ///////////////// SHOOTING ///////////////
-        // if (torp_index == 4) {
-        //     if (getElapsed(burst_timer) == 0)
-        //         startTimer(&burst_timer, burst_time);
-
-        //     if (getElapsed(burst_timer) >= burst_time)
-        //         torp_index = 0;
-        // }
-
-        if (IsKeyPressed(KEY_LEFT_CONTROL) && torp_index < 4 && !cooldown_active) {
-            // if (torp_index == 4) {
-            //     // timer then torp_index=0
-            //     startTimer(&burst_timer, burst_time);
-            //     if (getElapsed(burst_timer) >= burst_time)
-            //         torp_index = 0;
-            // }
+        if (IsKeyPressed(KEY_LEFT_CONTROL) && !cooldown_active) {
+            // no burst timer
+            if (torp_index == 4) 
+                torp_index = 0;
 
             // start single shot timer
             startTimer(&shot_timers[torp_index], shot_time);  
@@ -368,14 +362,15 @@ int main()
             torp_index++;
         }
 
-        if (torp_index == 4 && !cooldown_active) {
-            startTimer(&burst_timer, burst_time);
-            cooldown_active = true;
-        }
-        if (cooldown_active && getElapsed(burst_timer) >= burst_time) {
-            torp_index = 0;
-            cooldown_active = false;
-        }
+        // burst timer (it dont feel right)
+        // if (torp_index == 4 && !cooldown_active) {
+        //     startTimer(&burst_timer, burst_time);
+        //     cooldown_active = true;
+        // }
+        // if (cooldown_active && getElapsed(burst_timer) >= burst_time) {
+        //     torp_index = 0;
+        //     cooldown_active = false;
+        // }
 
         // draw torps
         for (i = 0; i < 4; i++) {
@@ -510,19 +505,19 @@ int main()
             };
 
             // asteroids vs ship (simple cirle collisions)
-            if (asteroids[i].active && ship.active) {
-                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
-                    // collision_found = false;
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    // asteroids[i].active = false;
-                    // ship.active = false;
-                }
-            }
+            // if (asteroids[i].active && ship.active) {
+            //     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
+            //         // collision_found = false;
+            //         DrawText("Collision!", 10, 50, 40, RED);
+            //         // asteroids[i].active = false;
+            //         // ship.active = false;
+            //     }
+            // }
 
             // asteroids vs torps (pixel-perfect using alpha channels)
             for (j = 0; j < 4; j++) {
                 if (asteroids[i].active && torps[j].active) {
-                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*1.2f, torps[j].pos, torps[j].radius)) {
+                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, torps[j].pos, torps[j].radius)) {
                         collision_found = false;
                         // DrawText("1st Check", 10, 20, 30, GREEN);
                         for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
@@ -541,8 +536,8 @@ int main()
                                     if (ast_pixel.a > 0 && torp_pixel.a > 0) {
                                         collision_found = true;
                                         DrawText("Coliision!", 10, 50, 40, RED);
-                                        // asteroids[i].active = false;
-                                        // torps[j].active = false;
+                                        asteroids[i].active = false;
+                                        torps[j].active = false;
                                     }
                                 }
                             }
@@ -565,9 +560,9 @@ int main()
             
             for (i = 0; i < ast_num; i++) {
                 if (asteroids[i].active) {
-                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);
-                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*1.2, RED);   // 1st check for torps
-                    DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                            // center coords  
+                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);              // vs ship collision
+                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*check1_radius, RED);   // 1st check for torps
+                    DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                                      // center coords  
                 }       
             }
             
