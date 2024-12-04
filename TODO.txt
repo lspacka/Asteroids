@@ -3,7 +3,7 @@
 //  ship: #b9b9b9
 
 ///////////////////// MISC BUGS /////////////////////
-
+4px ast - 1st check radius: 1.4, torp speed: 11
 ////////////////////////////////////////////////////
 
 - asteroids initial state
@@ -13,14 +13,14 @@
     + pick a sprite randomly from an array for each asteroid
       (or check whats the pattern in the og game)
     + asteroid init direction
-    - set rectangle around the ship so the asteroids dont spawn next to it
+    - set rectangle around the ship so the asteroids dont spawn in it
       
 + trig
   + get ship's angle for thrust and shooting
 
 - shooting
-  - set timer after every 4 shot round
-  - set timer for each shot
+  - add cooldown after every 4 shot burst
+  + set timer for each shot
 
 + physics
   + thrust
@@ -49,3 +49,5 @@
   - pause
   - game over
   - player scores
+
+- synth

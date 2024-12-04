@@ -25,7 +25,7 @@ typedef struct Ship {
     Color* pix;
     float rotation;     //
     float lowSpeed;
-    float scale;
+    float scale;        //
     float radius;
     int lifes;
     bool active;
@@ -48,6 +48,7 @@ typedef struct Asteroid {
     float radius;
     int dir;
     bool active;
+    char* type;
 } Asteroid;
 
 typedef struct UFO {
@@ -85,7 +86,7 @@ int RandPos(int a, int b);
 void startTimer(Timer* timer, double lifetime);
 bool TimerDone(Timer timer);
 double getElapsed(Timer timer);
-// void AstBlast(Asteroid ast);
+void AstBlast(Asteroid ast, Asteroid* asts, int index);
 
 int main()
 {
@@ -101,10 +102,15 @@ int main()
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
-    const float ast_speed = 1.5;
+    const float ast_speed = 1.7;  // 1.5
     // const float scale = 0.7f;
-    int ast_num = 8;
-    int i, j;
+    int ast_num = 10;
+    int mid_ast_num = ast_num * 2;
+    int lil_ast_num = ast_num * 4;
+    int all_asts_num = ast_num * mid_ast_num * lil_ast_num;
+    int mid_ast_ind = 0;
+    int lil_ast_ind = 0;
+    int i, j, k;
     bool debug = false;
     bool collision_found = false;
     Vector2 mouse_pos;
@@ -112,7 +118,15 @@ int main()
     Ship ship = { 0 };
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
-    Asteroid asteroids[10] = { 0 };
+    // Asteroid asteroids[4] = { 0 };
+    Asteroid* asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
+    Asteroid* mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
+    Asteroid* lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
+    Asteroid** all_asts  = (Asteroid**)calloc((ast_num*mid_ast_num*lil_ast_num), sizeof(Asteroid));
+    
+    // all_asts[0] = asteroids;
+    // all_asts[1] = mid_asts;
+    // all_asts[2] = lil_asts;
     Torp torps[4] = { 0 };
 
     /////////////// IMAGES AND TEXTURES SETUP ///////////////
@@ -130,10 +144,6 @@ int main()
     Image ast2_1 = LoadImage("./resources/images/ast2_1.png");
     Image ast2_2 = LoadImage("./resources/images/ast2_2.png");
     Image ast2_3 = LoadImage("./resources/images/ast2_3.png");
-    // Image ast2   = LoadImage("./resources/images/3ast2.png");
-    // Image ast2_1 = LoadImage("./resources/images/3ast2_1.png");
-    // Image ast2_2 = LoadImage("./resources/images/3ast2_2.png");
-    // Image ast2_3 = LoadImage("./resources/images/3ast2_3.png");
 
     Image ast3   = LoadImage("./resources/images/ast3.png");
     Image ast3_1 = LoadImage("./resources/images/ast3_1.png");
@@ -211,8 +221,8 @@ int main()
 
     ship.tex = tex_ship;
     ship.pix = LoadImageColors(ship_img);
-    // ship.tex.width *= scale;
-    // ship.tex.height *= scale;
+    ship.tex.width *= 0.9;
+    ship.tex.height *= 0.9;
     ship.pos = (Vector2){screen_width/2, screen_height/2};
     ship.size = (Vector2){ship.tex.width, ship.tex.height};
     ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
@@ -240,7 +250,7 @@ int main()
     float rotated_center_x;
     float rotated_center_y;
     float radians;
-    float check1_radius = 1.2f;     // 1st check for torps collision
+    float check1_radius = 1.4f;     // 1st check for torps collision.  1.2f
 
     for (i = 0; i < ast_num; i++) {
         x_pos = RandPos(-10, screen_width+10);
@@ -250,6 +260,7 @@ int main()
         spr_ind = rand() % 16;
         tex_ast = ast_sprites[spr_ind];
 
+        asteroids[i].type = "big";
         asteroids[i].tex = tex_ast;
         asteroids[i].pix = ast_pixels[spr_ind];
         // asteroids[i].tex.width *= scale;
@@ -265,15 +276,42 @@ int main()
         asteroids[i].scale = 1.0;
         asteroids[i].active = true;
         asteroids[i].radius = asteroids[i].tex.width / 2.0f;
-    }   
+
+        for(j = 0; j < mid_ast_num; j++) {
+            mid_asts[j].type = "mid";
+            // setting the scaled sizes here so I can use them in the wrap-around logic for all asteroids
+            mid_asts[j].tex = asteroids[i].tex;
+            mid_asts[j].tex.width *= 0.5;
+            mid_asts[j].tex.height *= 0.5;
+        }
+
+        for (k = 0; k < lil_ast_num; k++) {
+            lil_asts[k].type = "lil";
+            lil_asts[k].tex = asteroids[i].tex;
+            lil_asts[k].tex.width *= 0.25;
+            lil_asts[k].tex.height *= 0.25;
+        }   
+    }
+
+    // for(i = 0; i < mid_ast_num; i++) {
+    //     mid_asts[i].type = "mid";
+    // }
+
+    // for (i = 0; i < lil_ast_num; i++) {
+    //     lil_asts[i].type = "lil";
+    // }   
+
+    all_asts[0] = asteroids;
+    all_asts[1] = mid_asts;
+    all_asts[2] = lil_asts;
 
     // init torps
     int torp_index = 0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++) {   // should I give it a huge number instead of 4?
         torps[i].tex = tex_torp;
         torps[i].pix = LoadImageColors(torp);
         torps[i].active = false;
-        torps[i].speed = (Vector2){9.0, 9.0};
+        torps[i].speed = (Vector2){11.0, 11.0};    // ideal = 10.0
         torps[i].size = (Vector2){4, 4};
         torps[i].source = (Rectangle){0, 0, torps[i].tex.width, torps[i].tex.height};
         torps[i].center = (Vector2){torps[i].pos.x+torps[i].tex.width/2, torps[i].pos.y+torps[i].tex.height/2};
@@ -449,18 +487,43 @@ int main()
         else if (ship.pos.y+ship.size.y/2 <= 0)
             ship.pos.y = screen_height + ship.size.y;
 
-        // asteroids pos update and wrap-around logic
+        int ast_lim;
+        ///////////// asteroids pos update and wrap-around logic /////////////
+
+        // single wrap-around logic for all asteroids
+        for (i = 0; i < 3; i++) {
+            if (i == 0)
+                ast_lim = ast_num;
+            else if (i == 1)
+                ast_lim = mid_ast_num;
+            else
+                ast_lim = lil_ast_num;
+
+            for (j = 0; j < ast_lim; j++) {
+                if (all_asts[i][j].pos.x-all_asts[i][j].size.x/2 >= screen_width) 
+                    all_asts[i][j].pos.x = 0 - all_asts[i][j].size.x/2;
+                else if (all_asts[i][j].pos.x+all_asts[i][j].size.x/2 <= 0) 
+                    all_asts[i][j].pos.x = screen_width + all_asts[i][j].size.x/2;
+
+                if (all_asts[i][j].pos.y-all_asts[i][j].size.y/2 >= screen_height) 
+                    all_asts[i][j].pos.y = 0 - all_asts[i][j].size.y/2;
+                else if (all_asts[i][j].pos.y+all_asts[i][j].size.y/2 <= 0) 
+                    all_asts[i][j].pos.y = screen_height +  all_asts[i][j].size.y/2;
+            }
+        }
+
+        // BIG
         for (i = 0; i < ast_num; i++) {
             // wrap-around
-            if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
-                asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
-            else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
-                asteroids[i].pos.x = screen_width + asteroids[i].size.x/2;
+            // if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
+            //     asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
+            // else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
+            //     asteroids[i].pos.x = screen_width + asteroids[i].size.x/2;
 
-            if (asteroids[i].pos.y-asteroids[i].size.y/2 >= screen_height) 
-                asteroids[i].pos.y = 0 - asteroids[i].size.y/2;
-            else if (asteroids[i].pos.y+asteroids[i].size.y/2 <= 0) 
-                asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
+            // if (asteroids[i].pos.y-asteroids[i].size.y/2 >= screen_height) 
+            //     asteroids[i].pos.y = 0 - asteroids[i].size.y/2;
+            // else if (asteroids[i].pos.y+asteroids[i].size.y/2 <= 0) 
+            //     asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
 
             // pos update
             switch(asteroids[i].dir) {
@@ -485,17 +548,31 @@ int main()
             asteroids[i].bounds.y = asteroids[i].pos.y;
         }
 
-        // draw asteroids
+        // MID
+        // wrap-around
+        // pos update
+
+        // LIL
+        // wrap-around
+        // pos update
+
+        ///////////// draw asteroids /////////////
+
+        // BIG
         for (i = 0; i < ast_num; i++) {
             if (asteroids[i].active) 
                 DrawTexturePro(asteroids[i].tex, asteroids[i].rect, asteroids[i].bounds, asteroids[i].center, asteroids[i].rotation, RAYWHITE);
         }
 
-        // draw ship and ufos
+        // MID
+
+        // LIL
+
+        ///////////// draw ship and ufos /////////////
         if (ship.active) 
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
-        /////////////// COLLISIONS ///////////////
+        ////////////////////////// COLLISIONS //////////////////////////
 
         Vector2 asteroid_top_left;
         for (i = 0; i < ast_num; i++) {
@@ -505,14 +582,14 @@ int main()
             };
 
             // asteroids vs ship (simple cirle collisions)
-            // if (asteroids[i].active && ship.active) {
-            //     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
-            //         // collision_found = false;
-            //         DrawText("Collision!", 10, 50, 40, RED);
-            //         // asteroids[i].active = false;
-            //         // ship.active = false;
-            //     }
-            // }
+            if (asteroids[i].active && ship.active) {
+                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
+                    // collision_found = false;
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    // asteroids[i].active = false;
+                    // ship.active = false;
+                }
+            }
 
             // asteroids vs torps (pixel-perfect using alpha channels)
             for (j = 0; j < 4; j++) {
@@ -534,8 +611,9 @@ int main()
                                     Color torp_pixel = torps[j].pix[torp_local_y * torps[j].tex.width + torp_local_x];
 
                                     if (ast_pixel.a > 0 && torp_pixel.a > 0) {
+                                        // AstBlast(asteroids[i], mid_asts, mid_ast_ind);
+                                        // mid_ast_ind += 2;
                                         collision_found = true;
-                                        DrawText("Coliision!", 10, 50, 40, RED);
                                         asteroids[i].active = false;
                                         torps[j].active = false;
                                     }
@@ -563,7 +641,8 @@ int main()
                     DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);              // vs ship collision
                     DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*check1_radius, RED);   // 1st check for torps
                     DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                                      // center coords  
-                }       
+                }
+                DrawText(TextFormat("ast_type: %s", asteroids[0].type), 20, screen_height-30, 20, WHITE);
             }
             
             for (i = 0; i < 4; i++) {
@@ -635,6 +714,11 @@ int main()
 int RandPos(int a, int b)
 {
     return a + rand() % (b - a+1);
+}
+
+void AstBlast(Asteroid ast, Asteroid* asts, int index)
+{
+    // init
 }
 
 void startTimer(Timer* timer, double lifetime)
