@@ -104,7 +104,7 @@ int main()
     const float ast_scale =  0.703125;
     const float ast_speed = 1.7;  // 1.5
     // const float scale = 0.7f;
-    int ast_num = 8;
+    int ast_num = 4;
     int mid_ast_num = ast_num * 2;
     int lil_ast_num = mid_ast_num * 2;
     int all_asts_num = ast_num * mid_ast_num * lil_ast_num;
@@ -285,15 +285,15 @@ int main()
             mid_asts[j].type = "mid";
             // setting the scaled sizes here so I can use them in the wrap-around logic for all asteroids
             mid_asts[j].tex = asteroids[i].tex;
-            mid_asts[j].tex.width *= 0.5;
-            mid_asts[j].tex.height *= 0.5;
+            // mid_asts[j].tex.width *= 0.5;
+            // mid_asts[j].tex.height *= 0.5;
         }
 
         for (k = 0; k < lil_ast_num; k++) {
             lil_asts[k].type = "lil";
             lil_asts[k].tex = asteroids[i].tex;
-            lil_asts[k].tex.width *= 0.25;
-            lil_asts[k].tex.height *= 0.25;
+            // lil_asts[k].tex.width *= 0.25;
+            // lil_asts[k].tex.height *= 0.25;
         }   
     }
 
@@ -531,23 +531,42 @@ int main()
             //     asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
 
             switch(asteroids[i].dir) {
-                case 0:
-                    asteroids[i].pos.x += ast_speed;
-                    asteroids[i].pos.y += ast_speed;
-                    break;
-                case 1:
-                    asteroids[i].pos.x -= ast_speed;
-                    asteroids[i].pos.y -= ast_speed;
-                    break;
-                case 2:
-                    asteroids[i].pos.x += ast_speed;
-                    asteroids[i].pos.y -= ast_speed;
-                    break;
-                case 3:
-                    asteroids[i].pos.x -= ast_speed;
-                    asteroids[i].pos.y += ast_speed;
-                    break;
-            }
+            //     case 0:
+            //         asteroids[i].pos.x += ast_speed;
+            //         asteroids[i].pos.y += ast_speed;
+            //         break;
+            //     case 1:
+            //         asteroids[i].pos.x -= ast_speed;
+            //         asteroids[i].pos.y -= ast_speed;
+            //         break;
+            //     case 2:
+            //         asteroids[i].pos.x += ast_speed;
+            //         asteroids[i].pos.y -= ast_speed;
+            //         break;
+            //     case 3:
+            //         asteroids[i].pos.x -= ast_speed;
+            //         asteroids[i].pos.y += ast_speed;
+            //         break;
+            // }
+            // asteroids[i].bounds.x = asteroids[i].pos.x;
+            // asteroids[i].bounds.y = asteroids[i].pos.y;
+            case 0:
+                        asteroids[i].pos.x -= ast_speed;
+                        asteroids[i].pos.y -= ast_speed;
+                        break;
+                    case 1:
+                        asteroids[i].pos.x += ast_speed;
+                        asteroids[i].pos.y -= ast_speed;
+                        break;
+                    case 2:
+                        asteroids[i].pos.x -= ast_speed;
+                        asteroids[i].pos.y += ast_speed;
+                        break;
+                    case 3:
+                        asteroids[i].pos.x += ast_speed;
+                        asteroids[i].pos.y += ast_speed;
+                        break;
+                }
             asteroids[i].bounds.x = asteroids[i].pos.x;
             asteroids[i].bounds.y = asteroids[i].pos.y;
         }
@@ -733,7 +752,7 @@ int main()
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
             DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
             // DrawText(TextFormat("lil_ast_type: %s", lil_asts[lil_ast_num-1].type), 20, screen_height-30, 20, WHITE);
-            DrawText(TextFormat("lil_ast_ind: %d", lil_ast_ind), 20, screen_height-30, 20, WHITE);
+            // DrawText(TextFormat("lil_ast_ind: %d", lil_ast_ind), 20, screen_height-30, 20, WHITE);
 
             // show bounding circles
             if (ship.active)
@@ -841,14 +860,14 @@ int RandPos(int a, int b)
 
 void AstBlast(Asteroid ast, Asteroid* asts, int* index)
 {
-    int i, direction, prev_dir;
+    int i, direction, prev_dir = -1;
 
     for (i = 0; i < 2; i++) {
-        direction = rand() % 4;
-        // prev_dir = direction;
-        // if (i==1 && prev_dir==direction) {
-        //     direction = rand() % 4;
-        // }
+        do {
+            direction = rand() % 4;
+        } while (direction == ast.dir || (i == 1 && direction == prev_dir));
+
+        prev_dir = direction;
 
         asts[*index].active = true;
         asts[*index].tex = ast.tex;
