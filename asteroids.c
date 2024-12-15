@@ -93,7 +93,15 @@ int main()
     SetTraceLogLevel(LOG_WARNING);
     srand(time(NULL));
 
-    int screen_width = 900;
+    // InitWindow(800, 600, "Asteroids");
+
+    // int screen_width = GetMonitorWidth(0);
+    // int screen_height = GetMonitorHeight(0);
+
+    // SetWindowSize(screen_width, screen_height);
+    
+
+    int screen_width = 1200;
     int screen_height = 900;
 
     InitWindow(screen_width, screen_height, "Asteroids");
@@ -103,7 +111,7 @@ int main()
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
     const float ast_speed = 1.7;  // 1.5
-    // const float scale = 0.7f;
+
     int ast_num = 4;
     int mid_ast_num = ast_num * 2;
     int lil_ast_num = mid_ast_num * 2;
@@ -122,16 +130,12 @@ int main()
     Ship ship = { 0 };
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
-    // Asteroid asteroids[4] = { 0 };
+    Torp torps[4] = { 0 };
+
     Asteroid* asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
     Asteroid* mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
     Asteroid* lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
     Asteroid** all_asts  = (Asteroid**)calloc((ast_num*mid_ast_num*lil_ast_num), sizeof(Asteroid));
-    
-    // all_asts[0] = asteroids;
-    // all_asts[1] = mid_asts;
-    // all_asts[2] = lil_asts;
-    Torp torps[4] = { 0 };
 
     /////////////// IMAGES AND TEXTURES SETUP ///////////////
 
@@ -249,6 +253,7 @@ int main()
     int y_pos;
     int spr_ind;
     int direction;
+    int init_ast_pos;
     // float size;
     float rotation;
     float rotated_center_x;
@@ -257,9 +262,15 @@ int main()
     float check1_radius = 1.4f;     // 1st check for torps collision.  1.2f
 
     for (i = 0; i < ast_num; i++) {
-        x_pos = RandPos(-10, screen_width+10);
+        // x_pos = RandPos(-10, screen_width+10);
+        // y_pos = RandPos(-10, screen_height+10);
+        init_ast_pos = rand() % 2;
+        if (init_ast_pos == 0)
+            x_pos = RandPos(-10, (screen_width/2)-(ship.tex.width*4));
+        else
+            x_pos = RandPos((screen_width/2)+(ship.tex.width*4), screen_width+10);
         y_pos = RandPos(-10, screen_height+10);
-        // rotation = ((float)rand() / RAND_MAX) * 360.0f;
+
         direction = rand() % 4;
         spr_ind = rand() % 16;
         tex_ast = ast_sprites[spr_ind];
@@ -283,27 +294,15 @@ int main()
 
         for(j = 0; j < mid_ast_num; j++) {
             mid_asts[j].type = "mid";
-            // setting the scaled sizes here so I can use them in the wrap-around logic for all asteroids
+            // setting a temp texture here so I can use it in the wrap-around logic for all asteroids
             mid_asts[j].tex = asteroids[i].tex;
-            // mid_asts[j].tex.width *= 0.5;
-            // mid_asts[j].tex.height *= 0.5;
         }
 
         for (k = 0; k < lil_ast_num; k++) {
             lil_asts[k].type = "lil";
             lil_asts[k].tex = asteroids[i].tex;
-            // lil_asts[k].tex.width *= 0.25;
-            // lil_asts[k].tex.height *= 0.25;
         }   
     }
-
-    // for(i = 0; i < mid_ast_num; i++) {
-    //     mid_asts[i].type = "mid";
-    // }
-
-    // for (i = 0; i < lil_ast_num; i++) {
-    //     lil_asts[i].type = "lil";
-    // }   
 
     all_asts[0] = asteroids;
     all_asts[1] = mid_asts;
@@ -337,7 +336,7 @@ int main()
     float top_speed = 50.0f;
     float thrust_force = 0.1f;
     float friction = 0.99f;
-    float drag = 0.01f; 
+    float drag = 0.005f; 
     float speed;
 
     Timer burst_timer = { 0 };
@@ -426,6 +425,7 @@ int main()
                 if (getElapsed(shot_timers[i]) >= shot_time)
                     torps[i].active = false;
             }
+
             // wrap-around
             if (torps[i].pos.x-torps[i].tex.width >= screen_width)
                 torps[i].pos.x = 0 - torps[i].tex.width;
@@ -519,54 +519,24 @@ int main()
         // POSITION UPDATE
         // BIG
         for (i = 0; i < ast_num; i++) {
-            // wrap-around
-            // if (asteroids[i].pos.x-asteroids[i].size.x/2 >= screen_width) 
-            //     asteroids[i].pos.x = 0 - asteroids[i].size.x/2;
-            // else if (asteroids[i].pos.x+asteroids[i].size.x/2 <= 0) 
-            //     asteroids[i].pos.x = screen_width + asteroids[i].size.x/2;
-
-            // if (asteroids[i].pos.y-asteroids[i].size.y/2 >= screen_height) 
-            //     asteroids[i].pos.y = 0 - asteroids[i].size.y/2;
-            // else if (asteroids[i].pos.y+asteroids[i].size.y/2 <= 0) 
-            //     asteroids[i].pos.y = screen_height +  asteroids[i].size.y/2;
-
-            switch(asteroids[i].dir) {
-            //     case 0:
-            //         asteroids[i].pos.x += ast_speed;
-            //         asteroids[i].pos.y += ast_speed;
-            //         break;
-            //     case 1:
-            //         asteroids[i].pos.x -= ast_speed;
-            //         asteroids[i].pos.y -= ast_speed;
-            //         break;
-            //     case 2:
-            //         asteroids[i].pos.x += ast_speed;
-            //         asteroids[i].pos.y -= ast_speed;
-            //         break;
-            //     case 3:
-            //         asteroids[i].pos.x -= ast_speed;
-            //         asteroids[i].pos.y += ast_speed;
-            //         break;
-            // }
-            // asteroids[i].bounds.x = asteroids[i].pos.x;
-            // asteroids[i].bounds.y = asteroids[i].pos.y;
-            case 0:
-                        asteroids[i].pos.x -= ast_speed;
-                        asteroids[i].pos.y -= ast_speed;
-                        break;
-                    case 1:
-                        asteroids[i].pos.x += ast_speed;
-                        asteroids[i].pos.y -= ast_speed;
-                        break;
-                    case 2:
-                        asteroids[i].pos.x -= ast_speed;
-                        asteroids[i].pos.y += ast_speed;
-                        break;
-                    case 3:
-                        asteroids[i].pos.x += ast_speed;
-                        asteroids[i].pos.y += ast_speed;
-                        break;
-                }
+            switch(asteroids[i].dir) {            
+                case 0:
+                    asteroids[i].pos.x -= ast_speed;
+                    asteroids[i].pos.y -= ast_speed;
+                    break;
+                case 1:
+                    asteroids[i].pos.x += ast_speed;
+                    asteroids[i].pos.y -= ast_speed;
+                    break;
+                case 2:
+                    asteroids[i].pos.x -= ast_speed;
+                    asteroids[i].pos.y += ast_speed;
+                    break;
+                case 3:
+                    asteroids[i].pos.x += ast_speed;
+                    asteroids[i].pos.y += ast_speed;
+                    break;
+            }
             asteroids[i].bounds.x = asteroids[i].pos.x;
             asteroids[i].bounds.y = asteroids[i].pos.y;
         }
@@ -659,7 +629,7 @@ int main()
 
             // vs ship (simple cirle collisions)
             if (asteroids[i].active && ship.active) {
-                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius)) {
+                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
                     // collision_found = false;
                     DrawText("Collision!", 10, 50, 40, RED);
                     // asteroids[i].active = false;
@@ -746,18 +716,19 @@ int main()
         }
 
         /////////////// DEBUGGING DISPLAY ///////////////
+        
         if (debug) {
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
             DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
-            // DrawText(TextFormat("lil_ast_type: %s", lil_asts[lil_ast_num-1].type), 20, screen_height-30, 20, WHITE);
-            // DrawText(TextFormat("lil_ast_ind: %d", lil_ast_ind), 20, screen_height-30, 20, WHITE);
+            // DrawText("CHECK", 20, screen_height-30, 20, WHITE);
 
             // show bounding circles
-            if (ship.active)
+            if (ship.active) {
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
-            
+                DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
+            }
             // big asteroids
             for (i = 0; i < ast_num; i++) {
                 if (asteroids[i].active) {
@@ -782,7 +753,7 @@ int main()
                 if (lil_asts[i].active) {
                     DrawCircleLines(lil_asts[i].pos.x, lil_asts[i].pos.y, lil_asts[i].radius, ORANGE);              
                     DrawCircle(lil_asts[i].pos.x, lil_asts[i].pos.y, 3, GREEN);
-                    DrawText(TextFormat("ast_type: %s", lil_asts[0].type), 20, screen_height-30, 20, WHITE);                                       
+                    // DrawText(TextFormat("ast_type: %s", lil_asts[0].type), 20, screen_height-30, 20, WHITE);                                       
                 }
             }
             
@@ -792,8 +763,6 @@ int main()
                     DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
                     // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
             } 
-
-            // DrawCircle(ship.pos.x, ship.pos.y, 3.0, ORANGE);   
         }
 
         EndDrawing();
