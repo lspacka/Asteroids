@@ -63,6 +63,7 @@ typedef struct UFO {
     bool right;         // 0==left->rigth,  1==right->left
     bool deviate;
     bool up;
+    float radius;
     char* name;         // just for testing
     Color* pix;         //
     float scale;        //
@@ -137,10 +138,11 @@ int main()
     Ship ship = { 0 };
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
-    sluggo.name = "sluggo";
-    mr_bill.name = "mr bill";
     Torp torps[4] = { 0 };
 
+    sluggo.name = "sluggo";
+    mr_bill.name = "mr bill";
+    
     Asteroid* asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
     Asteroid* mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
     Asteroid* lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
@@ -262,6 +264,7 @@ int main()
     ufo.center = (Vector2){ufo.size.x/2, ufo.size.y/2};
     ufo.rect = (Rectangle){0, 0, ufo.size.x, ufo.size.y};
     ufo.bounds = (Rectangle){ufo.pos.x, ufo.pos.y, ufo.size.x, ufo.size.y};
+    ufo.radius = ufo.size.x / 2.2f;
     ufo.active = true;
 
     // init ship
@@ -368,14 +371,21 @@ int main()
     float drag = 0.01f;  
     float speed;
 
+    // timers
     Timer burst_timer = { 0 };
     Timer shot_timers[4] = { 0 };
-    // Timer shot_timer  = { 0 };
-    float burst_time  = 0.4f;
-    float shot_time   = 1.5f;
+    Timer ufo_timer = { 0 };
+    Timer ufo_timer_0 = { 0 };     // when ufo is offscreen || !ufo.active
+    Timer ufo_timer_1 = { 0 };     // for first straight movement
+    Timer ufo_timer_2 = { 0 };     // for deviation
+
+    float ufo_time_1 = 10.0f;
+    float ufo_time_2 = 5.0f;
+    float burst_time = 0.4f;
+    float shot_time  = 1.5f;
     bool cooldown_active = false;
 
-    //////////////////////////////////////////// GAME LOOP //////////////////////////////////////////
+    ///////////////////////////////////////////////////////////// GAME LOOP /////////////////////////////////////////////////////////////
 
     while(!WindowShouldClose()) {
         BeginDrawing();
@@ -526,6 +536,22 @@ int main()
             ship.pos.y = screen_height + ship.size.y;
 
         // UFO
+        // - start timer0 (when ufo is offscreen || !ufo.active)
+        // if (ufo)
+        // - reset all timers 1,2
+        // - pick ufo
+        // - set initial pos, dir and active (line 252)
+        // - once timer0 is up start timer1 (for first straight movement)
+        // - reset timer0
+        // - do initial straight movement
+        // - once timer1 is up, reset timer1 and enter loop
+        // - while ufo is onscreen:
+        //   - start timer2 (for deviation)
+        //   - set direction (straight or deviate)
+        //   - if deviate:
+        //      - set deviate direction
+        //      - deviate
+        //   - after timer2 is up reset
         if (ufo.right)
             ufo.pos.x -= ufo.speed.x;
         else
@@ -775,6 +801,13 @@ int main()
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
             }
+
+            // UFO
+            if (ufo.active) {
+                DrawCircle(ufo.pos.x, ufo.pos.y, 3, GREEN);
+                DrawCircleLines(ufo.pos.x, ufo.pos.y, ufo.radius, ORANGE);
+            }
+
             // big asteroids
             for (i = 0; i < ast_num; i++) {
                 if (asteroids[i].active) {

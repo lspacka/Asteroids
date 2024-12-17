@@ -20,8 +20,8 @@
 + trig
   + get ship's angle for thrust and shooting
 
-- shooting
-  - add cooldown after every 4 shot burst
++ shooting
+  + add cooldown after every 4 shot burst 
   + set timer for each shot
 
 + physics
