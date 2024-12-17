@@ -259,8 +259,8 @@ int main()
     init_ufo_y = RandPos(0, screen_height);
     ufo.pos = (Vector2){init_ufo_x, init_ufo_y};
     ufo.size = (Vector2){ufo.tex.width, ufo.tex.height};
-    ufo.center = (Vector2){ufo.tex.width/2, ufo.tex.height/2};
-    ufo.rect = (Rectangle){0, 0, ufo.tex.width, ufo.tex.height};
+    ufo.center = (Vector2){ufo.size.x/2, ufo.size.y/2};
+    ufo.rect = (Rectangle){0, 0, ufo.size.x, ufo.size.y};
     ufo.bounds = (Rectangle){ufo.pos.x, ufo.pos.y, ufo.size.x, ufo.size.y};
     ufo.active = true;
 
@@ -271,18 +271,12 @@ int main()
     ship.tex.height *= 0.9;
     ship.pos = (Vector2){screen_width/2, screen_height/2};
     ship.size = (Vector2){ship.tex.width, ship.tex.height};
-    ship.center = (Vector2){ship.tex.width/2, ship.tex.height/2};
-    ship.rect = (Rectangle){0, 0, ship.tex.width, ship.tex.height};
+    ship.center = (Vector2){ship.size.x/2, ship.size.y/2};
+    ship.rect = (Rectangle){0, 0, ship.size.x, ship.size.y};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
-    // ship.bounds = (Rectangle){ship.pos.x-ship.center.x, ship.pos.y-ship.center.y, ship.size.x, ship.size.y}; // offset bbox
-    // ship.rotation = -90;
-    // ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
     ship.radius = ship.tex.width / 3.33f;
-    // ship.scale = 0.5;
     ship.lowSpeed = 0.004;
     ship.active = true;
-
-    // sluggo.pos = (Vector2){100, 100};
 
     // init asteroids
     Texture2D tex_ast;
@@ -300,8 +294,8 @@ int main()
     float check1_radius = 1.4f;     // 1st check for torps collision.  1.2f
 
     for (i = 0; i < ast_num; i++) {
-        // x_pos = RandPos(-10, screen_width+10);
-        // y_pos = RandPos(-10, screen_height+10);
+        // set up a "safe area" for the ship
+        // so that asteroids dont spawn right next to it
         init_ast_pos = rand() % 2;
         if (init_ast_pos == 0)
             x_pos = RandPos(-10, (screen_width/2)-(ship.tex.width*4));
@@ -316,19 +310,16 @@ int main()
         asteroids[i].type = "big";
         asteroids[i].tex = tex_ast;
         asteroids[i].pix = ast_pixels[spr_ind];
-        // asteroids[i].tex.width *= scale;
-        // asteroids[i].tex.height *= scale;
         asteroids[i].pos = (Vector2){x_pos, y_pos};
         asteroids[i].speed = (Vector2){1.7, 1.7};
         asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
-        asteroids[i].center = (Vector2){asteroids[i].tex.width/2, asteroids[i].tex.height/2};
-        asteroids[i].rect = (Rectangle){0, 0, asteroids[i].tex.width, asteroids[i].tex.height};
-        // asteroids[i].rotation = rotation;
-        asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].tex.width, asteroids[i].tex.height};
+        asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
+        asteroids[i].rect = (Rectangle){0, 0, asteroids[i].size.x, asteroids[i].size.y};
+        asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
         asteroids[i].dir = direction;
         asteroids[i].scale = 1.0;
         asteroids[i].active = true;
-        asteroids[i].radius = asteroids[i].tex.width / 2.0f;
+        asteroids[i].radius = asteroids[i].size.x / 2.0f;
 
         for(j = 0; j < mid_ast_num; j++) {
             mid_asts[j].type = "mid";
@@ -515,11 +506,15 @@ int main()
         /////////////// MOVEMENT LOGIC ///////////////
         
         // ship
-        if (ship.active) {
+        // for some reason, drawing twice (here or line 658)
+        // somewhat remediates this ugly stuttering the ship has.
+        // maybe not...
+        if (ship.active) 
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
-        }
         
-        // ship wrap-around
+        if (ship.active) 
+            DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+        // wrap-around
         if (ship.pos.x-ship.size.x >= screen_width) 
             ship.pos.x = 0 - ship.size.x/2;
         else if (ship.pos.x+ship.size.x/2 <= 0)
@@ -906,10 +901,10 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index)
         asts[*index].speed = ast.speed;
         asts[*index].size = (Vector2){asts[*index].tex.width, asts[*index].tex.height};
         asts[*index].center = (Vector2){asts[*index].size.x/2, asts[*index].size.y/2};
-        asts[*index].rect = (Rectangle){0, 0, asts[*index].tex.width, asts[*index].tex.height};
-        asts[*index].bounds = (Rectangle){asts[*index].pos.x, asts[*index].pos.y, asts[*index].tex.width, asts[*index].tex.height};
+        asts[*index].rect = (Rectangle){0, 0, asts[*index].size.x, asts[*index].size.y};
+        asts[*index].bounds = (Rectangle){asts[*index].pos.x, asts[*index].pos.y, asts[*index].size.x, asts[*index].size.y};
         asts[*index].dir = direction;
-        asts[*index].radius = asts[*index].tex.width / 2.2f;
+        asts[*index].radius = asts[*index].size.x / 2.2f;
 
         (*index)++;
     }

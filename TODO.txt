@@ -4,16 +4,18 @@
 
 ///////////////////// MISC BUGS /////////////////////
 4px ast - 1st check radius: 1.4, torp speed: 11
+
+- fix ship stuttering
 ////////////////////////////////////////////////////
 
-- asteroids initial state
++ asteroids initial state
   + creation and distribution
     + with for loop whose size increments on each level ("wall")
     + set random position and rotation values to each asteroid
     + pick a sprite randomly from an array for each asteroid
       (or check whats the pattern in the og game)
     + asteroid init direction
-    - set rectangle around the ship so the asteroids dont spawn in it
+    + set area around the ship so the asteroids dont spawn in it
       
 + trig
   + get ship's angle for thrust and shooting
