@@ -56,10 +56,17 @@ typedef struct UFO {
     Vector2 speed;
     Vector2 accel;
     Vector2 size;
+    Vector2 center;
+    Rectangle rect;
     Rectangle bounds;
-    Color* pix;
-    float scale;
-    bool active;
+    Texture2D tex;
+    bool right;         // 0==left->rigth,  1==right->left
+    bool deviate;
+    bool up;
+    char* name;         // just for testing
+    Color* pix;         //
+    float scale;        //
+    bool active;        //
 } UFO;
 
 typedef struct Torp {
@@ -130,6 +137,8 @@ int main()
     Ship ship = { 0 };
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
+    sluggo.name = "sluggo";
+    mr_bill.name = "mr bill";
     Torp torps[4] = { 0 };
 
     Asteroid* asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
@@ -141,7 +150,7 @@ int main()
 
     Image ship_img = LoadImage("./resources/images/ship.png");
     Image torp     = LoadImage("./resources/images/torp2.png");
-    Image ufo      = LoadImage("./resources/images/ufo.png");
+    Image ufo_img  = LoadImage("./resources/images/ufo.png");
 
     Image ast1   = LoadImage("./resources/images/ast1.png");
     Image ast1_1 = LoadImage("./resources/images/ast1_1.png");
@@ -189,7 +198,7 @@ int main()
     // load texture from images
     Texture2D tex_ship = LoadTextureFromImage(ship_img);
     Texture2D tex_torp = LoadTextureFromImage(torp);
-    Texture2D tex_ufo  = LoadTextureFromImage(ufo);
+    Texture2D tex_ufo  = LoadTextureFromImage(ufo_img);
 
     Texture2D tex_ast1   = LoadTextureFromImage(ast1);
     Texture2D tex_ast1_1 = LoadTextureFromImage(ast1_1);
@@ -226,7 +235,36 @@ int main()
     };
 
     ///////////////////////////////////////////////////////
+    
+    // init UFOs
+    int init_ufo_x;
+    int init_ufo_y;
 
+    sluggo.tex = tex_ufo;
+    mr_bill.tex = tex_ufo;
+    mr_bill.tex.width *= 0.3;
+    mr_bill.tex.height *= 0.3;
+
+    UFO ufos[2] = { sluggo, mr_bill};
+    UFO ufo = ufos[rand() % 2];
+
+    ufo.right = rand() % 2;
+    ufo.speed = (Vector2){2.5, 2.5};
+
+    if (ufo.right)
+        init_ufo_x = screen_width + ufo.tex.width;
+    else 
+        init_ufo_x = 0 - ufo.tex.width;
+    
+    init_ufo_y = RandPos(0, screen_height);
+    ufo.pos = (Vector2){init_ufo_x, init_ufo_y};
+    ufo.size = (Vector2){ufo.tex.width, ufo.tex.height};
+    ufo.center = (Vector2){ufo.tex.width/2, ufo.tex.height/2};
+    ufo.rect = (Rectangle){0, 0, ufo.tex.width, ufo.tex.height};
+    ufo.bounds = (Rectangle){ufo.pos.x, ufo.pos.y, ufo.size.x, ufo.size.y};
+    ufo.active = true;
+
+    // init ship
     ship.tex = tex_ship;
     ship.pix = LoadImageColors(ship_img);
     ship.tex.width *= 0.9;
@@ -244,7 +282,7 @@ int main()
     ship.lowSpeed = 0.004;
     ship.active = true;
 
-    sluggo.pos = (Vector2){100, 100};
+    // sluggo.pos = (Vector2){100, 100};
 
     // init asteroids
     Texture2D tex_ast;
@@ -336,7 +374,7 @@ int main()
     float top_speed = 50.0f;
     float thrust_force = 0.1f;
     float friction = 0.99f;
-    float drag = 0.005f; 
+    float drag = 0.01f;  
     float speed;
 
     Timer burst_timer = { 0 };
@@ -474,8 +512,9 @@ int main()
 
         ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
 
-        /////////////// SHIP AND ASTEROIDS MOVEMENT ///////////////
+        /////////////// MOVEMENT LOGIC ///////////////
         
+        // ship
         if (ship.active) {
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
         }
@@ -490,6 +529,15 @@ int main()
             ship.pos.y = 0 - ship.size.y/2;
         else if (ship.pos.y+ship.size.y/2 <= 0)
             ship.pos.y = screen_height + ship.size.y;
+
+        // UFO
+        if (ufo.right)
+            ufo.pos.x -= ufo.speed.x;
+        else
+            ufo.pos.x += ufo.speed.x;
+
+        ufo.bounds.x = ufo.pos.x;
+        ufo.bounds.y = ufo.pos.y;
 
         ///////////// asteroids pos update and wrap-around logic /////////////
 
@@ -614,8 +662,11 @@ int main()
         }
 
         ///////////// draw ship and ufos /////////////
-        if (ship.active) 
-            DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+        // if (ship.active) 
+        //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+
+        if (ufo.active)
+            DrawTexturePro(ufo.tex, ufo.rect, ufo.bounds, ufo.center, 0.0f, WHITE);
 
         ////////////////////////// COLLISIONS //////////////////////////
 
@@ -722,7 +773,7 @@ int main()
             DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
             DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
-            // DrawText("CHECK", 20, screen_height-30, 20, WHITE);
+            DrawText(TextFormat("UFO: %s", ufo.name), 20, screen_height-30, 20, WHITE);
 
             // show bounding circles
             if (ship.active) {
@@ -771,7 +822,7 @@ int main()
     // unload images
     UnloadImage(ship_img);
     UnloadImage(torp);
-    UnloadImage(ufo);
+    UnloadImage(ufo_img);
 
     UnloadImage(ast1);
     UnloadImage(ast1_1);
