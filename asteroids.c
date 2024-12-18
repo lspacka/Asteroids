@@ -249,6 +249,7 @@ int main()
 
     UFO ufos[2] = { sluggo, mr_bill};
     UFO ufo = ufos[rand() % 2];
+    // UFO ufo;
 
     ufo.right = rand() % 2;
     ufo.speed = (Vector2){2.5, 2.5};
@@ -379,8 +380,9 @@ int main()
     Timer ufo_timer_1 = { 0 };     // for first straight movement
     Timer ufo_timer_2 = { 0 };     // for deviation
 
-    float ufo_time_1 = 10.0f;
-    float ufo_time_2 = 5.0f;
+    float ufo_time;
+    // float ufo_time_1;
+    // float ufo_time_2;
     float burst_time = 0.4f;
     float shot_time  = 1.5f;
     bool cooldown_active = false;
@@ -537,7 +539,33 @@ int main()
 
         // UFO
         // - start timer0 (when ufo is offscreen || !ufo.active)
-        // if (ufo)
+        // if (ufo.pos.x-ufo.size.x/2 > screen_width ||
+        //     ufo.pos.x+ufo.size.x/2 < 0 
+        //     // && !ufo.active
+        // ) {
+        //     ufo_time = rand() % 10;
+        //     startTimer(&ufo_timer, ufo_time);
+        //     // ufo = ufos[rand() % 2];
+
+        //     ufo.right = rand() % 2;
+        //     ufo.speed = (Vector2){2.5, 2.5};
+
+        //     if (ufo.right)
+        //         init_ufo_x = screen_width + ufo.tex.width;
+        //     else 
+        //         init_ufo_x = 0 - ufo.tex.width;
+            
+        //     init_ufo_y = RandPos(0, screen_height);
+        //     ufo.pos = (Vector2){init_ufo_x, init_ufo_y};
+        //     ufo.size = (Vector2){ufo.tex.width, ufo.tex.height};
+        //     ufo.center = (Vector2){ufo.size.x/2, ufo.size.y/2};
+        //     ufo.rect = (Rectangle){0, 0, ufo.size.x, ufo.size.y};
+        //     ufo.bounds = (Rectangle){ufo.pos.x, ufo.pos.y, ufo.size.x, ufo.size.y};
+        //     ufo.radius = ufo.size.x / 2.2f;
+        //     ufo.active = true;
+
+        //     // getElapsed
+        // }
         // - reset all timers 1,2
         // - pick ufo
         // - set initial pos, dir and active (line 252)
@@ -699,13 +727,22 @@ int main()
                 asteroids[i].pos.y - asteroids[i].tex.height / 2 
             };
 
-            // vs ship (simple cirle collisions)
+            // vs ship
             if (asteroids[i].active && ship.active) {
                 if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
                     // collision_found = false;
                     DrawText("Collision!", 10, 50, 40, RED);
                     // asteroids[i].active = false;
                     // ship.active = false;
+                }
+            }
+
+            // vs ufo
+            if (asteroids[i].active && ufo.active) {
+                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufo.pos, ufo.radius)) {
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    // asteroids[i].active = false;
+                    // ufo.active = false;
                 }
             }
 
@@ -753,6 +790,15 @@ int main()
                 }
             }
 
+            // vs ufo
+            if (mid_asts[i].active && ufo.active) {
+                if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo.pos, ufo.radius)) {
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    // mid_asts[i].active = false;
+                    // ufo.active = false;
+                }
+            }
+
             // vs torps
             for (j = 0; j < 4; j++) {
                 if (mid_asts[i].active && torps[j].active) {
@@ -776,6 +822,15 @@ int main()
                 }
             }
 
+            // vs ufo
+            if (lil_asts[i].active && ufo.active) {
+                if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo.pos, ufo.radius)) {
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    // lil_asts[i].active = false;
+                    // ufo.active = false;
+                }
+            }
+
             // vs torps
             for (j = 0; j < 4; j++) {
                 if (lil_asts[i].active && torps[j].active) {
@@ -784,6 +839,15 @@ int main()
                         torps[j].active = false;
                     }
                 }
+            }
+        }
+
+        // UFO
+        // vs torps
+        for (i = 0; i < 4; i++) {
+            if (CheckCollisionCircles(ufo.pos, ufo.radius, torps[i].pos, torps[i].radius)) {
+                torps[i].active = false;
+                ufo.active = false;
             }
         }
 
