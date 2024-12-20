@@ -261,7 +261,10 @@ int main()
     UFO ufos[2] = {sluggo, mr_bill};
 
     for (i = 0; i < 2; i++) {
+        startTimer(&ufos[i].respawnTimer, GetRandomValue(0, 10));
+        startTimer(&ufos[i].movementTimer, GetRandomValue(2, 5));
         ufos[i].right = rand() % 2;
+
         if (ufos[i].right)
                 init_ufo_x = screen_width + ufos[i].tex.width;
         else 
@@ -277,11 +280,9 @@ int main()
         ufos[i].radius = ufos[i].size.x / 2.2f;
         ufos[i].active = true;
         ufos[i].state = UFO_DEAD;
-        startTimer(&ufos[i].respawnTimer, GetRandomValue(0, 10));
-        startTimer(&ufos[i].movementTimer, GetRandomValue(2, 5));
     }
 
-    // UFO ufo = ufos[rand() % 2];
+    UFO ufo_test = ufos[rand() % 2];
     // ufo.pos = (Vector2){init_ufo_x, init_ufo_y};
     // ufo.size = (Vector2){ufo.tex.width, ufo.tex.height};
     // ufo.center = (Vector2){ufo.size.x/2, ufo.size.y/2};
@@ -397,14 +398,7 @@ int main()
     // timers
     Timer burst_timer = { 0 };
     Timer shot_timers[4] = { 0 };
-    Timer ufo_timer = { 0 };
-    Timer ufo_timer_0 = { 0 };     // when ufo is offscreen || !ufo.active
-    Timer ufo_timer_1 = { 0 };     // for first straight movement
-    Timer ufo_timer_2 = { 0 };     // for deviation
 
-    float ufo_time;
-    // float ufo_time_1;
-    // float ufo_time_2;
     float burst_time = 0.4f;
     float shot_time  = 1.5f;
     bool cooldown_active = false;
@@ -560,186 +554,109 @@ int main()
             ship.pos.y = screen_height + ship.size.y;
 
         // UFO
-        
-        // for (int i = 0; i < 2; i++) {
-        //     UFO *ufo = &ufos[0];
+        bool anyUFOActive = false; // Track if any UFO is currently active
+        UFO* ufo = NULL;
 
-        //     switch (ufo->state) {
-        //         case UFO_DEAD: {
-        //             startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
-        //             ufo->state = UFO_WAITING;
-        //             break;
-        //         }
-        //         case UFO_WAITING: {
-        //             if (TimerDone(ufo->respawnTimer)) {
-        //                 ufo->state = UFO_SPAWNING;
-        //                 ufo->right = rand() % 2;
-        //                 ufo->pos.x = (ufo->right) ? screen_width+ufo->tex.width : 0 - ufo->tex.width;
-        //                 ufo->pos.y = RandPos(0, screen_height);
-        //                 startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-        //             }
-        //             break;
-        //         }
-        //         case UFO_SPAWNING: {
-        //             ufo->state = UFO_ACTIVE;
-        //             break;
-        //         }
-        //         case UFO_ACTIVE: {
-        //             if (TimerDone(ufo->movementTimer)) {
-        //                 int deviation = GetRandomValue(-1, 1);
-        //                 if (deviation==-1)
-        //                     ufo->pos.y -= ufo->speed.y;
-        //                 else if (deviation==1)
-        //                     ufo->pos.y += ufo->speed.y;
+        for (int i = 0; i < 2; i++) {
+           ufo = &ufos[i];
 
-        //                 startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-        //             }
+            // Check if any UFO is active
+            if (ufo->state != UFO_DEAD) {
+                anyUFOActive = true;
+                // break;      // ?
+            }
+        }
 
-        //             // ufo->pos.x = (ufo->right ? 1 : -1) * ufo->speed.x;
-        //             if (ufo->right)
-        //                 ufo->pos.x -= ufo->speed.x;
-        //             else
-        //                 ufo->pos.x += ufo->speed.x;
+        // If no UFO is active, randomly pick one to respawn
+        if (!anyUFOActive) {
+            int selectedUFO = rand() % 2; // Randomly pick one UFO to respawn
+            ufo = &ufos[selectedUFO];
+            if (ufo->state == UFO_DEAD) {
+                // ufo->active = false;
+                startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
+                ufo->state = UFO_WAITING;
+            }
+        }
 
-        //             ufo->bounds.x = ufo->pos.x;
-        //             ufo->bounds.y = ufo->pos.y;
 
-        //             // if (ufo->active)
-        //             //     DrawTexturePro(ufos[i].tex, ufos[i].rect, ufos[i].bounds, ufos[i].center, 0.0f, WHITE);
+        // Process each UFO individually
+        for (int i = 0; i < 2; i++) {
+            ufo = &ufos[i];
 
-        //             if (ufo->pos.x > screen_width+ufo->tex.width || 
-        //                 ufo->pos.x < 0 -ufo->tex.width ||
-        //                 !ufo->active
-        //             ) {
-        //                 ufo->state = UFO_DEAD;
-        //             }
-        //             break;
-        //         }
-        //     }
+            switch (ufo->state) {
+                case UFO_WAITING: {
+                    if (TimerDone(ufo->respawnTimer)) {
+                        ufo->state = UFO_SPAWNING;
+
+                        // Randomize direction and position
+                        ufo->right = rand() % 2;
+                        ufo->pos.x = (ufo->right) ? screen_width + ufo->tex.width : 0 - ufo->tex.width;
+                        ufo->pos.y = RandPos(0, screen_height);
+
+                        // Set a movement timer
+                        startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
+                        // ufo->active = true;
+                    }
+                    break;
+                }
+                case UFO_SPAWNING: {
+                    ufo->state = UFO_ACTIVE;
+                    break;
+                }
+                case UFO_ACTIVE: {
+                    // If the movement timer is done, decide the next behavior
+                    if (TimerDone(ufo->movementTimer)) {
+                        // Decide whether to deviate: -1 = up, 0 = straight, 1 = down
+                        int deviation = GetRandomValue(-1, 1);
+                        ufo->deviate = (deviation != 0); // Deviation is true if not straight
+                        ufo->up = (deviation == -1);    // Move up if deviation is -1
+
+                        // Reset the movement timer for the next decision
+                        startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
+                    }
+
+                    // Apply horizontal movement (constant)
+                    ufo->pos.x += (ufo->right ? -1 : 1) * ufo->speed.x;
+
+                    // Apply vertical movement only if deviating
+                    if (ufo->deviate) {
+                        ufo->pos.y += (ufo->up ? -1 : 1) * ufo->speed.y;
+                    }
+
+                    // Update bounds for collision detection
+                    ufo->bounds.x = ufo->pos.x;
+                    ufo->bounds.y = ufo->pos.y;
+
+                    // Check if the UFO is offscreen or inactive
+                    if (ufo->pos.x > screen_width + ufo->tex.width || 
+                        ufo->pos.x < 0 - ufo->tex.width ||
+                        !ufo->active) {
+                        // Transition back to UFO_DEAD state
+                        ufo->state = UFO_DEAD;
+                        // ufo->active = false;
+                    }
+                    break;
+                }
+            }
             
 
-        //     if (ufo->active)
-        //         DrawTexturePro(ufos[i].tex, ufos[i].rect, ufos[i].bounds, ufos[i].center, 0.0f, WHITE);
-        //     // wrap-around
-        // }
-
-        bool anyUFOActive = false; // Track if any UFO is currently active
-
-for (int i = 0; i < 2; i++) {
-    UFO *ufo = &ufos[i];
-
-    // Check if any UFO is active
-    if (ufo->state != UFO_DEAD) {
-        anyUFOActive = true;
-    }
-}
-
-// If no UFO is active, randomly pick one to respawn
-if (!anyUFOActive) {
-    int selectedUFO = rand() % 2; // Randomly pick one UFO to respawn
-    UFO *ufo = &ufos[selectedUFO];
-    if (ufo->state == UFO_DEAD) {
-        startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
-        ufo->state = UFO_WAITING;
-    }
-}
-
-// Process each UFO individually
-for (int i = 0; i < 2; i++) {
-    UFO *ufo = &ufos[i];
-
-    switch (ufo->state) {
-        case UFO_WAITING: {
-            if (TimerDone(ufo->respawnTimer)) {
-                ufo->state = UFO_SPAWNING;
-
-                // Randomize direction and position
-                ufo->right = rand() % 2;
-                ufo->pos.x = (ufo->right) ? screen_width + ufo->tex.width : 0 - ufo->tex.width;
-                ufo->pos.y = RandPos(0, screen_height);
-
-                // Set a movement timer
-                startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-                ufo->active = true;
+            // Render the UFO if active
+            if (ufo->state == UFO_ACTIVE) {
+                DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
             }
-            break;
+
+            // wrap-around
+            if (ufo->pos.y > screen_height+ufo->tex.height/2)
+                ufo->pos.y = 0 - ufo->tex.height/2;
+            else if (ufo->pos.y < 0-ufo->tex.height/2)
+                ufo->pos.y = screen_height + ufo->tex.height/2;
         }
 
-        case UFO_SPAWNING: {
-            ufo->state = UFO_ACTIVE;
-            break;
-        }
+        // UFO test movement
+        // ufo_test.pos.x += (ufo_test.right ? -1 : 1) * ufo_test.speed.x;
 
-        case UFO_ACTIVE: {
-            // If the movement timer is done, decide the next behavior
-            if (TimerDone(ufo->movementTimer)) {
-                // Decide whether to deviate: -1 = up, 0 = straight, 1 = down
-                int deviation = GetRandomValue(-1, 1);
-                ufo->deviate = (deviation != 0); // Deviation is true if not straight
-                ufo->up = (deviation == -1);    // Move up if deviation is -1
-
-                // Reset the movement timer for the next decision
-                startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-            }
-
-            // Apply horizontal movement (constant)
-            ufo->pos.x += (ufo->right ? -1 : 1) * ufo->speed.x;
-
-            // Apply vertical movement only if deviating
-            if (ufo->deviate) {
-                ufo->pos.y += (ufo->up ? -1 : 1) * ufo->speed.y;
-            }
-
-            // Update bounds for collision detection
-            ufo->bounds.x = ufo->pos.x;
-            ufo->bounds.y = ufo->pos.y;
-
-            // Check if the UFO is offscreen or inactive
-            if (ufo->pos.x > screen_width + ufo->tex.width || 
-                ufo->pos.x < 0 - ufo->tex.width ||
-                !ufo->active) {
-                // Transition back to UFO_DEAD state
-                ufo->state = UFO_DEAD;
-                ufo->active = false;
-            }
-            break;
-        }
-    }
-
-    // Render the UFO if active
-    if (ufo->active) {
-        DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
-    }
-
-    // wrap-around
-    if (ufo->pos.y > screen_height+ufo->tex.height/2)
-        ufo->pos.y = 0 - ufo->tex.height/2;
-    else if (ufo->pos.y < 0-ufo->tex.height/2)
-        ufo->pos.y = screen_height + ufo->tex.height/2;
-}
-
-
-        // - reset all timers 1,2
-        // - pick ufo
-        // - set initial pos, dir and active (line 252)
-        // - once timer0 is up start timer1 (for first straight movement)
-        // - reset timer0
-        // - do initial straight movement
-        // - once timer1 is up, reset timer1 and enter loop
-        // - while ufo is onscreen:
-        //   - start timer2 (for deviation)
-        //   - set direction (straight or deviate)
-        //   - if deviate:
-        //      - set deviate direction
-        //      - deviate
-        //   - after timer2 is up reset
-        // if (ufo.right)
-        //     ufo.pos.x -= ufo.speed.x;
-        // else
-        //     ufo.pos.x += ufo.speed.x;
-
-        // ufo.bounds.x = ufo.pos.x;
-        // ufo.bounds.y = ufo.pos.y;
+        // ufo_test.bounds.x = ufo_test.pos.x;
+        // ufo_test.bounds.y = ufo_test.pos.y;
 
         ///////////// asteroids pos update and wrap-around logic /////////////
 
@@ -867,8 +784,8 @@ for (int i = 0; i < 2; i++) {
         // if (ship.active) 
         //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
-        // if (ufo.active)
-        //     DrawTexturePro(ufo.tex, ufo.rect, ufo.bounds, ufo.center, 0.0f, WHITE);
+        // if (ufo_test.active)
+        //     DrawTexturePro(ufo_test.tex, ufo_test.rect, ufo_test.bounds, ufo_test.center, 0.0f, WHITE);
 
         ////////////////////////// COLLISIONS //////////////////////////
 
@@ -881,21 +798,21 @@ for (int i = 0; i < 2; i++) {
             };
 
             // vs ship
-            if (asteroids[i].active && ship.active) {
-                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
-                    // collision_found = false;
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    // asteroids[i].active = false;
-                    // ship.active = false;
-                }
-            }
-
-            // vs ufo
-            // if (asteroids[i].active && ufo.active) {
-            //     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufo.pos, ufo.radius)) {
+            // if (asteroids[i].active && ship.active) {
+            //     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
+            //         // collision_found = false;
             //         DrawText("Collision!", 10, 50, 40, RED);
             //         // asteroids[i].active = false;
-            //         // ufo.active = false;
+            //         // ship.active = false;
+            //     }
+            // }
+
+            // vs ufo
+            // if (asteroids[i].active && ufo->active) {
+            //     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufo->pos, ufo->radius)) {
+            //         DrawText("Collision!", 10, 50, 40, RED);
+            //         // asteroids[i].active = false;
+            //         // ufo->active = false;
             //     }
             // }
 
@@ -930,25 +847,38 @@ for (int i = 0; i < 2; i++) {
                     }
                 }
             }
+
+            // vs ufos
+            for (k = 0; k < 2; k++) {
+                if (asteroids[i].active && ufos[k].state==UFO_ACTIVE) {
+                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufos[k].pos, ufos[k].radius)) {
+                        // DrawText("Collision!", 10, 50, 40, RED);
+                        asteroids[i].active = false;
+                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
+                        ufos[k].state = UFO_DEAD;
+                        
+                    }
+                }
+            }
         }
 
         // mid asteroids
-        // vs ship
         for (i = 0; i < mid_ast_num; i++) {
-            if (mid_asts[i].active && ship.active) {
-                if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ship.circle_center, ship.radius)) {
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    // mid_asts[i].active = false;
-                    // ship.active = false;
-                }
-            }
-
-            // vs ufo
-            // if (mid_asts[i].active && ufo.active) {
-            //     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo.pos, ufo.radius)) {
+            // vs ship
+            // if (mid_asts[i].active && ship.active) {
+            //     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ship.circle_center, ship.radius)) {
             //         DrawText("Collision!", 10, 50, 40, RED);
             //         // mid_asts[i].active = false;
-            //         // ufo.active = false;
+            //         // ship.active = false;
+            //     }
+            // }
+
+            // vs ufo
+            // if (mid_asts[i].active && ufo->active) {
+            //     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo->pos, ufo->radius)) {
+            //         DrawText("Collision!", 10, 50, 40, RED);
+            //         // mid_asts[i].active = false;
+            //         // ufo->active = false;
             //     }
             // }
 
@@ -962,25 +892,36 @@ for (int i = 0; i < 2; i++) {
                     }
                 }
             }
+
+            // vs ufos
+            for (k = 0; k < 2; k++) {
+                if (mid_asts[i].active && ufos[k].state==UFO_ACTIVE) {
+                    if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
+                        // DrawText("Collision!", 10, 50, 40, RED);
+                        mid_asts[i].active = false;
+                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
+                        ufos[k].state = UFO_DEAD;
+                    }
+                }
+            }
         }
 
         // lil asteroids
-        // vs ship
+        
         for (i = 0; i < lil_ast_num; i++) {
-            if (lil_asts[i].active && ship.active) {
-                if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ship.circle_center, ship.radius)) {
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    // lil_asts[i].active = false;
-                    // ship.active = false;
-                }
-            }
-
-            // vs ufo
-            // if (lil_asts[i].active && ufo.active) {
-            //     if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo.pos, ufo.radius)) {
+            // vs ship
+            // if (lil_asts[i].active && ship.active) {
+            //     if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ship.circle_center, ship.radius)) {
             //         DrawText("Collision!", 10, 50, 40, RED);
             //         // lil_asts[i].active = false;
-            //         // ufo.active = false;
+            //         // ship.active = false;
+            //     }
+            // }
+            // if (lil_asts[i].active && ufo->active) {
+            //     if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo->pos, ufo->radius)) {
+            //         DrawText("Collision!", 10, 50, 40, RED);
+            //         // lil_asts[i].active = false;
+            //         // ufo->active = false;
             //     }
             // }
 
@@ -993,15 +934,50 @@ for (int i = 0; i < 2; i++) {
                     }
                 }
             }
+
+            // vs ufos
+            for (k = 0; k < 2; k++) {
+                if (lil_asts[i].active && ufos[k].state==UFO_ACTIVE) {
+                    if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
+                        // DrawText("Collision!", 10, 50, 40, RED);
+                        lil_asts[i].active = false;
+                        ufos[k].state = UFO_DEAD;
+                    }
+                }
+            }
         }
 
         // UFO
+        for (i = 0; i < 2; i++) {
+            // vs ship
+            if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, ship.pos, ship.radius)) {
+                DrawText("Collision!", 10, 50, 40, RED);
+                // ship.active = false;
+                // ufos[i].state = UFO_DEAD;
+            }
+
+            // vs torps
+            for (j = 0; j < 4; j++) {
+                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius)) {
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    // torps[j].active = false;
+                    // ufos[i].state = UFO_DEAD;
+                }
+            }
+        }
         // vs torps
         // for (i = 0; i < 4; i++) {
-        //     if (CheckCollisionCircles(ufo.pos, ufo.radius, torps[i].pos, torps[i].radius)) {
+        //     if (CheckCollisionCircles(ufo->pos, ufo->radius, torps[i].pos, torps[i].radius)) {
         //         torps[i].active = false;
-        //         ufo.active = false;
+        //         ufo->active = false;
         //     }
+        // }
+
+        // vs ships
+        // if (CheckCollisionCircles(ufo->pos, ufo->radius, ship.pos, ship.radius)) {
+        //     DrawText("Collision!", 10, 50, 40, RED);
+        //     // ship.active = false;
+        //     // ufo->active = false;
         // }
 
         /////////////// DEBUGGING DISPLAY ///////////////
@@ -1010,8 +986,12 @@ for (int i = 0; i < 2; i++) {
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
-            DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
-            // DrawText(TextFormat("UFO: %s", ufo.name), 20, screen_height-30, 20, WHITE);
+            // DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
+            // DrawText(TextFormat("UFO active: %d", ufo->active), 20, screen_height-50, 20, WHITE);
+            // DrawText(TextFormat("UFO: %s", ufo->name), 20, screen_height-30, 20, WHITE);
+            // DrawText(TextFormat("\t\tpos.x: %.2f", ufo->pos.x), 140, screen_height-30, 20, WHITE);
+            // DrawText(TextFormat("UFO: %s", ufo_test.name), 20, screen_height-30, 20, WHITE);
+            // DrawText(TextFormat("\t\tpos.x: %.2f", ufo_test.pos.x), 140, screen_height-30, 20, WHITE);
 
             // show bounding circles
             if (ship.active) {
@@ -1020,9 +1000,27 @@ for (int i = 0; i < 2; i++) {
             }
 
             // UFO
-            // if (ufo.active) {
-            //     DrawCircle(ufo.pos.x, ufo.pos.y, 3, GREEN);
-            //     DrawCircleLines(ufo.pos.x, ufo.pos.y, ufo.radius, ORANGE);
+            // for (i = 0; i < 2; i++) {
+            //     if (ufos[i].active) {
+            //         DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
+            //         DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
+            //     }
+            // }
+            
+            for (i = 0; i < 2; i++) {
+                if (ufos[i].active) {
+                    DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
+                    DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
+                }
+            }
+            // if (ufo->active) {
+            //     DrawCircle(ufo->pos.x, ufo->pos.y, 3, GREEN);
+            //     DrawCircleLines(ufo->pos.x, ufo->pos.y, ufo->radius, ORANGE);
+            // }
+
+            // if (ufo_test.active) {
+            //     DrawCircle(ufo_test.pos.x, ufo_test.pos.y, 3, GREEN);
+            //     DrawCircleLines(ufo_test.pos.x, ufo_test.pos.y, ufo_test.radius, ORANGE);
             // }
 
             // big asteroids
