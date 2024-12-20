@@ -39,6 +39,8 @@
 
 - levels
 
+- hyperspace
+
 - animations
   - asteroid blast
   - ship explosion
