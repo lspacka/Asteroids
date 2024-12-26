@@ -3,9 +3,12 @@
 //  ship: #b9b9b9
 
 ///////////////////// MISC BUGS /////////////////////
+
 4px ast - 1st check radius: 1.4, torp speed: 11
 
 - fix ship stuttering
+- fix flashing ufos before spawning
+
 ////////////////////////////////////////////////////
 
 + asteroids initial state

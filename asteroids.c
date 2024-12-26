@@ -75,6 +75,7 @@ typedef struct UFO {
     bool right;         // 0==left->rigth,  1==right->left
     bool deviate;
     bool up;
+    bool onscreen;
     float radius;
     Timer respawnTimer;
     Timer movementTimer;
@@ -280,6 +281,7 @@ int main()
         ufos[i].radius = ufos[i].size.x / 2.2f;
         ufos[i].active = true;
         ufos[i].state = UFO_DEAD;
+        ufos[i].onscreen = false;
     }
 
     UFO ufo_test = ufos[rand() % 2];
@@ -571,13 +573,19 @@ int main()
         if (!anyUFOActive) {
             int selectedUFO = rand() % 2; // Randomly pick one UFO to respawn
             ufo = &ufos[selectedUFO];
+            // startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
+            // ufo->state = UFO_WAITING;
             if (ufo->state == UFO_DEAD) {
-                // ufo->active = false;
-                startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
+                // Move the UFO offscreen immediately
+                ufo->pos.x = -ufo->tex.width * 2;
+                ufo->pos.y = -ufo->tex.height * 2;
+                ufo->onscreen = false;
+
+                // Start a buffer timer for the respawn transition
+                startTimer(&ufo->respawnTimer, GetRandomValue(5, 10)); // 1 second buffer
                 ufo->state = UFO_WAITING;
             }
         }
-
 
         // Process each UFO individually
         for (int i = 0; i < 2; i++) {
@@ -587,6 +595,7 @@ int main()
                 case UFO_WAITING: {
                     if (TimerDone(ufo->respawnTimer)) {
                         ufo->state = UFO_SPAWNING;
+                        ufo->onscreen = false;
 
                         // Randomize direction and position
                         ufo->right = rand() % 2;
@@ -595,7 +604,6 @@ int main()
 
                         // Set a movement timer
                         startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-                        // ufo->active = true;
                     }
                     break;
                 }
@@ -604,6 +612,9 @@ int main()
                     break;
                 }
                 case UFO_ACTIVE: {
+                    if (ufo->pos.x > 0 || ufo->pos.x < screen_width)
+                        ufo->onscreen = true;
+
                     // If the movement timer is done, decide the next behavior
                     if (TimerDone(ufo->movementTimer)) {
                         // Decide whether to deviate: -1 = up, 0 = straight, 1 = down
@@ -629,18 +640,25 @@ int main()
 
                     // Check if the UFO is offscreen or inactive
                     if (ufo->pos.x > screen_width + ufo->tex.width || 
-                        ufo->pos.x < 0 - ufo->tex.width ||
-                        !ufo->active) {
+                        ufo->pos.x < 0 - ufo->tex.width
+                        // || !ufo->state==UFO_ACTIVE
+                    ) {
                         // Transition back to UFO_DEAD state
                         ufo->state = UFO_DEAD;
-                        // ufo->active = false;
+                        ufo->onscreen = false;
+                        // Move the UFO offscreen immediately
+                        // ufo->pos.x = -ufo->tex.width * 2;
+                        // ufo->pos.y = -ufo->tex.height *2;
+                        // ufo->bounds.x = ufo->pos.x;
+                        // ufo->bounds.y = ufo->pos.y;
+
+                        // // Start a buffer timer for the respawn transition
+                        // startTimer(&ufo->respawnTimer, 1);
                     }
                     break;
                 }
             }
             
-
-            // Render the UFO if active
             if (ufo->state == UFO_ACTIVE) {
                 DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
             }
@@ -650,6 +668,12 @@ int main()
                 ufo->pos.y = 0 - ufo->tex.height/2;
             else if (ufo->pos.y < 0-ufo->tex.height/2)
                 ufo->pos.y = screen_height + ufo->tex.height/2;
+
+            // debug test
+            // if (debug) {
+            //     DrawText(TextFormat("UFO.POS.X: %.2f", ufo->pos.x), 20, screen_height-50, 20, WHITE);
+            //     DrawText(TextFormat("POS.Y: %.2f", ufo->pos.y), 250, screen_height-50, 20, WHITE);
+            // }
         }
 
         // UFO test movement
@@ -850,13 +874,13 @@ int main()
 
             // vs ufos
             for (k = 0; k < 2; k++) {
-                if (asteroids[i].active && ufos[k].state==UFO_ACTIVE) {
+                if (asteroids[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
                     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufos[k].pos, ufos[k].radius)) {
                         // DrawText("Collision!", 10, 50, 40, RED);
                         asteroids[i].active = false;
                         AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
                         ufos[k].state = UFO_DEAD;
-                        
+                        // ufos[k].onscreen = false;
                     }
                 }
             }
@@ -901,6 +925,7 @@ int main()
                         mid_asts[i].active = false;
                         AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
                         ufos[k].state = UFO_DEAD;
+                        // anyUFOActive = false;
                     }
                 }
             }
@@ -942,6 +967,7 @@ int main()
                         // DrawText("Collision!", 10, 50, 40, RED);
                         lil_asts[i].active = false;
                         ufos[k].state = UFO_DEAD;
+                        // anyUFOActive = false;
                     }
                 }
             }
@@ -987,12 +1013,8 @@ int main()
             DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
             // DrawText(TextFormat("torp_index: %d", torp_index), 20, screen_height-50, 20, WHITE);
-            // DrawText(TextFormat("UFO active: %d", ufo->active), 20, screen_height-50, 20, WHITE);
-            // DrawText(TextFormat("UFO: %s", ufo->name), 20, screen_height-30, 20, WHITE);
-            // DrawText(TextFormat("\t\tpos.x: %.2f", ufo->pos.x), 140, screen_height-30, 20, WHITE);
-            // DrawText(TextFormat("UFO: %s", ufo_test.name), 20, screen_height-30, 20, WHITE);
-            // DrawText(TextFormat("\t\tpos.x: %.2f", ufo_test.pos.x), 140, screen_height-30, 20, WHITE);
-
+            // DrawText("TEST", 20, screen_height-30, 20, WHITE);
+            
             // show bounding circles
             if (ship.active) {
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
@@ -1000,15 +1022,14 @@ int main()
             }
 
             // UFO
-            // for (i = 0; i < 2; i++) {
-            //     if (ufos[i].active) {
-            //         DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
-            //         DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
-            //     }
-            // }
+            for (i = 0; i < 2; i++) {
+                // DrawText(TextFormat("UFO.POS.X: %.2f", ufos[i].pos.x), 20, screen_height-50, 20, WHITE);
+                // DrawText(TextFormat("POS.Y: %.2f", ufos[i].pos.y), 250, screen_height-50, 20, WHITE);
+                DrawText(TextFormat("UFO onscreen: %d", ufo->onscreen), 20, screen_height-50, 20, WHITE);
+            }
             
             for (i = 0; i < 2; i++) {
-                if (ufos[i].active) {
+                if (ufos[i].state == UFO_ACTIVE) {
                     DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
                     DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
                 }
