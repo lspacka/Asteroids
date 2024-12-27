@@ -2,12 +2,19 @@
 //  ufo: #c6c6c6
 //  ship: #b9b9b9
 
+//  big: 20
+//  mid: 50
+//  lil: 100
+//  sluggo: 200
+//  mr bill: 1000
+
 ///////////////////// MISC BUGS /////////////////////
 
 4px ast - 1st check radius: 1.4, torp speed: 11
 
 - fix ship stuttering
 - fix flashing ufos before spawning
+- fix ship's 4-shot problem (maybe torp_num = ast_num * 100)
 
 ////////////////////////////////////////////////////
 
@@ -26,14 +33,17 @@
 + shooting
   + add cooldown after every 4 shot burst 
   + set timer for each shot
+  - ufo shooting
 
 + physics
   + thrust
+  - asteroids accel
+  - improve ship inertia
 
-- collisions
-  - ship to asteroid and ufos
-  - shots to asteroid and ufos
-  - ufos to asteroids
++ collisions
+  + ship to asteroid and ufos
+  + shots to asteroid and ufos
+  + ufos to asteroids
 
 + input handling
   ctrl -> shoot, up -> thrust, or viceversa
