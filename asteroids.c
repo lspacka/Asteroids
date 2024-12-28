@@ -39,7 +39,7 @@ typedef struct Ship {
     float lowSpeed;
     float scale;        //
     float radius;
-    int lifes;
+    int lives;
     bool active;
 } Ship;
 
@@ -144,11 +144,12 @@ int main()
     int* lil_ast_ptr = &lil_ast_ind; 
 
     int i, j, k;
-    int lifes = 3;
+    int lives = 3;
     int score = 0;
     int hi_score = 0;
     bool debug = false;
     bool collision_found = false;
+    bool hyperspace = false;
     Vector2 mouse_pos;
 
     Ship ship = { 0 };
@@ -254,9 +255,9 @@ int main()
         tex_ast4, tex_ast4_1, tex_ast4_2, tex_ast4_3
     };
 
-    // init ship lifes positions
+    // init ship lives positions
     int life_pos_x = screen_width / 12;
-    for (i = 0; i < lifes; i++) {
+    for (i = 0; i < lives; i++) {
         ships[i].active = true;
         ships[i].tex = tex_ship;
         ships[i].tex.width *= 0.7;
@@ -416,11 +417,13 @@ int main()
     float speed;
 
     // timers
-    Timer burst_timer = { 0 };
+    // Timer burst_timer = { 0 };
     Timer shot_timers[4] = { 0 };
+    Timer hyper_timer = { 0 };
 
-    float burst_time = 0.4f;
+    // float burst_time = 0.4f;
     float shot_time  = 1.5f;
+    float hyper_time = 1.0f;
     bool cooldown_active = false;
 
     ///////////////////////////////////////////////////////////// GAME LOOP /////////////////////////////////////////////////////////////
@@ -443,10 +446,23 @@ int main()
             ship.rotation -= rotation_speed;
 
         if (IsKeyDown(KEY_SPACE)) {
-            ship.active = false;
+            if (!hyperspace && ship.active) {
+                hyperspace = true;
+                ship.active = false;
+                startTimer(&hyper_timer, hyper_time);
+                // if (TimerDone(hyper_timer)) {
+                //     ship.pos.x = RandPos(0, screen_width);
+                //     ship.pos.y = RandPos(0, screen_height);
+                //     ship.active = true;
+                //     hyperspace = false;
+                // }
+            }
+        }
+        if (hyperspace && TimerDone(hyper_timer)) {
             ship.pos.x = RandPos(0, screen_width);
             ship.pos.y = RandPos(0, screen_height);
             ship.active = true;
+            hyperspace = false;
         }
 
         // calc ship's direction
@@ -853,7 +869,7 @@ int main()
                     DrawText("Collision!", 10, 50, 40, RED);
                     // asteroids[i].active = false;
                     // ship.active = false;
-                    // ships[--lifes].active = false;
+                    // ships[--lives].active = false;
                 }
             }
 
@@ -911,7 +927,7 @@ int main()
                     DrawText("Collision!", 10, 50, 40, RED);
                     // mid_asts[i].active = false;
                     // ship.active = false;
-                    // ships[--lifes].active = false;
+                    // ships[--lives].active = false;
                 }
             }
 
@@ -948,7 +964,7 @@ int main()
                     DrawText("Collision!", 10, 50, 40, RED);
                     lil_asts[i].active = false;
                     // ship.active = false;
-                    ships[--lifes].active = false;
+                    // ships[--lives].active = false;
                 }
             }
 
@@ -982,7 +998,7 @@ int main()
                 DrawText("Collision!", 10, 50, 40, RED);
                 // ship.active = false;
                 // ufos[i].state = UFO_DEAD;
-                // ships[--lifes].active = false;
+                // ships[--lives].active = false;
             }
 
             // vs torps
@@ -1003,7 +1019,7 @@ int main()
         /////////////// DEBUGGING DISPLAY ///////////////
         
         if (debug) {
-            DrawText(TextFormat("Lifes left: %d", lifes), 20, screen_height-110, 20, WHITE);
+            DrawText(TextFormat("Lives left: %d", lives), 20, screen_height-110, 20, WHITE);
             DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-90, 20, WHITE);
             DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-70, 20, WHITE);
             DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-70, 20, WHITE);
@@ -1077,7 +1093,7 @@ int main()
 
         // info display
         DrawText(TextFormat("%d", score), screen_width/10, 50, 40, RAYWHITE);
-        for (i = 0; i < lifes; i++) 
+        for (i = 0; i < lives; i++) 
             if (ships[i].active) 
                 DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
         
