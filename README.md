@@ -4,12 +4,12 @@ My take on the original arcade game. Made with [raylib](https://www.raylib.com/)
 
 ## Controls
 
-##### Left:      `rotate left`
-##### Right:     `rotate right`
-##### Up:        `thrust`
-##### Left CTRL: `shoot`
-##### Left ALT:  `hyperspace`
-##### D:         `debugging display`
+##### `Left`:    rotate left
+##### `Right`:     rotate right
+##### `Up`:        thrust
+##### `Left CTRL`: shoot
+##### `Space`:  hyperspace
+##### `D`:         debugging display
 
 #
 

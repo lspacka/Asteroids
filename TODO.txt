@@ -13,6 +13,7 @@
 4px ast - 1st check radius: 1.4, torp speed: 11
 
 - fix ship stuttering
+- fix tunneling
 - fix flashing ufos before spawning
 - fix ship's 4-shot problem (maybe torp_num = ast_num * 100)
 
@@ -48,11 +49,11 @@
 + input handling
   ctrl -> shoot, up -> thrust, or viceversa
 
-- scoring system
++ scoring system
 
 - levels
 
-- hyperspace
++ hyperspace
 
 - animations
   - asteroid blast
