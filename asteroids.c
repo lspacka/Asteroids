@@ -275,8 +275,8 @@ int main()
 
     sluggo.tex = tex_ufo;
     mr_bill.tex = tex_ufo;
-    mr_bill.tex.width *= 0.3;
-    mr_bill.tex.height *= 0.3;
+    mr_bill.tex.width *= 0.4;
+    mr_bill.tex.height *= 0.4;
 
     UFO ufos[2] = {sluggo, mr_bill};
 
@@ -286,7 +286,7 @@ int main()
         ufos[i].right = rand() % 2;
 
         if (ufos[i].right)
-                init_ufo_x = screen_width + ufos[i].tex.width;
+            init_ufo_x = screen_width + ufos[i].tex.width;
         else 
             init_ufo_x = 0 - ufos[i].tex.width;
         
@@ -703,7 +703,8 @@ int main()
                 }
             }
             
-            // ufo->onscreen seems to solve the flashing issue before appearing onscreen
+            // adding ufo->onscreen solves* the ufo flashing before appearing onscreen
+            // * more like a bandaid really, I think the deeper indexing bug is still there...
             if (ufo->state == UFO_ACTIVE && ufo->onscreen) {        
                 DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
             }
@@ -713,6 +714,32 @@ int main()
                 ufo->pos.y = 0 - ufo->tex.height/2;
             else if (ufo->pos.y < 0-ufo->tex.height/2)
                 ufo->pos.y = screen_height + ufo->tex.height/2;
+
+            // collision test
+            // vs ship
+            // if (CheckCollisionCircles(ufo->pos, ufo->radius, ship.pos, ship.radius)) {
+            //     DrawText("UFO Collision!", 10, 50, 40, ORANGE);
+            //     // ship.active = false;
+            //     // ufo->state = UFO_DEAD;
+            //     // ships[--lives].active = false;
+            // }
+
+            // // vs torps
+            // for (j = 0; j < 4; j++) {
+            //     if (CheckCollisionCircles(ufo->pos, ufo->radius, torps[j].pos, torps[j].radius) && ufo->state==UFO_ACTIVE) {
+            //         // DrawText("Collision!", 10, 50, 40, RED);
+            //         torps[j].active = false;
+            //         ufo->state = UFO_DEAD;
+
+            //         if (strcmp(ufo->name, "sluggo") == 0) {
+            //             score += 200;
+            //             // ufo->state = UFO_DEAD;
+            //         } else if (strcmp(ufo->name, "mr bill") == 0) {
+            //             score += 1000;
+            //             // ufo->state = UFO_DEAD;
+            //         }
+            //     }
+            // }
 
             // debug test
             // if (debug) {
@@ -999,7 +1026,7 @@ int main()
         for (i = 0; i < 2; i++) {
             // vs ship
             if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, ship.pos, ship.radius)) {
-                DrawText("Collision!", 10, 50, 40, RED);
+                DrawText("UFO Collision!", 10, 50, 40, ORANGE);
                 // ship.active = false;
                 // ufos[i].state = UFO_DEAD;
                 // ships[--lives].active = false;
@@ -1007,7 +1034,7 @@ int main()
 
             // vs torps
             for (j = 0; j < 4; j++) {
-                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius)) {
+                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius) && ufos[i].state==UFO_ACTIVE) {
                     // DrawText("Collision!", 10, 50, 40, RED);
                     if (strcmp(ufos[i].name, "sluggo") == 0)
                         score += 200;

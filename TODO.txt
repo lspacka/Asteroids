@@ -14,7 +14,8 @@
 
 - fix ship stuttering
 - fix tunneling
-- fix flashing ufos before spawning
++ fix flashing ufos before spawning
++ fix score bug with ufos
 - fix ship's 4-shot problem (maybe torp_num = ast_num * 100)
 
 ////////////////////////////////////////////////////
