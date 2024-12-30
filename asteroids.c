@@ -586,20 +586,17 @@ int main()
             ship.pos.y = screen_height + ship.size.y;
 
         // UFO
-        bool anyUFOActive = false; // Track if any UFO is currently active
+        bool anyUFOActive = false; 
         UFO* ufo = NULL;
 
         for (int i = 0; i < 2; i++) {
-           ufo = &ufos[i];
-
-            // Check if any UFO is active
+            ufo = &ufos[i];
             if (ufo->state != UFO_DEAD) {
                 anyUFOActive = true;
                 break;
             }
         }
 
-        // If no UFO is active, randomly pick one to respawn
         int selectedUFO;
         if (!anyUFOActive) {
             selectedUFO = rand() % 2; 
@@ -607,17 +604,6 @@ int main()
             startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
             ufo->state = UFO_WAITING;
             ufo->onscreen = false;
-
-            // if (ufo->state == UFO_DEAD) {
-            //     // Move the UFO offscreen immediately
-            //     ufo->pos.x = -ufo->tex.width * 2;
-            //     ufo->pos.y = -ufo->tex.height * 2;
-            //     ufo->onscreen = false;
-
-            //     // Start a buffer timer for the respawn transition
-            //     startTimer(&ufo->respawnTimer, GetRandomValue(5, 10)); // 1 second buffer
-            //     ufo->state = UFO_WAITING;
-            // }
         }
 
         // Process each UFO individually
@@ -645,56 +631,39 @@ int main()
                     if (ufo->pos.x > 0 || ufo->pos.x < screen_width)
                         ufo->onscreen = true;
 
-                    // If the movement timer is done, decide the next behavior
                     if (TimerDone(ufo->movementTimer)) {
-                        // Decide whether to deviate: -1 = up, 0 = straight, 1 = down
                         int deviation = GetRandomValue(-1, 1);
-                        ufo->deviate = (deviation != 0); // Deviation is true if not straight
-                        ufo->up = (deviation == -1);    // Move up if deviation is -1
+                        ufo->deviate = (deviation != 0); 
+                        ufo->up = (deviation == -1);  
 
-                        // Reset the movement timer for the next decision
                         startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
                     }
 
-                    // Apply horizontal movement (constant)
                     ufo->pos.x += (ufo->right ? -1 : 1) * ufo->speed.x;
 
-                    // Apply vertical movement only if deviating
                     if (ufo->deviate) 
                         ufo->pos.y += (ufo->up ? -1 : 1) * ufo->speed.y;
 
-                    // Update bounds for collision detection
                     ufo->bounds.x = ufo->pos.x;
                     ufo->bounds.y = ufo->pos.y;
 
-                    // Check if the UFO is offscreen or inactive
                     if (ufo->pos.x > screen_width + ufo->tex.width || 
                         ufo->pos.x < 0 - ufo->tex.width
                         // || !ufo->state==UFO_ACTIVE
                     ) {
-                        // Transition back to UFO_DEAD state
                         ufo->state = UFO_DEAD;
                         ufo->onscreen = false;
-                        // Move the UFO offscreen immediately
-                        // ufo->pos.x = -ufo->tex.width * 2;
-                        // ufo->pos.y = -ufo->tex.height *2;
-                        // ufo->bounds.x = ufo->pos.x;
-                        // ufo->bounds.y = ufo->pos.y;
-
-                        // // Start a buffer timer for the respawn transition
-                        // startTimer(&ufo->respawnTimer, 1);
                     }
                     break;
                 }
             }
             
-            // adding ufo->onscreen solves* the ufo flashing before appearing onscreen
-            // * more like a bandaid really, I think the deeper indexing bug is still there...
+            // adding ufo->onscreen solves the ufo flashing before appearing onscreen
             if (ufo->state == UFO_ACTIVE && ufo->onscreen) {        
                 DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
             }
 
-            // // wrap-around
+            // wrap-around
             if (ufo->pos.y > screen_height+ufo->tex.height/2)
                 ufo->pos.y = 0 - ufo->tex.height/2;
             else if (ufo->pos.y < 0-ufo->tex.height/2)
@@ -1028,8 +997,8 @@ int main()
             // big asteroids
             for (i = 0; i < ast_num; i++) {
                 if (asteroids[i].active) {
-                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);              // vs ship collision
-                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*check1_radius, RED);   // 1st check for torps
+                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);                 // vs ship collision
+                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*check1_radius, RED);      // 1st check for torps
                     // DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                                      // center coords  
                 }
                 // DrawText(TextFormat("ast_type: %s", asteroids[0].type), 20, screen_height-30, 20, WHITE);
