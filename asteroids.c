@@ -171,7 +171,7 @@ int main()
 
     Image ship_img = LoadImage("./resources/images/ship.png");
     Image torp     = LoadImage("./resources/images/torp2.png");
-    Image ufo_img  = LoadImage("./resources/images/ufo.png");
+    Image ufo_img  = LoadImage("./resources/images/ufo_2.png");
 
     Image ast1   = LoadImage("./resources/images/ast1.png");
     Image ast1_1 = LoadImage("./resources/images/ast1_1.png");
@@ -275,8 +275,11 @@ int main()
 
     sluggo.tex = tex_ufo;
     mr_bill.tex = tex_ufo;
-    mr_bill.tex.width *= 0.4;
-    mr_bill.tex.height *= 0.4;
+
+    sluggo.tex.width *= 1.3;
+    sluggo.tex.height *= 1.3;
+    mr_bill.tex.width *= 0.7;
+    mr_bill.tex.height *= 0.7;
 
     UFO ufos[2] = {sluggo, mr_bill};
 
@@ -303,14 +306,7 @@ int main()
         ufos[i].onscreen = false;
     }
 
-    UFO ufo_test = ufos[rand() % 2];
-    // ufo.pos = (Vector2){init_ufo_x, init_ufo_y};
-    // ufo.size = (Vector2){ufo.tex.width, ufo.tex.height};
-    // ufo.center = (Vector2){ufo.size.x/2, ufo.size.y/2};
-    // ufo.rect = (Rectangle){0, 0, ufo.size.x, ufo.size.y};
-    // ufo.bounds = (Rectangle){ufo.pos.x, ufo.pos.y, ufo.size.x, ufo.size.y};
-    // ufo.radius = ufo.size.x / 2.2f;
-    // ufo.active = true;
+    // UFO ufo_test = ufos[rand() % 2];
 
     // init ship
     ship.tex = tex_ship;
@@ -369,9 +365,9 @@ int main()
         asteroids[i].active = true;
         asteroids[i].radius = asteroids[i].size.x / 2.0f;
 
+        // setting temp textures here so I can use them in the wrap-around logic for all asteroids
         for(j = 0; j < mid_ast_num; j++) {
             mid_asts[j].type = "mid";
-            // setting a temp texture here so I can use it in the wrap-around logic for all asteroids
             mid_asts[j].tex = asteroids[i].tex;
         }
 
@@ -450,14 +446,9 @@ int main()
                 hyperspace = true;
                 ship.active = false;
                 startTimer(&hyper_timer, hyper_time);
-                // if (TimerDone(hyper_timer)) {
-                //     ship.pos.x = RandPos(0, screen_width);
-                //     ship.pos.y = RandPos(0, screen_height);
-                //     ship.active = true;
-                //     hyperspace = false;
-                // }
             }
         }
+
         if (hyperspace && TimerDone(hyper_timer)) {
             ship.pos.x = RandPos(0, screen_width);
             ship.pos.y = RandPos(0, screen_height);
@@ -596,7 +587,7 @@ int main()
         else if (ship.pos.y+ship.size.y/2 <= 0)
             ship.pos.y = screen_height + ship.size.y;
 
-        // UFO   git add -p
+        // UFO
         bool anyUFOActive = false; // Track if any UFO is currently active
         UFO* ufo = NULL;
 
@@ -606,7 +597,7 @@ int main()
             // Check if any UFO is active
             if (ufo->state != UFO_DEAD) {
                 anyUFOActive = true;
-                break;      // ?
+                break;
             }
         }
 
@@ -639,7 +630,8 @@ int main()
                 case UFO_WAITING: {
                     if (TimerDone(ufo->respawnTimer)) {
                         ufo->state = UFO_SPAWNING;
-                        // ufo->onscreen = false;
+                        ufo->onscreen = false;   // fix for ufos colliding offscreen
+                                                    // but it also triggers weird bug where they dissappear randomly 
 
                         // Randomize direction and position
                         ufo->right = rand() % 2;
@@ -648,7 +640,6 @@ int main()
 
                         // Set a movement timer
                         startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-                        // startTimer(&ufo->respawnTimer, GetRandomValue(1, 5));
                     }
                     break;
                 }
@@ -715,44 +706,12 @@ int main()
             else if (ufo->pos.y < 0-ufo->tex.height/2)
                 ufo->pos.y = screen_height + ufo->tex.height/2;
 
-            // collision test
-            // vs ship
-            // if (CheckCollisionCircles(ufo->pos, ufo->radius, ship.pos, ship.radius)) {
-            //     DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-            //     // ship.active = false;
-            //     // ufo->state = UFO_DEAD;
-            //     // ships[--lives].active = false;
-            // }
-
-            // // vs torps
-            // for (j = 0; j < 4; j++) {
-            //     if (CheckCollisionCircles(ufo->pos, ufo->radius, torps[j].pos, torps[j].radius) && ufo->state==UFO_ACTIVE) {
-            //         // DrawText("Collision!", 10, 50, 40, RED);
-            //         torps[j].active = false;
-            //         ufo->state = UFO_DEAD;
-
-            //         if (strcmp(ufo->name, "sluggo") == 0) {
-            //             score += 200;
-            //             // ufo->state = UFO_DEAD;
-            //         } else if (strcmp(ufo->name, "mr bill") == 0) {
-            //             score += 1000;
-            //             // ufo->state = UFO_DEAD;
-            //         }
-            //     }
-            // }
-
             // debug test
             // if (debug) {
             //     DrawText(TextFormat("UFO.POS.X: %.2f", ufo->pos.x), 20, screen_height-50, 20, WHITE);
             //     DrawText(TextFormat("POS.Y: %.2f", ufo->pos.y), 250, screen_height-50, 20, WHITE);
             // }
         }
-
-        // UFO test movement
-        // ufo_test.pos.x += (ufo_test.right ? -1 : 1) * ufo_test.speed.x;
-
-        // ufo_test.bounds.x = ufo_test.pos.x;
-        // ufo_test.bounds.y = ufo_test.pos.y;
 
         ///////////// asteroids pos update and wrap-around logic /////////////
 

@@ -12,8 +12,10 @@
 
 4px ast - 1st check radius: 1.4, torp speed: 11
 
-- fix ship stuttering
+- improve ufo sprite
+- fix ship stuttering (try using sprite sheet)
 - fix tunneling
+- fix ufos dissapearing randomly
 + fix flashing ufos before spawning
 + fix score bug with ufos
 - fix ship's 4-shot problem (maybe torp_num = ast_num * 100)
