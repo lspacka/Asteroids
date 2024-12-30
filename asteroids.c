@@ -669,11 +669,17 @@ int main()
             else if (ufo->pos.y < 0-ufo->tex.height/2)
                 ufo->pos.y = screen_height + ufo->tex.height/2;
 
-            // debug test
-            // if (debug) {
-            //     DrawText(TextFormat("UFO.POS.X: %.2f", ufo->pos.x), 20, screen_height-50, 20, WHITE);
-            //     DrawText(TextFormat("POS.Y: %.2f", ufo->pos.y), 250, screen_height-50, 20, WHITE);
-            // }
+            // UFO debug display
+            if (debug) {
+                DrawText("UFO: ", 20, screen_height-80, 20, WHITE);
+                DrawText("UFO PosX: ", 20, screen_height-50, 20, WHITE);
+                DrawText("PosY: ", 220, screen_height-50, 20, WHITE);
+                if (ufo->state == UFO_ACTIVE) {
+                    DrawText(TextFormat("%s", ufo->name), 72, screen_height-80, 20, WHITE);
+                    DrawText(TextFormat("%.2f", ufo->pos.x), 135, screen_height-50, 20, WHITE);
+                    DrawText(TextFormat("%.2f", ufo->pos.y), 290, screen_height-50, 20, WHITE);
+                }
+            }
         }
 
         ///////////// asteroids pos update and wrap-around logic /////////////
@@ -979,7 +985,6 @@ int main()
             // DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-110, 20, WHITE);
             // DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-90, 20, WHITE);
             // DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-90, 20, WHITE);
-            DrawText(TextFormat("UFO index: %d", selectedUFO), 20, screen_height-70, 20, WHITE);
             // DrawText("TEST", 20, screen_height-30, 20, WHITE);
             
             // show bounding circles
@@ -1023,11 +1028,11 @@ int main()
             }
             
             // torps
-            for (i = 0; i < 4; i++) {
-                // if (torps[i].active)
-                    DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
-                    // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
-            } 
+            // for (i = 0; i < 4; i++) {
+            //     // if (torps[i].active)
+            //         DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
+            //         // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
+            // } 
         }
 
         // info display
