@@ -527,8 +527,6 @@ int main()
                 torps[i].pos.y = 0 - torps[i].tex.height;
             else if (torps[i].pos.y+torps[i].tex.height <= 0)
                 torps[i].pos.y = screen_height + torps[i].tex.height;
-
-            // single shot timer. 1.5sec
         }
 
         /////////////// THRUST ///////////////
@@ -604,7 +602,7 @@ int main()
         // If no UFO is active, randomly pick one to respawn
         int selectedUFO;
         if (!anyUFOActive) {
-            selectedUFO = rand() % 2; // Randomly pick one UFO to respawn
+            selectedUFO = rand() % 2; 
             ufo = &ufos[selectedUFO];
             startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
             ufo->state = UFO_WAITING;
@@ -630,15 +628,11 @@ int main()
                 case UFO_WAITING: {
                     if (TimerDone(ufo->respawnTimer)) {
                         ufo->state = UFO_SPAWNING;
-                        ufo->onscreen = false;   // fix for ufos colliding offscreen
-                                                    // but it also triggers weird bug where they dissappear randomly 
-
-                        // Randomize direction and position
+                        ufo->onscreen = false; 
                         ufo->right = rand() % 2;
                         ufo->pos.x = (ufo->right) ? screen_width + ufo->tex.width : 0 - ufo->tex.width;
                         ufo->pos.y = RandPos(0, screen_height);
 
-                        // Set a movement timer
                         startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
                     }
                     break;
@@ -993,7 +987,10 @@ int main()
 
             // vs torps
             for (j = 0; j < 4; j++) {
-                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius) && ufos[i].state==UFO_ACTIVE) {
+                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius) && 
+                    torps[j].active && 
+                    ufos[i].state == UFO_ACTIVE
+                ) {
                     // DrawText("Collision!", 10, 50, 40, RED);
                     if (strcmp(ufos[i].name, "sluggo") == 0)
                         score += 200;
@@ -1021,13 +1018,6 @@ int main()
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
             }
-
-            // UFO
-            for (i = 0; i < 2; i++) 
-                DrawText(TextFormat("UFO onscreen: %d", ufo->onscreen), 20, screen_height-30, 20, WHITE);  // why does this one only work inside a loop??
-
-            DrawText(TextFormat("UFO.PosX: %.2f", ufo->pos.x), 20, screen_height-50, 20, WHITE);
-            DrawText(TextFormat("PosY: %.2f", ufo->pos.y), 220, screen_height-50, 20, WHITE);
             
             for (i = 0; i < 2; i++) {
                 if (ufos[i].state == UFO_ACTIVE) {
@@ -1035,16 +1025,6 @@ int main()
                     DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
                 }
             }
-            // if (ufo->active) {
-            //     DrawCircle(ufo->pos.x, ufo->pos.y, 3, GREEN);
-            //     DrawCircleLines(ufo->pos.x, ufo->pos.y, ufo->radius, ORANGE);
-            // }
-
-            // if (ufo_test.active) {
-            //     DrawCircle(ufo_test.pos.x, ufo_test.pos.y, 3, GREEN);
-            //     DrawCircleLines(ufo_test.pos.x, ufo_test.pos.y, ufo_test.radius, ORANGE);
-            // }
-
             // big asteroids
             for (i = 0; i < ast_num; i++) {
                 if (asteroids[i].active) {
@@ -1075,7 +1055,7 @@ int main()
             
             // torps
             for (i = 0; i < 4; i++) {
-                if (torps[i].active)
+                // if (torps[i].active)
                     DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
                     // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
             } 
