@@ -69,6 +69,7 @@ typedef struct UFO {
     Vector2 accel;
     Vector2 size;
     Vector2 center;
+    Vector2 shootDir;
     Rectangle rect;
     Rectangle bounds;
     Texture2D tex;
@@ -76,9 +77,13 @@ typedef struct UFO {
     bool deviate;
     bool up;
     bool onscreen;
+    bool shoot;
     float radius;
     Timer respawnTimer;
     Timer movementTimer;
+    Timer shootingTimer;
+    Timer cooldownTimer;
+    Timer torpTimer;
     UFOState state;
     // int state;
     char* name;         // just for testing
@@ -100,6 +105,7 @@ typedef struct Torp {
     Color* pix;
     float radius;
     bool active;
+    float shoot_angle;
 } Torp;
 
 int RandPos(int a, int b);
@@ -112,7 +118,7 @@ int main()
 {
     SetTraceLogLevel(LOG_WARNING);
     srand(time(NULL));
-    Font font = LoadFont("/Roboto-Regular.ttf");
+    // Font font = LoadFont("/Hyperspace-JvEM.ttf");
 
     // InitWindow(800, 600, "Asteroids");
 
@@ -157,6 +163,8 @@ int main()
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
     Torp torps[4] = { 0 };
+    Torp sluggo_torps[15] = { 0 };
+    Torp bill_torps[15] = { 0 };
     Ship ships[3] = { 0 };
 
     sluggo.name = "sluggo";
@@ -301,9 +309,10 @@ int main()
         ufos[i].rect = (Rectangle){0, 0, ufos[i].size.x, ufos[i].size.y};
         ufos[i].bounds = (Rectangle){ufos[i].pos.x, ufos[i].pos.y, ufos[i].size.x, ufos[i].size.y};
         ufos[i].radius = ufos[i].size.x / 2.2f;
-        ufos[i].active = true;
+        ufos[i].active = true;      // ?
         ufos[i].state = UFO_DEAD;
         ufos[i].onscreen = false;
+        ufos[i].shoot = false;
     }
 
     // UFO ufo_test = ufos[rand() % 2];
@@ -381,7 +390,7 @@ int main()
     all_asts[1] = mid_asts;
     all_asts[2] = lil_asts;
 
-    // init torps
+    // init ship torps
     int torp_index = 0;
     for (i = 0; i < 4; i++) {   // should I give it a huge number instead of 4?
         torps[i].tex = tex_torp;
@@ -394,6 +403,30 @@ int main()
         torps[i].radius = torps[i].tex.width / 1.7;
         // torps[i].tex.width *= 0.9;
         // torps[i].tex.height *= 0.9;
+    }
+
+    // init UFO torps
+    // should I use the same torp pool for both ufos?
+    int sluggo_torp_index = 0;
+    int bill_torp_index = 0;
+    for (i = 0; i < 15; i++) {  
+            sluggo_torps[i].tex = tex_torp;
+            sluggo_torps[i].pix = LoadImageColors(torp);
+            sluggo_torps[i].active = false;
+            sluggo_torps[i].speed = (Vector2){11.0, 11.0};    // ideal = 10.0
+            sluggo_torps[i].size = (Vector2){4, 4};
+            sluggo_torps[i].source = (Rectangle){0, 0, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
+            sluggo_torps[i].center = (Vector2){sluggo_torps[i].pos.x+sluggo_torps[i].tex.width/2, sluggo_torps[i].pos.y+sluggo_torps[i].tex.height/2};
+            sluggo_torps[i].radius = sluggo_torps[i].tex.width / 1.7;
+
+            bill_torps[i].tex = tex_torp;
+            bill_torps[i].pix = LoadImageColors(torp);
+            bill_torps[i].active = false;
+            bill_torps[i].speed = (Vector2){11.0, 11.0};    // ideal = 10.0
+            bill_torps[i].size = (Vector2){4, 4};
+            bill_torps[i].source = (Rectangle){0, 0, bill_torps[i].tex.width, bill_torps[i].tex.height};
+            bill_torps[i].center = (Vector2){bill_torps[i].pos.x+bill_torps[i].tex.width/2, bill_torps[i].pos.y+bill_torps[i].tex.height/2};
+            bill_torps[i].radius = bill_torps[i].tex.width / 1.7;
     }
 
     // vars 4 trig calcs
@@ -416,11 +449,16 @@ int main()
     // Timer burst_timer = { 0 };
     Timer shot_timers[4] = { 0 };
     Timer hyper_timer = { 0 };
+    // Timer ufo_shoot = { 0 };
 
     // float burst_time = 0.4f;
     float shot_time  = 1.5f;
     float hyper_time = 1.0f;
     bool cooldown_active = false;
+
+    // UFO shooting vars
+    int sluggo_dir = 0;
+    float sluggo_angle = 0;
 
     ///////////////////////////////////////////////////////////// GAME LOOP /////////////////////////////////////////////////////////////
 
@@ -457,7 +495,7 @@ int main()
         }
 
         // calc ship's direction
-        angle = ship.rotation * (PI/180.0);
+        angle = ship.rotation * (PI/180.0);     // convert to radians
         dir_x = cos(angle - PI/2);
         dir_y = sin(angle - PI/2);
 
@@ -504,7 +542,7 @@ int main()
         //     cooldown_active = false;
         // }
 
-        // draw torps
+        // draw ship torps
         for (i = 0; i < 4; i++) {
             if (torps[i].active) {
                 torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
@@ -568,7 +606,7 @@ int main()
         // ship
         // for some reason, drawing twice (here or line 658)
         // somewhat remediates this ugly stuttering the ship has.
-        // maybe not...
+        // maybe Im just imagining it...
         if (ship.active) 
             DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
         
@@ -587,7 +625,7 @@ int main()
 
         // UFO
         bool anyUFOActive = false; 
-        UFO* ufo = NULL;
+        UFO* ufo = NULL;        // ?
 
         for (int i = 0; i < 2; i++) {
             ufo = &ufos[i];
@@ -597,6 +635,7 @@ int main()
             }
         }
 
+        // pick UFO and put it on hold
         int selectedUFO;
         if (!anyUFOActive) {
             selectedUFO = rand() % 2; 
@@ -614,7 +653,7 @@ int main()
                 case UFO_WAITING: {
                     if (TimerDone(ufo->respawnTimer)) {
                         ufo->state = UFO_SPAWNING;
-                        ufo->onscreen = false; 
+                        // ufo->onscreen = false; 
                         ufo->right = rand() % 2;
                         ufo->pos.x = (ufo->right) ? screen_width + ufo->tex.width : 0 - ufo->tex.width;
                         ufo->pos.y = RandPos(0, screen_height);
@@ -637,6 +676,8 @@ int main()
                         ufo->up = (deviation == -1);  
 
                         startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
+                        // if (!ufo->shoot)
+                            startTimer(&ufo->shootingTimer, GetRandomValue(1, 5));
                     }
 
                     ufo->pos.x += (ufo->right ? -1 : 1) * ufo->speed.x;
@@ -646,6 +687,63 @@ int main()
 
                     ufo->bounds.x = ufo->pos.x;
                     ufo->bounds.y = ufo->pos.y;
+
+                    ////////// SHOOTING //////////
+                    // 1. as soon as ufo.state==ACTIVE start shootingTimer
+                    // 2. when it stops do calcs and shoot
+                    // 3. when torp dies start shootingTimer
+
+                    if (TimerDone(ufo->cooldownTimer)) {
+                        if (!ufo->shoot)
+                            startTimer(&ufo->shootingTimer, GetRandomValue(1, 5));
+                    }
+
+                    if (TimerDone(ufo->shootingTimer)) {
+                        ufo->shoot = true;
+                    }
+
+                    if (ufo->shoot) {
+                        sluggo_dir = GetRandomValue(0, 7);
+                        sluggo_dir *= 45;
+                        // convert ufo direction to angle in radians
+                        sluggo_angle = sluggo_dir * (PI/180.0);
+                        ufo->shootDir.x = cos(sluggo_angle);
+                        ufo->shootDir.y = sin(sluggo_angle);
+                        // shoot and draw torp
+                        if (sluggo_torp_index == 15)
+                            sluggo_torp_index = 0;
+
+                        startTimer(&ufo->torpTimer, shot_time);
+
+                        // update shooting coords 
+                        sluggo_torps[sluggo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
+                        sluggo_torps[sluggo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
+                        sluggo_torps[sluggo_torp_index].active;
+                        sluggo_torp_index++;
+
+                        // draw torps
+                        for (int i = 0; i < 15; i++) {
+                            if (sluggo_torps[i].active) {
+                                sluggo_torps[i].pos.x += sluggo_torps[i].dir.x * sluggo_torps[i].speed.x;
+                                sluggo_torps[i].pos.y += sluggo_torps[i].dir.y * sluggo_torps[i].speed.y;
+                                sluggo_torps[i].dest = (Rectangle){sluggo_torps[i].pos.x, sluggo_torps[i].pos.y, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
+                                DrawTexturePro(tex_torp, sluggo_torps[i].source, sluggo_torps[i].dest, sluggo_torps[i].center, 0.0f, WHITE);
+
+                                // torp dissapears after 1.5 seconds
+                                if (getElapsed(ufo->torpTimer) >= shot_time)
+                                    sluggo_torps[i].active = false;
+                            }
+                        }
+                        // draw torp while(ufo.shoot)
+                        // when firing timer done:
+                        // ufo->shoot = false;
+                    }
+
+                    if (!ufo->shoot) {
+                        startTimer(&ufo->cooldownTimer, GetRandomValue(1, 5));
+                    }
+
+                     /////////////////////////////
 
                     if (ufo->pos.x > screen_width + ufo->tex.width || 
                         ufo->pos.x < 0 - ufo->tex.width
@@ -658,7 +756,8 @@ int main()
                 }
             }
             
-            // adding ufo->onscreen solves the ufo flashing before appearing onscreen
+            // adding ufo->onscreen fixes the bug 
+            // where the ufo flashes briefly before appearing from the side
             if (ufo->state == UFO_ACTIVE && ufo->onscreen) {        
                 DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
             }
@@ -674,6 +773,10 @@ int main()
                 DrawText("UFO: ", 20, screen_height-80, 20, WHITE);
                 DrawText("UFO PosX: ", 20, screen_height-50, 20, WHITE);
                 DrawText("PosY: ", 220, screen_height-50, 20, WHITE);
+                DrawText(TextFormat("sluggo dir: %d", sluggo_dir), 20, screen_height-30, 20, WHITE);
+                // DrawText(TextFormat("UFO shoot: %d", ufo->shoot), 200, screen_height-30, 20, WHITE);
+                DrawText(TextFormat("shooting angle: %.2f", sluggo_angle), 200, screen_height-30, 20, WHITE);
+                
                 if (ufo->state == UFO_ACTIVE) {
                     DrawText(TextFormat("%s", ufo->name), 72, screen_height-80, 20, WHITE);
                     DrawText(TextFormat("%.2f", ufo->pos.x), 135, screen_height-50, 20, WHITE);
@@ -995,7 +1098,7 @@ int main()
             
             for (i = 0; i < 2; i++) {
                 if (ufos[i].state == UFO_ACTIVE) {
-                    // DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
+                    DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
                     DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
                 }
             }
@@ -1137,6 +1240,15 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index)
         asts[*index].radius = asts[*index].size.x / 2.2f;
 
         (*index)++;
+    }
+}
+
+void UFOShoot(Ship ship, UFO* ufo) 
+{
+    if (strcmp(ufo->name, "sluggo") == 0) {
+        // do this
+    } else {
+        // do this
     }
 }
 

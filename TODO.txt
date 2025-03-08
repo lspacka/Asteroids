@@ -37,7 +37,13 @@
 + shooting
   + add cooldown after every 4 shot burst 
   + set timer for each shot
-  - ufo shooting
+  - ufo shooting (have a fixed torp number thats reset after each appearance?)
+    - sluggo:
+      - timer logic for picking direction
+      - convert direction to angle
+    - mr bill:
+      - determine shooting direction (player.pos - ufo.pos?)
+      - add deviation factor (or do the "window" thing on the ship...)
 
 + physics
   + thrust
