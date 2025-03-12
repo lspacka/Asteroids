@@ -419,23 +419,23 @@ int main()
     int sluggo_torp_index = 0;
     int bill_torp_index = 0;
     for (i = 0; i < 15; i++) {  
-            sluggo_torps[i].tex = tex_torp;
-            sluggo_torps[i].pix = LoadImageColors(torp);
-            sluggo_torps[i].active = false;
-            sluggo_torps[i].speed = (Vector2){11.0, 11.0};    // ideal = 10.0
-            sluggo_torps[i].size = (Vector2){4, 4};
-            sluggo_torps[i].source = (Rectangle){0, 0, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
-            sluggo_torps[i].center = (Vector2){sluggo_torps[i].pos.x+sluggo_torps[i].tex.width/2, sluggo_torps[i].pos.y+sluggo_torps[i].tex.height/2};
-            sluggo_torps[i].radius = sluggo_torps[i].tex.width / 1.7;
+        sluggo_torps[i].tex = tex_torp;
+        sluggo_torps[i].pix = LoadImageColors(torp);
+        sluggo_torps[i].active = false;
+        sluggo_torps[i].speed = (Vector2){11.0f, 11.0f};    // ideal = 10.0
+        sluggo_torps[i].size = (Vector2){4, 4};
+        sluggo_torps[i].source = (Rectangle){0, 0, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
+        sluggo_torps[i].center = (Vector2){sluggo_torps[i].pos.x+sluggo_torps[i].tex.width/2, sluggo_torps[i].pos.y+sluggo_torps[i].tex.height/2};
+        sluggo_torps[i].radius = sluggo_torps[i].tex.width / 1.7;
 
-            bill_torps[i].tex = tex_torp;
-            bill_torps[i].pix = LoadImageColors(torp);
-            bill_torps[i].active = false;
-            bill_torps[i].speed = (Vector2){11.0, 11.0};    // ideal = 10.0
-            bill_torps[i].size = (Vector2){4, 4};
-            bill_torps[i].source = (Rectangle){0, 0, bill_torps[i].tex.width, bill_torps[i].tex.height};
-            bill_torps[i].center = (Vector2){bill_torps[i].pos.x+bill_torps[i].tex.width/2, bill_torps[i].pos.y+bill_torps[i].tex.height/2};
-            bill_torps[i].radius = bill_torps[i].tex.width / 1.7;
+        bill_torps[i].tex = tex_torp;
+        bill_torps[i].pix = LoadImageColors(torp);
+        bill_torps[i].active = false;
+        bill_torps[i].speed = (Vector2){11.0, 11.0};    // ideal = 10.0
+        bill_torps[i].size = (Vector2){4, 4};
+        bill_torps[i].source = (Rectangle){0, 0, bill_torps[i].tex.width, bill_torps[i].tex.height};
+        bill_torps[i].center = (Vector2){bill_torps[i].pos.x+bill_torps[i].tex.width/2, bill_torps[i].pos.y+bill_torps[i].tex.height/2};
+        bill_torps[i].radius = bill_torps[i].tex.width / 1.7;
     }
 
     // vars 4 trig calcs
@@ -644,16 +644,19 @@ int main()
             }
         }
 
-        // pick UFO and put it on hold
         int selectedUFO;
+        // pick UFO and put it on hold
         if (!anyUFOActive) {
             selectedUFO = rand() % 2; 
             ufo = &ufos[selectedUFO];
             startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));
             ufo->state = UFO_WAITING;
-            startTimer(&ufo->cooldownTimer, GetRandomValue(5, 10));
+            // set cooldown time before shooting
+            startTimer(&ufo->cooldownTimer, GetRandomValue(1, 3));
             ufo->shoot_state = COOLDOWN;
             ufo->onscreen = false;
+            sluggo_dir = 0;
+            sluggo_angle = 0;
         }
 
         // Process each UFO individually
@@ -708,7 +711,7 @@ int main()
                             if (TimerDone(ufo->cooldownTimer)) {
                                 // DrawText("enter COOLDOWN state...", 20, screen_height-90, 20, WHITE);
                                 ufo->shoot_state = TRANSIT;
-                                startTimer(&ufo->transitTimer, GetRandomValue(0, 2));
+                                startTimer(&ufo->transitTimer, GetRandomValue(0, 1));
                                 // break;
                             }            
                             break;
@@ -717,23 +720,59 @@ int main()
                             // DrawText(" ", 20, screen_height-90, 20, WHITE);
                             if (TimerDone(ufo->transitTimer)) {
                                 // DrawText("enter TRANSIT state...", 300, screen_height-90, 20, WHITE);
-                                sluggo_dir = GetRandomValue(0, 7);
+                                // sluggo_dir = GetRandomValue(0, 7);
                                 ufo->shoot_state = SHOOT;
-                                startTimer(&ufo->transitTimer, GetRandomValue(0, 2));
+                                startTimer(&ufo->transitTimer, GetRandomValue(0, 1));
                                 break;
                             }
                         }
+                        // case CALC: {
+                        //     if (TimerDone(ufo->transitTimer)) {
+                        //         sluggo_dir = GetRandomValue(0, 7);
+                        //         sluggo_dir *= 45;
+                        //         sluggo_angle = sluggo_dir * (PI/180.0);
+                        //         ufo->shootDir.x = cos(sluggo_angle);
+                        //         ufo->shootDir.y = sin(sluggo_angle);
+                        //         // ufo->shoot = true;
+                        //     }
+                        //     ufo->shoot_state = SHOOT;
+                        //     break;
+                        // }
                         case SHOOT: {
                             // DrawText("enter SHOOT state...", 550, screen_height-90, 20, WHITE);
                             if (TimerDone(ufo->transitTimer)) {
+                                sluggo_dir = GetRandomValue(0, 7);
                                 sluggo_dir *= 45;
                                 sluggo_angle = sluggo_dir * (PI/180.0);
                                 ufo->shootDir.x = cos(sluggo_angle);
                                 ufo->shootDir.y = sin(sluggo_angle);
-                                startTimer(&ufo->cooldownTimer, GetRandomValue(1, 5));
+                            // if (ufo->shoot) {
+                                if (sluggo_torp_index == 15)
+                                sluggo_torp_index = 0;
+
+                                // update shooting coords 
+                                sluggo_torps[sluggo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
+                                sluggo_torps[sluggo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
+                                sluggo_torps[sluggo_torp_index].active = true;
+                                sluggo_torp_index++;
+
+                                // for (int i = 0; i < 15; i++) {
+                                //     if (sluggo_torps[i].active) {
+                                //         sluggo_torps[i].pos.x += sluggo_torps[i].dir.x * sluggo_torps[i].speed.x;
+                                //         sluggo_torps[i].pos.y += sluggo_torps[i].dir.y * sluggo_torps[i].speed.y;
+                                //         sluggo_torps[i].dest = (Rectangle){sluggo_torps[i].pos.x, sluggo_torps[i].pos.y, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
+                                //         DrawTexturePro(tex_torp, sluggo_torps[i].source, sluggo_torps[i].dest, sluggo_torps[i].center, 0.0f, WHITE);
+                                //     }
+                                // }
+                                startTimer(&ufo->cooldownTimer, GetRandomValue(0, 2));
                                 ufo->shoot_state = COOLDOWN;
                                 break;
                             }
+                            
+                            // startTimer(&ufo->cooldownTimer, GetRandomValue(1, 5));
+                            // ufo->shoot_state = COOLDOWN;
+                            // break;
+                            // }
                         }
                         // case SHOOT: {
                         //     DrawText("enter SHOOT case...", 550, screen_height-90, 20, WHITE);
@@ -785,6 +824,7 @@ int main()
                     ) {
                         ufo->state = UFO_DEAD;
                         ufo->onscreen = false;
+                        sluggo_torp_index = 0;
                         // startTimer(&ufo->cooldownTimer, GetRandomValue(5, 10));
                         // ufo->shoot_state = COOLDOWN;
                     }
@@ -798,6 +838,16 @@ int main()
                 DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
             }
 
+            // maybe ufo shooting goes here as well?
+            for (int i = 0; i < 15; i++) {
+                if (sluggo_torps[i].active) {
+                    sluggo_torps[i].pos.x += sluggo_torps[i].dir.x * sluggo_torps[i].speed.x;
+                    sluggo_torps[i].pos.y += sluggo_torps[i].dir.y * sluggo_torps[i].speed.y;
+                    sluggo_torps[i].dest = (Rectangle){sluggo_torps[i].pos.x, sluggo_torps[i].pos.y, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
+                    DrawTexturePro(tex_torp, sluggo_torps[i].source, sluggo_torps[i].dest, sluggo_torps[i].center, 0.0f, WHITE);
+                }
+            }
+
             // wrap-around
             if (ufo->pos.y > screen_height+ufo->tex.height/2)
                 ufo->pos.y = 0 - ufo->tex.height/2;
@@ -807,6 +857,7 @@ int main()
             // UFO debug display
             if (debug) {
                 DrawText("UFO: ", 20, screen_height-120, 20, WHITE);
+                // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
                 DrawText("shoot_state: ", 20, screen_height-70, 20, WHITE);
                 DrawText("UFO PosX: ", 20, screen_height-50, 20, WHITE);
                 DrawText("PosY: ", 220, screen_height-50, 20, WHITE);
@@ -816,6 +867,8 @@ int main()
                 
                 if (ufo->state == UFO_ACTIVE) {
                     DrawText(TextFormat("%s", ufo->name), 72, screen_height-120, 20, WHITE);
+                    // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
+                    DrawText(TextFormat("torp index: %d", sluggo_torp_index), 20, screen_height-90, 20, WHITE);
                     DrawText(TextFormat("%d", ufo->shoot_state), 172, screen_height-70, 20, WHITE);
                     DrawText(TextFormat("%.2f", ufo->pos.x), 135, screen_height-50, 20, WHITE);
                     DrawText(TextFormat("%.2f", ufo->pos.y), 290, screen_height-50, 20, WHITE);
