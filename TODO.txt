@@ -22,6 +22,13 @@
 
 ////////////////////////////////////////////////////
 
+REFACTOR:
+  - pixel-perfect collision into function
+  - all sprites into one sprite sheet
+  - helper functions into own file
+  - debug display into one helper function?
+  - UFO's shooting logic into function?
+
 + asteroids initial state
   + creation and distribution
     + with for loop whose size increments on each level ("wall")
@@ -38,7 +45,7 @@
   + add cooldown after every 4 shot burst 
   + set timer for each shot
   - ufo shooting (have a fixed torp number thats reset after each appearance?)
-    - sluggo:
+    + sluggo:
       + timer logic for picking direction
       + convert direction to angle
     - mr bill:
