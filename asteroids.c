@@ -172,8 +172,9 @@ int main()
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
     Torp torps[4] = { 0 };
-    Torp sluggo_torps[15] = { 0 };
-    Torp bill_torps[15] = { 0 };
+    // Torp sluggo_torps[15] = { 0 };
+    // Torp bill_torps[15] = { 0 };
+    Torp ufo_torps[15] = { 0 };
     Ship ships[3] = { 0 };
 
     sluggo.name = "sluggo";
@@ -417,27 +418,38 @@ int main()
 
     // init UFO torps
     // should I use the same torp pool for both ufos?
-    int sluggo_torp_index = 0;
-    int bill_torp_index = 0;
+    // int sluggo_torp_index = 0;
+    // int bill_torp_index = 0;
+    int ufo_torp_index = 0;
     for (i = 0; i < 15; i++) {  
-        sluggo_torps[i].tex = tex_torp;
-        sluggo_torps[i].pix = LoadImageColors(torp);
-        sluggo_torps[i].active = false;
-        sluggo_torps[i].speed = (Vector2){9.0f, 9.0f};    // ideal = 10.0
-        sluggo_torps[i].size = (Vector2){4, 4};
-        sluggo_torps[i].source = (Rectangle){0, 0, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
-        sluggo_torps[i].center = (Vector2){sluggo_torps[i].pos.x+sluggo_torps[i].tex.width/2, sluggo_torps[i].pos.y+sluggo_torps[i].tex.height/2};
-        sluggo_torps[i].radius = sluggo_torps[i].tex.width / 1.7;
-
-        bill_torps[i].tex = tex_torp;
-        bill_torps[i].pix = LoadImageColors(torp);
-        bill_torps[i].active = false;
-        bill_torps[i].speed = (Vector2){9.0, 9.0};    // ideal = 10.0
-        bill_torps[i].size = (Vector2){4, 4};
-        bill_torps[i].source = (Rectangle){0, 0, bill_torps[i].tex.width, bill_torps[i].tex.height};
-        bill_torps[i].center = (Vector2){bill_torps[i].pos.x+bill_torps[i].tex.width/2, bill_torps[i].pos.y+bill_torps[i].tex.height/2};
-        bill_torps[i].radius = bill_torps[i].tex.width / 1.7;
+        ufo_torps[i].tex = tex_torp;
+        ufo_torps[i].pix = LoadImageColors(torp);
+        ufo_torps[i].active = false;
+        ufo_torps[i].speed = (Vector2){9.0f, 9.0f};    // ideal = 10.0
+        ufo_torps[i].size = (Vector2){4, 4};
+        ufo_torps[i].source = (Rectangle){0, 0, ufo_torps[i].tex.width, ufo_torps[i].tex.height};
+        ufo_torps[i].center = (Vector2){ufo_torps[i].pos.x+ufo_torps[i].tex.width/2, ufo_torps[i].pos.y+ufo_torps[i].tex.height/2};
+        ufo_torps[i].radius = ufo_torps[i].tex.width / 1.7;
     }
+    // for (i = 0; i < 15; i++) {  
+    //     sluggo_torps[i].tex = tex_torp;
+    //     sluggo_torps[i].pix = LoadImageColors(torp);
+    //     sluggo_torps[i].active = false;
+    //     sluggo_torps[i].speed = (Vector2){9.0f, 9.0f};    // ideal = 10.0
+    //     sluggo_torps[i].size = (Vector2){4, 4};
+    //     sluggo_torps[i].source = (Rectangle){0, 0, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
+    //     sluggo_torps[i].center = (Vector2){sluggo_torps[i].pos.x+sluggo_torps[i].tex.width/2, sluggo_torps[i].pos.y+sluggo_torps[i].tex.height/2};
+    //     sluggo_torps[i].radius = sluggo_torps[i].tex.width / 1.7;
+
+    //     bill_torps[i].tex = tex_torp;
+    //     bill_torps[i].pix = LoadImageColors(torp);
+    //     bill_torps[i].active = false;
+    //     bill_torps[i].speed = (Vector2){9.0, 9.0};    // ideal = 10.0
+    //     bill_torps[i].size = (Vector2){4, 4};
+    //     bill_torps[i].source = (Rectangle){0, 0, bill_torps[i].tex.width, bill_torps[i].tex.height};
+    //     bill_torps[i].center = (Vector2){bill_torps[i].pos.x+bill_torps[i].tex.width/2, bill_torps[i].pos.y+bill_torps[i].tex.height/2};
+    //     bill_torps[i].radius = bill_torps[i].tex.width / 1.7;
+    // }
 
     // vars 4 trig calcs
     Vector2 thrust;
@@ -708,9 +720,6 @@ int main()
 
                     ufo->bounds.x = ufo->pos.x;
                     ufo->bounds.y = ufo->pos.y;
-                    // bill_shoot_dir = Vector2Subtract(ship.pos, ufo->pos);
-                    // bill_shoot_dir.x = ship.pos.x - ufo->pos.x;
-                    // bill_shoot_dir.y = ship.pos.y - ufo->pos.y;
 
                     ////////// SHOOTING //////////
                     switch(ufo->shoot_state) {
@@ -741,47 +750,58 @@ int main()
                                     ufo->shootDir.x = cos(sluggo_angle);
                                     ufo->shootDir.y = sin(sluggo_angle);
     
-                                    if (sluggo_torp_index == 15)
-                                    sluggo_torp_index = 0;
+                                    // if (ufo_torp_index == 15)
+                                    //     ufo_torp_index = 0;
     
-                                    startTimer(&sluggo_torps[sluggo_torp_index].timer, shot_time);
+                                    // startTimer(&ufo_torps[ufo_torp_index].timer, shot_time);
     
-                                    // update shooting coords 
-                                    sluggo_torps[sluggo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
-                                    sluggo_torps[sluggo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
-                                    sluggo_torps[sluggo_torp_index].active = true;
-                                    sluggo_torp_index++;
+                                    // // update shooting coords 
+                                    // ufo_torps[ufo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
+                                    // ufo_torps[ufo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
+                                    // ufo_torps[ufo_torp_index].active = true;
+                                    // ufo_torp_index++;
     
-                                    startTimer(&ufo->cooldownTimer, GetRandomValue(1, 3));
-                                    ufo->shoot_state = COOLDOWN;
-                                    break;
+                                    // startTimer(&ufo->cooldownTimer, GetRandomValue(1, 3));
+                                    // ufo->shoot_state = COOLDOWN;
+                                    // break;
                                 } else {
                                     max_deviation = bill_deviation * (PI/180.0);
                                     bill_random_deviation = GetRandomValue(-max_deviation, max_deviation);
                                     bill_shoot_dir = Vector2Subtract(ship.pos, ufo->pos);
                                     bill_angle = atan2(bill_shoot_dir.y, bill_shoot_dir.x);
                                     bill_new_angle = bill_angle + bill_random_deviation;
-                                    
-                                    // bill_shoot_dir.x = ship.pos.x - ufo->pos.x;
-                                    // bill_shoot_dir.y = ship.pos.y - ufo->pos.y;
                                     ufo->shootDir.x = cos(bill_new_angle);
                                     ufo->shootDir.y = sin(bill_new_angle);
     
-                                    if (bill_torp_index == 15)
-                                        bill_torp_index = 0;
+                                    // if (bill_torp_index == 15)
+                                    //     bill_torp_index = 0;
     
-                                    startTimer(&bill_torps[bill_torp_index].timer, shot_time);
+                                    // startTimer(&bill_torps[bill_torp_index].timer, shot_time);
     
-                                    // update shooting coords 
-                                    bill_torps[bill_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
-                                    bill_torps[bill_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
-                                    bill_torps[bill_torp_index].active = true;
-                                    bill_torp_index++;
+                                    // // update shooting coords 
+                                    // bill_torps[bill_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
+                                    // bill_torps[bill_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
+                                    // bill_torps[bill_torp_index].active = true;
+                                    // bill_torp_index++;
     
-                                    startTimer(&ufo->cooldownTimer, GetRandomValue(0, 2));
-                                    ufo->shoot_state = COOLDOWN;
-                                    break;
+                                    // startTimer(&ufo->cooldownTimer, GetRandomValue(0, 2));
+                                    // ufo->shoot_state = COOLDOWN;
+                                    // break;
                                 }
+                                if (ufo_torp_index == 15)
+                                        ufo_torp_index = 0;
+    
+                                startTimer(&ufo_torps[ufo_torp_index].timer, shot_time);
+
+                                // update shooting coords 
+                                ufo_torps[ufo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
+                                ufo_torps[ufo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
+                                ufo_torps[ufo_torp_index].active = true;
+                                ufo_torp_index++;
+
+                                startTimer(&ufo->cooldownTimer, GetRandomValue(1, 3));
+                                ufo->shoot_state = COOLDOWN;
+                                break;
                             }
                         }
                     }
@@ -793,7 +813,7 @@ int main()
                     ) {
                         ufo->state = UFO_DEAD;
                         ufo->onscreen = false;
-                        sluggo_torp_index = 0;
+                        ufo_torp_index = 0;
                     }
                     break;
                 }
@@ -807,56 +827,56 @@ int main()
 
             // draw UFO torps
             for (int i = 0; i < 15; i++) {
-                if (sluggo_torps[i].active) {
-                    sluggo_torps[i].pos.x += sluggo_torps[i].dir.x * sluggo_torps[i].speed.x;
-                    sluggo_torps[i].pos.y += sluggo_torps[i].dir.y * sluggo_torps[i].speed.y;
-                    sluggo_torps[i].dest = (Rectangle){sluggo_torps[i].pos.x, sluggo_torps[i].pos.y, sluggo_torps[i].tex.width, sluggo_torps[i].tex.height};
-                    DrawTexturePro(tex_torp, sluggo_torps[i].source, sluggo_torps[i].dest, sluggo_torps[i].center, 0.0f, WHITE);
+                if (ufo_torps[i].active) {
+                    ufo_torps[i].pos.x += ufo_torps[i].dir.x * ufo_torps[i].speed.x;
+                    ufo_torps[i].pos.y += ufo_torps[i].dir.y * ufo_torps[i].speed.y;
+                    ufo_torps[i].dest = (Rectangle){ufo_torps[i].pos.x, ufo_torps[i].pos.y, ufo_torps[i].tex.width, ufo_torps[i].tex.height};
+                    DrawTexturePro(tex_torp, ufo_torps[i].source, ufo_torps[i].dest, ufo_torps[i].center, 0.0f, WHITE);
 
                     // wrap-around
-                    if (sluggo_torps[i].pos.x-sluggo_torps[i].tex.width >= screen_width)
-                        sluggo_torps[i].pos.x = 0 - sluggo_torps[i].tex.width;
-                    else if (sluggo_torps[i].pos.x+sluggo_torps[i].tex.width <= 0)
-                        sluggo_torps[i].pos.x = screen_width + sluggo_torps[i].tex.width;
+                    if (ufo_torps[i].pos.x-ufo_torps[i].tex.width >= screen_width)
+                        ufo_torps[i].pos.x = 0 - ufo_torps[i].tex.width;
+                    else if (ufo_torps[i].pos.x+ufo_torps[i].tex.width <= 0)
+                        ufo_torps[i].pos.x = screen_width + ufo_torps[i].tex.width;
 
-                    if (sluggo_torps[i].pos.y-sluggo_torps[i].tex.height >= screen_height)
-                        sluggo_torps[i].pos.y = 0 - sluggo_torps[i].tex.height;
-                    else if (sluggo_torps[i].pos.y+sluggo_torps[i].tex.height <= 0)
-                        sluggo_torps[i].pos.y = screen_height + sluggo_torps[i].tex.height;
+                    if (ufo_torps[i].pos.y-ufo_torps[i].tex.height >= screen_height)
+                        ufo_torps[i].pos.y = 0 - ufo_torps[i].tex.height;
+                    else if (ufo_torps[i].pos.y+ufo_torps[i].tex.height <= 0)
+                        ufo_torps[i].pos.y = screen_height + ufo_torps[i].tex.height;
 
                     // torp dissapears after 1.5 seconds
-                    // if (getElapsed(sluggo_torps[i].timer) > shot_time)
-                    //     sluggo_torps[i].active = false;
-                    if (TimerDone(sluggo_torps[i].timer))
-                        sluggo_torps[i].active = false;
+                    // if (getElapsed(ufo_torps[i].timer) > shot_time)
+                    //     ufo_torps[i].active = false;
+                    if (TimerDone(ufo_torps[i].timer))
+                        ufo_torps[i].active = false;
                 }
             }
 
-            for (int i = 0; i < 15; i++) {
-                if (bill_torps[i].active) {
-                    bill_torps[i].pos.x += bill_torps[i].dir.x * bill_torps[i].speed.x;
-                    bill_torps[i].pos.y += bill_torps[i].dir.y * bill_torps[i].speed.y;
-                    bill_torps[i].dest = (Rectangle){bill_torps[i].pos.x, bill_torps[i].pos.y, bill_torps[i].tex.width, bill_torps[i].tex.height};
-                    DrawTexturePro(tex_torp, bill_torps[i].source, bill_torps[i].dest, bill_torps[i].center, 0.0f, WHITE);
+            // for (int i = 0; i < 15; i++) {
+            //     if (bill_torps[i].active) {
+            //         bill_torps[i].pos.x += bill_torps[i].dir.x * bill_torps[i].speed.x;
+            //         bill_torps[i].pos.y += bill_torps[i].dir.y * bill_torps[i].speed.y;
+            //         bill_torps[i].dest = (Rectangle){bill_torps[i].pos.x, bill_torps[i].pos.y, bill_torps[i].tex.width, bill_torps[i].tex.height};
+            //         DrawTexturePro(tex_torp, bill_torps[i].source, bill_torps[i].dest, bill_torps[i].center, 0.0f, WHITE);
 
-                    // wrap-around
-                    if (bill_torps[i].pos.x-bill_torps[i].tex.width >= screen_width)
-                        bill_torps[i].pos.x = 0 - bill_torps[i].tex.width;
-                    else if (bill_torps[i].pos.x+bill_torps[i].tex.width <= 0)
-                        bill_torps[i].pos.x = screen_width + bill_torps[i].tex.width;
+            //         // wrap-around
+            //         if (bill_torps[i].pos.x-bill_torps[i].tex.width >= screen_width)
+            //             bill_torps[i].pos.x = 0 - bill_torps[i].tex.width;
+            //         else if (bill_torps[i].pos.x+bill_torps[i].tex.width <= 0)
+            //             bill_torps[i].pos.x = screen_width + bill_torps[i].tex.width;
 
-                    if (bill_torps[i].pos.y-bill_torps[i].tex.height >= screen_height)
-                        bill_torps[i].pos.y = 0 - bill_torps[i].tex.height;
-                    else if (bill_torps[i].pos.y+bill_torps[i].tex.height <= 0)
-                        bill_torps[i].pos.y = screen_height + bill_torps[i].tex.height;
+            //         if (bill_torps[i].pos.y-bill_torps[i].tex.height >= screen_height)
+            //             bill_torps[i].pos.y = 0 - bill_torps[i].tex.height;
+            //         else if (bill_torps[i].pos.y+bill_torps[i].tex.height <= 0)
+            //             bill_torps[i].pos.y = screen_height + bill_torps[i].tex.height;
 
-                    // torp dissapears after 1.5 seconds
-                    // if (getElapsed(bill_torps[i].timer) > shot_time)
-                    //     bill_torps[i].active = false;
-                    if (TimerDone(bill_torps[i].timer))
-                        bill_torps[i].active = false;
-                }
-            }
+            //         // torp dissapears after 1.5 seconds
+            //         // if (getElapsed(bill_torps[i].timer) > shot_time)
+            //         //     bill_torps[i].active = false;
+            //         if (TimerDone(bill_torps[i].timer))
+            //             bill_torps[i].active = false;
+            //     }
+            // }
 
             // wrap-around
             if (ufo->pos.y > screen_height+ufo->tex.height/2)
@@ -878,7 +898,7 @@ int main()
                 if (ufo->state == UFO_ACTIVE) {
                     DrawText(TextFormat("%s", ufo->name), 72, screen_height-120, 20, WHITE);
                     // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
-                    DrawText(TextFormat("torp index: %d", sluggo_torp_index), 20, screen_height-90, 20, WHITE);
+                    DrawText(TextFormat("torp index: %d", ufo_torp_index), 20, screen_height-90, 20, WHITE);
                     DrawText(TextFormat("%d", ufo->shoot_state), 172, screen_height-70, 20, WHITE);
                     DrawText(TextFormat("%.2f", ufo->pos.x), 135, screen_height-50, 20, WHITE);
                     DrawText(TextFormat("%.2f", ufo->pos.y), 290, screen_height-50, 20, WHITE);
