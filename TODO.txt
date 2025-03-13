@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////
 
 REFACTOR:
-  - pixel-perfect collision into function
+  - pixel-perfect collisions into function
   - all sprites into one sprite sheet
   - helper functions into own file
   - debug display into one helper function?

@@ -977,7 +977,7 @@ int main()
                 }
             }
 
-            // vs torps (pixel-perfect using alpha channels)
+            // vs ship torps (pixel-perfect using alpha channels)
             for (j = 0; j < 4; j++) {
                 if (asteroids[i].active && torps[j].active) {
                     if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, torps[j].pos, torps[j].radius)) {
@@ -1002,6 +1002,38 @@ int main()
                                         torps[j].active = false;
                                         AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
                                         score += 20;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // vs ufo torps
+            for (j = 0; j < 15; j++) {
+                if (asteroids[i].active && ufo_torps[j].active) {
+                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                        collision_found = false;
+                        // DrawText("1st Check", 10, 20, 30, GREEN);
+                        for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
+                            for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
+                                int ast_local_x  = x;
+                                int ast_local_y  = y;
+                                int torp_local_x = (x + (int)(asteroid_top_left.x - ufo_torps[j].pos.x));
+                                int torp_local_y = (y + (int)(asteroid_top_left.y - ufo_torps[j].pos.y));
+
+                                if (torp_local_x >= 0 && torp_local_y >= 0 
+                                    && torp_local_x < ufo_torps[j].tex.width && torp_local_y < ufo_torps[j].tex.height) {
+
+                                    Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
+                                    Color torp_pixel = ufo_torps[j].pix[torp_local_y * ufo_torps[j].tex.width + torp_local_x];
+
+                                    if (ast_pixel.a > 0 && torp_pixel.a > 0) {  // !
+                                        collision_found = true;
+                                        asteroids[i].active = false;
+                                        ufo_torps[j].active = false;
+                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
                                     }
                                 }
                             }
@@ -1035,7 +1067,7 @@ int main()
                 }
             }
 
-            // vs torps
+            // vs ship torps
             for (j = 0; j < 4; j++) {
                 if (mid_asts[i].active && torps[j].active) {
                     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, torps[j].pos, torps[j].radius)) {
@@ -1047,14 +1079,25 @@ int main()
                 }
             }
 
+            // vs ufo torps
+            for (j = 0; j < 15; j++) {
+                if (mid_asts[i].active && ufo_torps[j].active) {
+                    if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                        mid_asts[i].active = false;
+                        ufo_torps[j].active = false;
+                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
+                    }
+                }
+            }
+
             // vs ufos
             for (k = 0; k < 2; k++) {
                 if (mid_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
                     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
                         DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                        mid_asts[i].active = false;
-                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
-                        ufos[k].state = UFO_DEAD;
+                        // mid_asts[i].active = false;
+                        // AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
+                        // ufos[k].state = UFO_DEAD;
                     }
                 }
             }
@@ -1072,7 +1115,7 @@ int main()
                 }
             }
 
-            // vs torps
+            // vs ship torps
             for (j = 0; j < 4; j++) {
                 if (lil_asts[i].active && torps[j].active) {
                     if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, torps[j].pos, torps[j].radius)) {
@@ -1083,13 +1126,23 @@ int main()
                 }
             }
 
+            // vs ufo torps
+            for (j = 0; j < 15; j++) {
+                if (lil_asts[i].active && ufo_torps[j].active) {
+                    if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                        lil_asts[i].active = false;
+                        ufo_torps[j].active = false;
+                    }
+                }
+            }
+
             // vs ufos
             for (k = 0; k < 2; k++) {
                 if (lil_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
                     if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
                         DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                        lil_asts[i].active = false;
-                        ufos[k].state = UFO_DEAD;
+                        // lil_asts[i].active = false;
+                        // ufos[k].state = UFO_DEAD;
                     }
                 }
             }
@@ -1123,6 +1176,18 @@ int main()
             }
         }
 
+        // SHIP VS UFO TORPS
+        for (i = 0; i < 15; i++) {
+            if (ufo_torps[i].active && ship.active) {
+                if (CheckCollisionCircles(ufo_torps[i].pos, ufo_torps[i].radius, ship.circle_center, ship.radius)) {
+                    DrawText("Collision!", 10, 50, 40, RED);
+                    // ufo_torps[i].active = false;
+                    // ship.active = false;
+                    // ships[--lives].active = false;
+                }
+            }
+        }
+
         /////////////// DEBUGGING DISPLAY ///////////////
         
         if (debug) {
@@ -1132,12 +1197,14 @@ int main()
             // DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-90, 20, WHITE);
             // DrawText("TEST", 20, screen_height-30, 20, WHITE);
             
-            // show bounding circles
+            // SHOW BOUNDING CIRCLES
+            // ship
             if (ship.active) {
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
             }
             
+            // UFO
             for (i = 0; i < 2; i++) {
                 if (ufos[i].state == UFO_ACTIVE) {
                     DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
@@ -1271,6 +1338,8 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index)
             asts[*index].tex.width *= 0.5;
             asts[*index].tex.height *= 0.5;
         }
+
+        // calc random accel and direction
 
         asts[*index].pos = ast.pos;
         asts[*index].speed = ast.speed;
