@@ -28,6 +28,7 @@ REFACTOR:
   - helper functions into own file
   - debug display into one helper function?
   - UFO's shooting logic into function?
+  - all asteroids movement into function?
 
 + asteroids initial state
   + creation and distribution
@@ -54,7 +55,7 @@ REFACTOR:
 
 + physics
   + thrust
-  - asteroids accel
+  + asteroids accel
   - improve ship inertia
 
 + collisions
@@ -76,12 +77,12 @@ REFACTOR:
   - ship explosion
   - thrust
 
-- high scores record
-
 - screens
   - initial
   - pause
   - game over
-  - player scores
+  - leaderboard
 
 - synth
+
+- leaderboard

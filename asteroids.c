@@ -2,6 +2,8 @@
 
 #include "raylib.h"
 #include "raymath.h"
+#include "types.h"
+#include "helpers.h"
 // #include "synth.h"
 // #include "animations.h"
 #include <stdio.h>
@@ -118,9 +120,10 @@ typedef struct Torp {
 } Torp;
 
 int RandPos(int a, int b);
+float GetRandomFloat(float min, float max);
 double getElapsed(Timer timer);
 void startTimer(Timer* timer, double lifetime);
-void AstBlast(Asteroid ast, Asteroid* asts, int* index);
+void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
 bool TimerDone(Timer timer);
 
 int main()
@@ -146,7 +149,6 @@ int main()
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
-    const float ast_speed = 1.7;  // 1.5
 
     int ast_num = 4;
     int mid_ast_num = ast_num * 2;
@@ -354,6 +356,7 @@ int main()
     float rotated_center_y;
     float radians;
     float check1_radius = 1.4f;     // 1st check for torps collision.  1.2f
+    float ast_speed = 0.0f;  // 1.5
 
     for (i = 0; i < ast_num; i++) {
         // set up a "safe area" for the ship
@@ -365,6 +368,7 @@ int main()
             x_pos = RandPos((screen_width/2)+(ship.tex.width*4), screen_width+10);
         y_pos = RandPos(-10, screen_height+10);
 
+        ast_speed = GetRandomFloat(1.5f, 2.5f);
         direction = rand() % 4;
         spr_ind = rand() % 16;
         tex_ast = ast_sprites[spr_ind];
@@ -373,7 +377,7 @@ int main()
         asteroids[i].tex = tex_ast;
         asteroids[i].pix = ast_pixels[spr_ind];
         asteroids[i].pos = (Vector2){x_pos, y_pos};
-        asteroids[i].speed = (Vector2){1.7, 1.7};
+        asteroids[i].speed = (Vector2){ast_speed, ast_speed};
         asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
         asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
         asteroids[i].rect = (Rectangle){0, 0, asteroids[i].size.x, asteroids[i].size.y};
@@ -857,20 +861,20 @@ int main()
         for (i = 0; i < ast_num; i++) {
             switch(asteroids[i].dir) {            
                 case 0:
-                    asteroids[i].pos.x -= ast_speed;
-                    asteroids[i].pos.y -= ast_speed;
+                    asteroids[i].pos.x -= asteroids[i].speed.x;
+                    asteroids[i].pos.y -= asteroids[i].speed.y;
                     break;
                 case 1:
-                    asteroids[i].pos.x += ast_speed;
-                    asteroids[i].pos.y -= ast_speed;
+                    asteroids[i].pos.x += asteroids[i].speed.x;
+                    asteroids[i].pos.y -= asteroids[i].speed.y;
                     break;
                 case 2:
-                    asteroids[i].pos.x -= ast_speed;
-                    asteroids[i].pos.y += ast_speed;
+                    asteroids[i].pos.x -= asteroids[i].speed.x;
+                    asteroids[i].pos.y += asteroids[i].speed.y;
                     break;
                 case 3:
-                    asteroids[i].pos.x += ast_speed;
-                    asteroids[i].pos.y += ast_speed;
+                    asteroids[i].pos.x += asteroids[i].speed.x;
+                    asteroids[i].pos.y += asteroids[i].speed.y;
                     break;
             }
             asteroids[i].bounds.x = asteroids[i].pos.x;
@@ -882,20 +886,20 @@ int main()
             if (mid_asts[i].active) {
                 switch(mid_asts[i].dir) {
                     case 0:
-                        mid_asts[i].pos.x -= ast_speed;
-                        mid_asts[i].pos.y -= ast_speed;
+                        mid_asts[i].pos.x -= mid_asts[i].speed.x;
+                        mid_asts[i].pos.y -= mid_asts[i].speed.y;
                         break;
                     case 1:
-                        mid_asts[i].pos.x += ast_speed;
-                        mid_asts[i].pos.y -= ast_speed;
+                        mid_asts[i].pos.x += mid_asts[i].speed.x;
+                        mid_asts[i].pos.y -= mid_asts[i].speed.y;
                         break;
                     case 2:
-                        mid_asts[i].pos.x -= ast_speed;
-                        mid_asts[i].pos.y += ast_speed;
+                        mid_asts[i].pos.x -= mid_asts[i].speed.x;
+                        mid_asts[i].pos.y += mid_asts[i].speed.y;
                         break;
                     case 3:
-                        mid_asts[i].pos.x += ast_speed;
-                        mid_asts[i].pos.y += ast_speed;
+                        mid_asts[i].pos.x += mid_asts[i].speed.x;
+                        mid_asts[i].pos.y += mid_asts[i].speed.y;
                         break;
                 }
                 mid_asts[i].bounds.x = mid_asts[i].pos.x;
@@ -908,20 +912,20 @@ int main()
             if (lil_asts[i].active) {
                 switch(lil_asts[i].dir) {
                     case 0:
-                        lil_asts[i].pos.x -= ast_speed;
-                        lil_asts[i].pos.y -= ast_speed;
+                        lil_asts[i].pos.x -= lil_asts[i].speed.x;
+                        lil_asts[i].pos.y -= lil_asts[i].speed.y;
                         break;
                     case 1:
-                        lil_asts[i].pos.x += ast_speed;
-                        lil_asts[i].pos.y -= ast_speed;
+                        lil_asts[i].pos.x += lil_asts[i].speed.x;
+                        lil_asts[i].pos.y -= lil_asts[i].speed.y;
                         break;
                     case 2:
-                        lil_asts[i].pos.x -= ast_speed;
-                        lil_asts[i].pos.y += ast_speed;
+                        lil_asts[i].pos.x -= lil_asts[i].speed.x;
+                        lil_asts[i].pos.y += lil_asts[i].speed.y;
                         break;
                     case 3:
-                        lil_asts[i].pos.x += ast_speed;
-                        lil_asts[i].pos.y += ast_speed;
+                        lil_asts[i].pos.x += lil_asts[i].speed.x;
+                        lil_asts[i].pos.y += lil_asts[i].speed.y;
                         break;
                 }
                 lil_asts[i].bounds.x = lil_asts[i].pos.x;
@@ -1000,7 +1004,7 @@ int main()
                                         collision_found = true;
                                         asteroids[i].active = false;
                                         torps[j].active = false;
-                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
+                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
                                         score += 20;
                                     }
                                 }
@@ -1033,7 +1037,7 @@ int main()
                                         collision_found = true;
                                         asteroids[i].active = false;
                                         ufo_torps[j].active = false;
-                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
+                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
                                     }
                                 }
                             }
@@ -1073,7 +1077,7 @@ int main()
                     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, torps[j].pos, torps[j].radius)) {
                         mid_asts[i].active = false;
                         torps[j].active = false;
-                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
+                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
                         score += 50;
                     }
                 }
@@ -1085,7 +1089,7 @@ int main()
                     if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
                         mid_asts[i].active = false;
                         ufo_torps[j].active = false;
-                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
+                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
                     }
                 }
             }
@@ -1315,19 +1319,29 @@ int RandPos(int a, int b)
     return a + rand() % (b - a+1);
 }
 
-void AstBlast(Asteroid ast, Asteroid* asts, int* index)
+
+float GetRandomFloat(float min, float max) {
+    return min + (GetRandomValue(0, 1000) / 1000.0f) * (max - min);
+}
+
+void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
 {
-    int i, direction, prev_dir = -1;
+    int i, direction, prev_dir = -1, spr_ind;
+    float new_speed;
 
     for (i = 0; i < 2; i++) {
-        do {
-            direction = rand() % 4;
-        } while (direction == ast.dir || (i == 1 && direction == prev_dir));
+        // do {
+        //     direction = rand() % 4;
+        // } while (direction == ast.dir || (i == 1 && direction == prev_dir));
 
-        prev_dir = direction;
+        // prev_dir = direction;
+        direction = rand() % 4;
 
+        spr_ind = GetRandomValue(0, 15);
+        new_speed = GetRandomFloat(.97f, 3.7f);
         asts[*index].active = true;
-        asts[*index].tex = ast.tex;
+        asts[*index].tex = sprites[spr_ind];
+        // asts[*index].tex = ast.tex;
 
         if (strcmp(ast.type, "big") == 0) {
             asts[*index].type = "mid";
@@ -1339,10 +1353,11 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index)
             asts[*index].tex.height *= 0.5;
         }
 
-        // calc random accel and direction
+        // calc random direction?
 
         asts[*index].pos = ast.pos;
-        asts[*index].speed = ast.speed;
+        asts[*index].speed.x = new_speed;
+        asts[*index].speed.y = new_speed;
         asts[*index].size = (Vector2){asts[*index].tex.width, asts[*index].tex.height};
         asts[*index].center = (Vector2){asts[*index].size.x/2, asts[*index].size.y/2};
         asts[*index].rect = (Rectangle){0, 0, asts[*index].size.x, asts[*index].size.y};
