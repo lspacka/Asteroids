@@ -68,6 +68,9 @@ REFACTOR:
 
 + scoring system
 
+- ship spawning
+  - 
+
 - levels
 
 + hyperspace

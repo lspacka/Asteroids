@@ -1,136 +1,33 @@
 //  -lraylib -lgdi32 -lwinmm -Wall -std=c99 -I c:/raylib/raylib/src
 
-#include "raylib.h"
-#include "raymath.h"
-#include "types.h"
-#include "helpers.h"
-// #include "synth.h"
-// #include "animations.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include "raylib.h"
+#include "raymath.h"
+#include "types.h"
+#include "funcs.h"
+// #include "synth.h"
+// #include "animations.h"
 
-typedef enum UFOState {
-    UFO_DEAD,
-    UFO_WAITING,
-    UFO_SPAWNING,
-    UFO_ACTIVE
-} UFOState;
 
-typedef enum ShootState {
-    COOLDOWN,
-    TRANSIT,
-    SHOOT
-} ShootState;
-
-typedef struct Timer {
-    double startTime;
-    double lifeTime;
-} Timer;
-
-typedef struct Ship {
-    Vector2 pos;
-    Vector2 vel;
-    Vector2 accel;      // 
-    Vector2 size;
-    Vector2 dir;
-    Vector2 center;
-    Vector2 circle_center;
-    Vector2 tip;
-    Rectangle bounds;
-    Rectangle rect;
-    Texture2D tex;
-    Color* pix;
-    float rotation;     //
-    float lowSpeed;
-    float scale;        //
-    float radius;
-    int lives;
-    bool active;
-} Ship;
-
-typedef struct Asteroid {
-    Vector2 pos;
-    Vector2 speed;
-    Vector2 accel;
-    Vector2 size;
-    Vector2 center;
-    Vector2 circle_center;
-    Rectangle rect;
-    Rectangle bounds;
-    Texture2D tex;
-    Color* pix;
-    float rotation;
-    float scale;
-    // float circle_center;
-    float radius;
-    int dir;
-    bool active;
-    char* type;
-} Asteroid;
-
-typedef struct UFO {
-    Vector2 pos;
-    Vector2 speed;
-    Vector2 accel;
-    Vector2 size;
-    Vector2 center;
-    Vector2 shootDir;
-    Rectangle rect;
-    Rectangle bounds;
-    Texture2D tex;
-    bool right;         // 0==left->rigth,  1==right->left
-    bool deviate;
-    bool up;
-    bool onscreen;
-    bool shoot;        //  
-    float radius;
-    Timer respawnTimer;
-    Timer movementTimer;
-    Timer shootingTimer;
-    Timer cooldownTimer;
-    Timer transitTimer;
-    Timer torpTimer;
-    UFOState state;
-    ShootState shoot_state;
-    // int state;
-    char* name;         // just for testing
-    Color* pix;         //
-    float scale;        //
-    bool active;        //
-} UFO;
-
-typedef struct Torp {
-    Vector2 pos;
-    Vector2 speed;
-    Vector2 dir;
-    Vector2 size;
-    Vector2 center;
-    Rectangle source;
-    Rectangle dest;
-    Texture2D tex;
-    Rectangle bounds;
-    Color* pix;
-    Timer timer;
-    float radius;
-    bool active;
-    float shoot_angle;
-} Torp;
-
-int RandPos(int a, int b);
-float GetRandomFloat(float min, float max);
-double getElapsed(Timer timer);
-void startTimer(Timer* timer, double lifetime);
-void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
-bool TimerDone(Timer timer);
+// int RandPos(int a, int b);
+// float GetRandomFloat(float min, float max);
+// double getElapsed(Timer timer);
+// void startTimer(Timer* timer, double lifetime);
+// void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
+// bool TimerDone(Timer timer);
 
 int main()
 {
     SetTraceLogLevel(LOG_WARNING);
     srand(time(NULL));
-    // Font font = LoadFont("/Hyperspace-JvEM.ttf");
+
+    GameState game_state = GAME_ACTIVE;
+    bool first_level = true;
+    // Font font = LoadFont("./Hyperspace-JvEM.ttf");
 
     // InitWindow(800, 600, "Asteroids");
 
@@ -139,12 +36,12 @@ int main()
 
     // SetWindowSize(screen_width, screen_height);
     
-
     int screen_width = 1200;
     int screen_height = 900;
+    Vector2 spawn_point = { screen_width/2, screen_height/2 };   // to reset the ship pos to the middle of the screen
 
-    InitWindow(screen_width, screen_height, "Asteroids");
-    SetTargetFPS(60);
+    InitWindow(screen_width, screen_height, "Asteroids");   
+    SetTargetFPS(60); 
 
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
@@ -359,7 +256,7 @@ int main()
     float ast_speed = 0.0f;  // 1.5
 
     for (i = 0; i < ast_num; i++) {
-        // set up a "safe area" for the ship
+        // set up a "safe zone" for the ship
         // so that asteroids dont spawn right next to it
         init_ast_pos = rand() % 2;
         if (init_ast_pos == 0)
@@ -452,11 +349,13 @@ int main()
     // Timer burst_timer = { 0 };
     // Timer shot_timers[4] = { 0 };
     Timer hyper_timer = { 0 };
+    Timer ship_spawn_timer = { 0 };
     // Timer ufo_shoot = { 0 };
 
     // float burst_time = 0.4f;
     float shot_time  = 1.5f;
     float hyper_time = 1.0f;
+    float ship_spawn_time = 2.0f;
     bool cooldown_active = false;
 
     // UFO shooting vars
@@ -525,7 +424,7 @@ int main()
         ship.tip.y = ship.pos.y + rota_offset_y;
 
         ///////////////// SHOOTING ///////////////
-        if (IsKeyPressed(KEY_LEFT_CONTROL)) {
+        if (IsKeyPressed(KEY_LEFT_CONTROL) && !hyperspace) {
             // no burst timer
             if (torp_index == 4) 
                 torp_index = 0;
@@ -580,7 +479,7 @@ int main()
         }
 
         /////////////// THRUST ///////////////
-        if (IsKeyDown(KEY_UP)) {
+        if (IsKeyDown(KEY_UP) && ship.active) {
 
             // Recalculate thrust direction based on the ship's current rotation
             thrust = ship.dir;
@@ -656,7 +555,7 @@ int main()
             ufo->state = UFO_WAITING;
             // set cooldown time before shooting
             startTimer(&ufo->cooldownTimer, GetRandomValue(1, 2));
-            ufo->shoot_state = COOLDOWN;
+            ufo->shoot_state = SHOOT_COOLDOWN;
             ufo->onscreen = false;
             sluggo_dir = 0;
             sluggo_angle = 0;
@@ -704,24 +603,24 @@ int main()
 
                     ////////// SHOOTING //////////
                     switch(ufo->shoot_state) {
-                        case COOLDOWN: {
+                        case SHOOT_COOLDOWN: {
                             if (TimerDone(ufo->cooldownTimer)) {
                                 // DrawText("enter COOLDOWN state...", 20, screen_height-90, 20, WHITE);
-                                ufo->shoot_state = TRANSIT;
+                                ufo->shoot_state = SHOOT_TRANSIT;
                                 startTimer(&ufo->transitTimer, 0.1);
                                 // break;
                             }            
                             break;
                         }  
-                        case TRANSIT: {
+                        case SHOOT_TRANSIT: {
                             if (TimerDone(ufo->transitTimer)) {
                                 // DrawText("enter TRANSIT state...", 300, screen_height-90, 20, WHITE);
-                                ufo->shoot_state = SHOOT;
+                                ufo->shoot_state = SHOOT_FIRE;
                                 startTimer(&ufo->transitTimer, 0.1);
                                 break;
                             }
                         }
-                        case SHOOT: {
+                        case SHOOT_FIRE: {
                             // DrawText("enter SHOOT state...", 550, screen_height-90, 20, WHITE);
                             if (TimerDone(ufo->transitTimer)) {
                                 if (strcmp(ufo->name, "sluggo") == 0) {
@@ -751,7 +650,7 @@ int main()
                                 ufo_torp_index++;
 
                                 startTimer(&ufo->cooldownTimer, 1);
-                                ufo->shoot_state = COOLDOWN;
+                                ufo->shoot_state = SHOOT_COOLDOWN;
                                 break;
                             }
                         }
@@ -962,7 +861,7 @@ int main()
 
         ////////////////////////// COLLISIONS //////////////////////////
 
-        // big asteroids
+        // BIG ASTEROIDS
         Vector2 asteroid_top_left;
         for (i = 0; i < ast_num; i++) {
             asteroid_top_left = (Vector2){ 
@@ -975,11 +874,53 @@ int main()
                 if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
                     // collision_found = false;
                     DrawText("Collision!", 10, 50, 40, RED);
-                    // asteroids[i].active = false;
-                    // ship.active = false;
-                    // ships[--lives].active = false;
+                    asteroids[i].active = false;
+                    AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                    lives--;
+                    ships[lives].active = false;     // lives display
+                    ship.active = false;
+                    startTimer(&ship_spawn_timer, ship_spawn_time);
                 }
             }
+            ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, spawn_point, &game_state);
+            // if (!ship.active && lives>0) {
+            //     // reset accel
+            //     ship.pos.x = screen_width / 2;
+            //     ship.pos.y = screen_height / 2;
+            //     ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, screen, game_state);
+            // } else if (lives <= 0 && !ship.active) {
+            //     game_state = GAME_OVER; 
+            // }
+            
+
+            // Handle ship respawn in a separate block
+            // if (!ship.active && lives > 0) {
+            //     if (TimerDone(ship_spawn_timer)) {
+            //         // Check if spawn area is clear
+            //         Vector2 spawn_point = { screen_width / 2, screen_height / 2 };
+            //         float spawn_radius = ship.radius * 4;
+            //         bool spawn_area_clear = true;
+
+            //         // Check all asteroids for collision with spawn area
+            //         for (int j = 0; j < ast_num; j++) { // Assuming MAX_ASTEROIDS is defined
+            //             if (asteroids[j].active && CheckCollisionCircles(spawn_point, spawn_radius, asteroids[j].pos, asteroids[j].radius)) {
+            //                 spawn_area_clear = false;
+            //                 break;
+            //             }
+            //         }
+
+            //         if (spawn_area_clear) {
+            //             ship.pos.x = screen_width / 2;
+            //             ship.pos.y = screen_height / 2;
+            //             ship.active = true;
+            //         } else {
+            //             // Restart timer to try again next frame
+            //             startTimer(&ship_spawn_timer, 0.5f); // Short delay to avoid excessive checks
+            //         }
+            //     }
+            // } else if (lives <= 0 && !ship.active) {
+            //     game_state = GAME_OVER; 
+            // }
 
             // vs ship torps (pixel-perfect using alpha channels)
             for (j = 0; j < 4; j++) {
@@ -1059,7 +1000,7 @@ int main()
             }
         }
 
-        // mid asteroids
+        // MID ASTEROIDS
         for (i = 0; i < mid_ast_num; i++) {
             // vs ship
             if (mid_asts[i].active && ship.active) {
@@ -1107,7 +1048,7 @@ int main()
             }
         }
 
-        // lil asteroids
+        // LIL ASTEROIDS
         for (i = 0; i < lil_ast_num; i++) {
             // vs ship
             if (lil_asts[i].active && ship.active) {
@@ -1206,6 +1147,7 @@ int main()
             if (ship.active) {
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
                 DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
+                DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*6, RED);     // safe zone for spawning
             }
             
             // UFO
@@ -1312,84 +1254,4 @@ int main()
     CloseWindow();
 
     return 0;
-}
-
-int RandPos(int a, int b)
-{
-    return a + rand() % (b - a+1);
-}
-
-
-float GetRandomFloat(float min, float max) {
-    return min + (GetRandomValue(0, 1000) / 1000.0f) * (max - min);
-}
-
-void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
-{
-    int i, direction, prev_dir = -1, spr_ind;
-    float new_speed;
-
-    for (i = 0; i < 2; i++) {
-        // do {
-        //     direction = rand() % 4;
-        // } while (direction == ast.dir || (i == 1 && direction == prev_dir));
-
-        // prev_dir = direction;
-        direction = rand() % 4;
-
-        spr_ind = GetRandomValue(0, 15);
-        new_speed = GetRandomFloat(.97f, 3.7f);
-        asts[*index].active = true;
-        asts[*index].tex = sprites[spr_ind];
-        // asts[*index].tex = ast.tex;
-
-        if (strcmp(ast.type, "big") == 0) {
-            asts[*index].type = "mid";
-            asts[*index].tex.width *= 0.7;
-            asts[*index].tex.height *= 0.7;
-        } else if (strcmp(ast.type, "mid") == 0) {
-            asts[*index].type = "lil";
-            asts[*index].tex.width *= 0.5;
-            asts[*index].tex.height *= 0.5;
-        }
-
-        // calc random direction?
-
-        asts[*index].pos = ast.pos;
-        asts[*index].speed.x = new_speed;
-        asts[*index].speed.y = new_speed;
-        asts[*index].size = (Vector2){asts[*index].tex.width, asts[*index].tex.height};
-        asts[*index].center = (Vector2){asts[*index].size.x/2, asts[*index].size.y/2};
-        asts[*index].rect = (Rectangle){0, 0, asts[*index].size.x, asts[*index].size.y};
-        asts[*index].bounds = (Rectangle){asts[*index].pos.x, asts[*index].pos.y, asts[*index].size.x, asts[*index].size.y};
-        asts[*index].dir = direction;
-        asts[*index].radius = asts[*index].size.x / 2.2f;
-
-        (*index)++;
-    }
-}
-
-void UFOShoot(Ship ship, UFO* ufo) 
-{
-    if (strcmp(ufo->name, "sluggo") == 0) {
-        // do this
-    } else {
-        // do this
-    }
-}
-
-void startTimer(Timer* timer, double lifetime)
-{
-    timer->startTime = GetTime();
-    timer->lifeTime = lifetime;
-}
-
-bool TimerDone(Timer timer)
-{
-    return GetTime() - timer.startTime >= timer.lifeTime;
-}
-
-double getElapsed(Timer timer)
-{
-    return GetTime() - timer.startTime;
 }
