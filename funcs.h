@@ -23,6 +23,43 @@ float GetRandomFloat(float min, float max)
     return min + (GetRandomValue(0, 1000) / 1000.0f) * (max - min);
 }
 
+void ShipSpawn2(
+                Ship* ship, 
+                int lives, 
+                UFO* ufos, 
+                int ufonum, 
+                Timer timer, 
+                Vector2 spawnpoint, 
+                GameState* gamestate
+              )
+{
+    if (!ship->active && lives > 0) {
+        if (TimerDone(timer)) {
+            // reset ship state
+            ship->vel.x = 0;
+            ship->vel.y = 0;
+            ship->pos = spawnpoint;
+            // Check if spawn area is clear
+            bool spawn_area_clear = true;
+            for (int j = 0; j < ufonum; j++) { 
+                if (ufos[j].active && CheckCollisionCircles(spawnpoint, ship->radius*6, ufos[j].pos, ufos[j].radius)) {
+                    spawn_area_clear = false;
+                    break;
+                }
+            }
+
+            if (spawn_area_clear) {
+                ship->active = true;
+            } else {
+                // Restart timer to try again next frame
+                startTimer(&timer, 0.5f); // Short delay to avoid excessive checks
+            }
+        }
+    } else if (lives <= 0 && !ship->active) {
+        *gamestate = GAME_OVER; 
+    }
+}
+
 void ShipSpawn(
                 Ship* ship, 
                 int lives, 
