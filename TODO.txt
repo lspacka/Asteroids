@@ -18,14 +18,14 @@
 + fix ufos disappearing randomly
 + fix flashing ufos before spawning
 + fix score bug with ufos
-- fix ship's 4-shot problem (maybe torp_num = ast_num * 100)
+- fix ship's 4-shot problem (maybe torp_num = ast_num*100 lol)
 
 ////////////////////////////////////////////////////
 
 REFACTOR:
-  - pixel-perfect collisions into function
+  - pixel-perfect logic into function
   - all sprites into one sprite sheet
-  - helper functions into own file
+  + helper functions into own file
   - debug display into one helper function?
   - UFO's shooting logic into function?
   - all asteroids movement into function?
@@ -52,6 +52,7 @@ REFACTOR:
     + mr bill:
       + determine shooting direction (player.pos - ufo.pos?)
       + add deviation factor (or do the "window" thing on the ship...)
+      - fix funny shooting when ship is dead
 
 + physics
   + thrust
@@ -69,11 +70,12 @@ REFACTOR:
 + scoring system
 
 - ship spawning
-  - 
+  - improve safe zone
 
 - levels
 
-+ hyperspace
+- hyperspace
+  - add random ship explosion
 
 - animations
   - asteroid blast
@@ -83,7 +85,7 @@ REFACTOR:
 - screens
   - initial
   - pause
-  - game over
+  + game over
   - leaderboard
 
 - synth

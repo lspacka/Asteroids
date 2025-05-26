@@ -25,9 +25,9 @@ int main()
     SetTraceLogLevel(LOG_WARNING);
     srand(time(NULL));
 
-    GameState game_state = GAME_ACTIVE;
+    GameState game_state = GAME_INIT;
     bool first_level = true;
-    // Font font = LoadFont("./Hyperspace-JvEM.ttf");
+    Font my_font = LoadFont("D:/GitHub/C/raylib/asteroids");
 
     // InitWindow(800, 600, "Asteroids");
 
@@ -39,6 +39,8 @@ int main()
     int screen_width = 1200;
     int screen_height = 900;
     Vector2 spawn_point = { screen_width/2, screen_height/2 };   // to reset the ship pos to the middle of the screen
+    // Vector2 msg_coords_1 = {spawn_point.x-300, spawn_point.y};
+    // Vector2 msg_coords_2 = {spawn_point.x-500, spawn_point.y+300};
 
     InitWindow(screen_width, screen_height, "Asteroids");   
     SetTargetFPS(60); 
@@ -47,10 +49,12 @@ int main()
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
 
+    // INIT
     int ast_num = 4;
     int mid_ast_num = ast_num * 2;
     int lil_ast_num = mid_ast_num * 2;
     int all_asts_num = ast_num * mid_ast_num * lil_ast_num;
+    int active_asteroids = all_asts_num;
 
     int mid_ast_ind = 0;
     int lil_ast_ind = 0;
@@ -58,16 +62,16 @@ int main()
     int* lil_ast_ptr = &lil_ast_ind; 
 
     int i, j, k;
-    int lives = 3;
-    int score = 0;
-    int hi_score = 0;
+    int lives = 3;  // INIT
+    int score = 0;  // INIT
+    int high_score = 0; // INIT
     bool debug = false;
     bool collision_found = false;
     bool hyperspace = false;
+    bool player_dead = false;
     Vector2 mouse_pos;
 
     Ship ship = { 0 };
-    // Ship ship_life = { 0 };
     UFO sluggo = { 0 };
     UFO mr_bill = { 0 };
     Torp torps[4] = { 0 };
@@ -77,10 +81,11 @@ int main()
     sluggo.name = "sluggo";
     mr_bill.name = "mr bill";
     
+    // INIT
     Asteroid* asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
     Asteroid* mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
     Asteroid* lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
-    Asteroid** all_asts  = (Asteroid**)calloc((ast_num*mid_ast_num*lil_ast_num), sizeof(Asteroid));
+    Asteroid** all_asts  = (Asteroid**)calloc((all_asts_num), sizeof(Asteroid));
 
     /////////////// IMAGES AND TEXTURES SETUP ///////////////
 
@@ -199,28 +204,28 @@ int main()
     UFO ufos[2] = {sluggo, mr_bill};
 
     for (i = 0; i < 2; i++) {
-        startTimer(&ufos[i].respawnTimer, GetRandomValue(0, 10));
-        startTimer(&ufos[i].movementTimer, GetRandomValue(2, 5));
-        ufos[i].right = rand() % 2;
+        // startTimer(&ufos[i].respawnTimer, GetRandomValue(0, 10));
+        // startTimer(&ufos[i].movementTimer, GetRandomValue(2, 5));
+        // ufos[i].right = rand() % 2;
 
-        if (ufos[i].right)
-            init_ufo_x = screen_width + ufos[i].tex.width;
-        else 
-            init_ufo_x = 0 - ufos[i].tex.width;
+        // if (ufos[i].right)
+        //     init_ufo_x = screen_width + ufos[i].tex.width;
+        // else 
+        //     init_ufo_x = 0 - ufos[i].tex.width;
         
-        init_ufo_y = RandPos(0, screen_height);
+        // init_ufo_y = RandPos(0, screen_height);
         ufos[i].speed = (Vector2){2.5, 2.5};
-        ufos[i].pos = (Vector2){init_ufo_x, init_ufo_y};
+        // ufos[i].pos = (Vector2){init_ufo_x, init_ufo_y};
         ufos[i].size = (Vector2){ufos[i].tex.width, ufos[i].tex.height};
         ufos[i].center = (Vector2){ufos[i].size.x/2, ufos[i].size.y/2};
         ufos[i].rect = (Rectangle){0, 0, ufos[i].size.x, ufos[i].size.y};
         ufos[i].bounds = (Rectangle){ufos[i].pos.x, ufos[i].pos.y, ufos[i].size.x, ufos[i].size.y};
         ufos[i].radius = ufos[i].size.x / 2.2f;
-        ufos[i].active = true;      // ?
-        ufos[i].state = UFO_DEAD;
-        // ufos[i].shoot_state = TRANSIT;
-        ufos[i].onscreen = false;
-        ufos[i].shoot = false;
+        // ufos[i].active = true;      // ?
+        // ufos[i].state = UFO_DEAD;
+        // // ufos[i].shoot_state = TRANSIT;
+        // ufos[i].onscreen = false;
+        // ufos[i].shoot = false;
     }
 
     // UFO ufo_test = ufos[rand() % 2];
@@ -230,14 +235,14 @@ int main()
     ship.pix = LoadImageColors(ship_img);
     ship.tex.width *= 0.9;
     ship.tex.height *= 0.9;
-    ship.pos = (Vector2){screen_width/2, screen_height/2};
+    // ship.pos = (Vector2){screen_width/2, screen_height/2};
     ship.size = (Vector2){ship.tex.width, ship.tex.height};
     ship.center = (Vector2){ship.size.x/2, ship.size.y/2};
     ship.rect = (Rectangle){0, 0, ship.size.x, ship.size.y};
     ship.bounds = (Rectangle){ship.pos.x, ship.pos.y, ship.size.x, ship.size.y};
     ship.radius = ship.tex.width / 3.33f;
     ship.lowSpeed = 0.004;
-    ship.active = true;
+    // ship.active = true;
 
     // init asteroids
     Texture2D tex_ast;
@@ -255,25 +260,26 @@ int main()
     float check1_radius = 1.4f;     // 1st check for torps collision.  1.2f
     float ast_speed = 0.0f;  // 1.5
 
+    // INIT
     for (i = 0; i < ast_num; i++) {
         // set up a "safe zone" for the ship
         // so that asteroids dont spawn right next to it
-        init_ast_pos = rand() % 2;
-        if (init_ast_pos == 0)
-            x_pos = RandPos(-10, (screen_width/2)-(ship.tex.width*4));
-        else
-            x_pos = RandPos((screen_width/2)+(ship.tex.width*4), screen_width+10);
-        y_pos = RandPos(-10, screen_height+10);
+        // init_ast_pos = rand() % 2;
+        // if (init_ast_pos == 0)
+        //     x_pos = RandPos(-10, (screen_width/2)-(ship.tex.width*4));
+        // else
+        //     x_pos = RandPos((screen_width/2)+(ship.tex.width*4), screen_width+10);
+        // y_pos = RandPos(-10, screen_height+10);
 
-        ast_speed = GetRandomFloat(1.5f, 2.5f);
-        direction = rand() % 4;
-        spr_ind = rand() % 16;
-        tex_ast = ast_sprites[spr_ind];
+        // ast_speed = GetRandomFloat(1.5f, 2.5f);
+        // direction = rand() % 4;
+        // spr_ind = rand() % 16;
+        // tex_ast = ast_sprites[spr_ind];
 
-        asteroids[i].type = "big";
-        asteroids[i].tex = tex_ast;
-        asteroids[i].pix = ast_pixels[spr_ind];
-        asteroids[i].pos = (Vector2){x_pos, y_pos};
+        // asteroids[i].type = "big";
+        // asteroids[i].tex = tex_ast;
+        // asteroids[i].pix = ast_pixels[spr_ind];
+        // asteroids[i].pos = (Vector2){x_pos, y_pos};
         asteroids[i].speed = (Vector2){ast_speed, ast_speed};
         asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
         asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
@@ -281,24 +287,26 @@ int main()
         asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
         asteroids[i].dir = direction;
         asteroids[i].scale = 1.0;
-        asteroids[i].active = true;
+        // asteroids[i].active = true;
         asteroids[i].radius = asteroids[i].size.x / 2.0f;
 
-        // setting temp textures here so I can use them in the wrap-around logic for all asteroids
-        for(j = 0; j < mid_ast_num; j++) {
-            mid_asts[j].type = "mid";
-            mid_asts[j].tex = asteroids[i].tex;
-        }
+        // setting temp textures here 
+        // so I can use them in the wrap-around logic for all asteroids
+        // for(j = 0; j < mid_ast_num; j++) {
+        //     mid_asts[j].type = "mid";
+        //     mid_asts[j].tex = asteroids[i].tex;
+        // }
 
-        for (k = 0; k < lil_ast_num; k++) {
-            lil_asts[k].type = "lil";
-            lil_asts[k].tex = asteroids[i].tex;
-        }   
+        // for (k = 0; k < lil_ast_num; k++) {
+        //     lil_asts[k].type = "lil";
+        //     lil_asts[k].tex = asteroids[i].tex;
+        // }   
     }
 
-    all_asts[0] = asteroids;
-    all_asts[1] = mid_asts;
-    all_asts[2] = lil_asts;
+    // INIT
+    // all_asts[0] = asteroids;
+    // all_asts[1] = mid_asts;
+    // all_asts[2] = lil_asts;
 
     // init ship torps
     int torp_index = 0;
@@ -348,6 +356,7 @@ int main()
     // timers
     // Timer burst_timer = { 0 };
     // Timer shot_timers[4] = { 0 };
+    Timer init_timer = { 0 };
     Timer hyper_timer = { 0 };
     Timer ship_spawn_timer = { 0 };
     // Timer ufo_shoot = { 0 };
@@ -359,14 +368,14 @@ int main()
     bool cooldown_active = false;
 
     // UFO shooting vars
-    int sluggo_dir = 0;
-    float sluggo_angle = 0.0f;
     Vector2 bill_shoot_dir = { 0 };
+    float sluggo_angle = 0.0f;
     float bill_angle = 0.0f;
     float bill_new_angle = 0.0f;    // angle + deviation
-    int bill_deviation = 10;
     float max_deviation = 0.0f;
     float bill_random_deviation = 0.0f;
+    int sluggo_dir = 0;
+    int bill_deviation = 10;
 
     ///////////////////////////////////////////////////////////// GAME LOOP /////////////////////////////////////////////////////////////
 
@@ -374,833 +383,962 @@ int main()
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // moves ship with mouse for testing collisions
-        HideCursor();
-        // mouse_pos = GetMousePosition();
-        // ship.pos = (Vector2){mouse_pos.x-ship.tex.width/2, mouse_pos.y-ship.tex.height/2};
+        switch(game_state) {
+            case GAME_INIT: {
+                if (IsKeyPressed(KEY_D))
+                    debug = !debug;
+                if (debug) 
+                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
 
-        if (IsKeyPressed(KEY_D)) 
-            debug = !debug;
+                if (first_level) {
+                    lives = 3;
+                    score = 0;
+                    ast_num = 4;
+                    ship.pos = (Vector2){screen_width/2, screen_height/2};
+                    ship.active = false;
+                    startTimer(&init_timer, 0.5);
+                } else {
+                    ast_num += 2;
+                    startTimer(&init_timer, 1.5);
+                }
 
-        if (IsKeyDown(KEY_RIGHT)) 
-            ship.rotation += rotation_speed;
-        if (IsKeyDown(KEY_LEFT))  
-            ship.rotation -= rotation_speed;
+                mid_ast_num = ast_num * 2;
+                lil_ast_num = mid_ast_num * 2;
+                all_asts_num = ast_num * mid_ast_num * lil_ast_num;
+                active_asteroids = all_asts_num;
 
-        if (IsKeyDown(KEY_SPACE)) {
-            if (!hyperspace && ship.active) {
-                hyperspace = true;
-                ship.active = false;
-                startTimer(&hyper_timer, hyper_time);
-            }
-        }
+                asteroids = (Asteroid*)realloc(asteroids, ast_num*sizeof(Asteroid));
+                mid_asts  = (Asteroid*)realloc(mid_asts, mid_ast_num*sizeof(Asteroid));
+                lil_asts  = (Asteroid*)realloc(lil_asts, lil_ast_num*sizeof(Asteroid));
+                all_asts  = (Asteroid**)realloc(all_asts, all_asts_num*sizeof(Asteroid));
 
-        if (hyperspace && TimerDone(hyper_timer)) {
-            ship.pos.x = RandPos(0, screen_width);
-            ship.pos.y = RandPos(0, screen_height);
-            ship.active = true;
-            hyperspace = false;
-        }
+                // UFOs
+                for (i = 0; i < 2; i++) {
+                    startTimer(&ufos[i].respawnTimer, GetRandomValue(0, 10));
+                    startTimer(&ufos[i].movementTimer, GetRandomValue(2, 5));
+                    ufos[i].right = rand() % 2;
 
-        // calc ship's direction
-        angle = ship.rotation * (PI/180.0);     // convert to radians
-        dir_x = cos(angle - PI/2);
-        dir_y = sin(angle - PI/2);
+                    if (ufos[i].right)
+                        init_ufo_x = screen_width + ufos[i].tex.width;
+                    else 
+                        init_ufo_x = 0 - ufos[i].tex.width;
+                    init_ufo_y = RandPos(0, screen_height);
 
-        ship.dir.x = dir_x;
-        ship.dir.y = dir_y;
+                    ufos[i].pos = (Vector2){init_ufo_x, init_ufo_y};
+                    ufos[i].state = UFO_DEAD;
+                    ufos[i].onscreen = false;
+                    ufos[i].shoot = false;
+                    // ufos[i].shoot_state = TRANSIT;
+                    // ufos[i].active = true;      // ?
+                }
 
-        // shooting calc
-        dir = ship.dir;
-        cannon_offset_x = 0;
-        cannon_offset_y = -ship.tex.height/2;
+                // ASTEROIDS
+                for (i = 0; i < ast_num; i++) {
+                    // set up a "safe zone" for the ship
+                    // so that asteroids dont spawn right next to it
+                    init_ast_pos = rand() % 2;
+                    if (init_ast_pos == 0)
+                        x_pos = RandPos(-10, (screen_width/2)-(ship.tex.width*4));
+                    else
+                        x_pos = RandPos((screen_width/2)+(ship.tex.width*4), screen_width+10);
+                    y_pos = RandPos(-10, screen_height+10);
 
-        // rotate the offset based on the ship's rotation angle
-        rota_offset_x = cannon_offset_x * cos(angle) - cannon_offset_y * sin(angle);
-        rota_offset_y = cannon_offset_x * sin(angle) + cannon_offset_y * cos(angle);
+                    ast_speed = GetRandomFloat(1.5f, 2.5f);
+                    direction = rand() % 4;
+                    spr_ind = rand() % 16;
+                    tex_ast = ast_sprites[spr_ind];
 
-        // calculate the absolute coords of the cannon tip
-        ship.tip.x = ship.pos.x + rota_offset_x;
-        ship.tip.y = ship.pos.y + rota_offset_y;
+                    asteroids[i].type = "big";
+                    asteroids[i].tex = tex_ast;
+                    asteroids[i].pix = ast_pixels[spr_ind];
+                    asteroids[i].pos = (Vector2){x_pos, y_pos};
+                    asteroids[i].active = false;
 
-        ///////////////// SHOOTING ///////////////
-        if (IsKeyPressed(KEY_LEFT_CONTROL) && !hyperspace) {
-            // no burst timer
-            if (torp_index == 4) 
-                torp_index = 0;
+                    // setting temp textures here 
+                    // so I can use them in the wrap-around logic for all asteroids
+                    for(j = 0; j < mid_ast_num; j++) {
+                        mid_asts[j].type = "mid";
+                        mid_asts[j].tex = asteroids[i].tex;
+                    }
 
-            // start single shot timer
-            // startTimer(&shot_timers[torp_index], shot_time);  
-            startTimer(&torps[torp_index].timer, shot_time);
+                    for (k = 0; k < lil_ast_num; k++) {
+                        lil_asts[k].type = "lil";
+                        lil_asts[k].tex = asteroids[i].tex;
+                    }
+                }
+                all_asts[0] = asteroids;
+                all_asts[1] = mid_asts;
+                all_asts[2] = lil_asts;
 
-            // update tip coords in torps before shooting
-            torps[torp_index].pos = (Vector2){ship.tip.x-ship.size.x/2, ship.tip.y-ship.size.y/2};
-            torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
-            torps[torp_index].active = true;
+                if (TimerDone(init_timer)) {
+                    for (i = 0; i < ast_num; i++) 
+                        asteroids[i].active;
+                    ship.active = true;
+                    game_state = GAME_ACTIVE;
+                }
 
-            torp_index++;
-        }
-
-        // burst timer (it dont feel right)
-        // if (torp_index == 4 && !cooldown_active) {
-        //     startTimer(&burst_timer, burst_time);
-        //     cooldown_active = true;
-        // }
-        // if (cooldown_active && getElapsed(burst_timer) >= burst_time) {
-        //     torp_index = 0;
-        //     cooldown_active = false;
-        // }
-
-        // draw ship torps
-        for (i = 0; i < 4; i++) {
-            if (torps[i].active) {
-                torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
-                torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
-                torps[i].dest = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].tex.width, torps[i].tex.height};
-                DrawTexturePro(tex_torp, torps[i].source, torps[i].dest, torps[i].center, 0.0f, WHITE);
-
-                // torp dissapears after 1.5 seconds
-                // if (getElapsed(shot_timers[i]) >= shot_time)
-                //     torps[i].active = false;
-                if (TimerDone(torps[i].timer))
-                    torps[i].active = false;
-            }
-
-            // wrap-around
-            if (torps[i].pos.x-torps[i].tex.width >= screen_width)
-                torps[i].pos.x = 0 - torps[i].tex.width;
-            else if (torps[i].pos.x+torps[i].tex.width <= 0)
-                torps[i].pos.x = screen_width + torps[i].tex.width;
-
-            if (torps[i].pos.y-torps[i].tex.height >= screen_height)
-                torps[i].pos.y = 0 - torps[i].tex.height;
-            else if (torps[i].pos.y+torps[i].tex.height <= 0)
-                torps[i].pos.y = screen_height + torps[i].tex.height;
-        }
-
-        /////////////// THRUST ///////////////
-        if (IsKeyDown(KEY_UP) && ship.active) {
-
-            // Recalculate thrust direction based on the ship's current rotation
-            thrust = ship.dir;
-            Vector2Normalize(thrust);  // Normalize to get direction only
-
-            // Apply thrust to velocity (incremental acceleration)
-            ship.vel.x += thrust.x * thrust_force;
-            ship.vel.y += thrust.y * thrust_force;
-
-            // Optional: Cap the velocity to top speed
-            speed = Vector2Length(ship.vel);
-            if (speed > top_speed) {
-                Vector2Normalize(ship.vel);
-                ship.vel.x *= ship.lowSpeed;
-                ship.vel.y *= ship.lowSpeed;
-            }
-        } else {
-            // No thrust, but apply slight friction to slow down gradually
-            ship.vel.x *= friction;
-            ship.vel.y *= friction;
-        }
-
-        // Update the ship's position based on velocity
-        ship.pos.x += ship.vel.x;
-        ship.pos.y += ship.vel.y;
-
-        // update ship's bounds to match the new position
-        ship.bounds.x = ship.pos.x - ship.center.x;
-        ship.bounds.y = ship.pos.y - ship.center.y;
-
-        ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
-
-        /////////////// MOVEMENT LOGIC ///////////////
-        
-        // ship
-        // for some reason, drawing twice (here or line 658)
-        // somewhat remediates this ugly stuttering the ship has.
-        // maybe Im just imagining it...
-        if (ship.active) 
-            DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
-        
-        if (ship.active) 
-            DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
-        // wrap-around
-        if (ship.pos.x-ship.size.x >= screen_width) 
-            ship.pos.x = 0 - ship.size.x/2;
-        else if (ship.pos.x+ship.size.x/2 <= 0)
-            ship.pos.x = screen_width + ship.size.x;
-
-        if (ship.pos.y-ship.size.y >= screen_height)
-            ship.pos.y = 0 - ship.size.y/2;
-        else if (ship.pos.y+ship.size.y/2 <= 0)
-            ship.pos.y = screen_height + ship.size.y;
-
-        // UFO
-        bool anyUFOActive = false; 
-        UFO* ufo = NULL;        // ?
-
-        for (int i = 0; i < 2; i++) {
-            ufo = &ufos[i];
-            if (ufo->state != UFO_DEAD) {
-                anyUFOActive = true;
                 break;
             }
-        }
+            case GAME_ACTIVE: {
+                // move ship with mouse for testing collisions
+                // HideCursor();
+                // mouse_pos = GetMousePosition();
+                // ship.pos = (Vector2){mouse_pos.x-ship.tex.width/2, mouse_pos.y-ship.tex.height/2};
 
-        int selectedUFO;
-        // pick UFO and put it on hold
-        if (!anyUFOActive) {
-            selectedUFO = rand() % 2; 
-            ufo = &ufos[selectedUFO];
-            startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));  // time before 1st appearance
-            ufo->state = UFO_WAITING;
-            // set cooldown time before shooting
-            startTimer(&ufo->cooldownTimer, GetRandomValue(1, 2));
-            ufo->shoot_state = SHOOT_COOLDOWN;
-            ufo->onscreen = false;
-            sluggo_dir = 0;
-            sluggo_angle = 0;
-        }
+                if (IsKeyPressed(KEY_D)) 
+                    debug = !debug;
 
-        // Process each UFO individually
-        for (int i = 0; i < 2; i++) {
-            ufo = &ufos[i];
+                if (IsKeyDown(KEY_RIGHT)) 
+                    ship.rotation += rotation_speed;
+                if (IsKeyDown(KEY_LEFT))  
+                    ship.rotation -= rotation_speed;
 
-            switch (ufo->state) {
-                case UFO_WAITING: {
-                    if (TimerDone(ufo->respawnTimer)) {
-                        ufo->state = UFO_SPAWNING;
-                        ufo->right = rand() % 2;
-                        ufo->pos.x = (ufo->right) ? screen_width + ufo->tex.width : 0 - ufo->tex.width;
-                        ufo->pos.y = RandPos(0, screen_height);
-
-                        startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
+                if (IsKeyDown(KEY_SPACE)) {
+                    if (!hyperspace && ship.active) {
+                        hyperspace = true;
+                        ship.active = false;
+                        startTimer(&hyper_timer, hyper_time);
                     }
-                    break;
                 }
-                case UFO_SPAWNING: {
-                    ufo->state = UFO_ACTIVE;
-                    break;
+
+                if (hyperspace && TimerDone(hyper_timer)) {
+                    ship.pos.x = RandPos(0, screen_width);
+                    ship.pos.y = RandPos(0, screen_height);
+                    ship.active = true;
+                    hyperspace = false;
                 }
-                case UFO_ACTIVE: {
-                    if (ufo->pos.x > 0 || ufo->pos.x < screen_width)
-                        ufo->onscreen = true;
 
-                    if (TimerDone(ufo->movementTimer)) {
-                        int deviation = GetRandomValue(-1, 1);
-                        ufo->deviate = (deviation != 0); 
-                        ufo->up = (deviation == -1);  
+                // calc ship's direction
+                angle = ship.rotation * (PI/180.0);     // convert to radians
+                dir_x = cos(angle - PI/2);
+                dir_y = sin(angle - PI/2);
 
-                        startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
-                    }
+                ship.dir.x = dir_x;
+                ship.dir.y = dir_y;
 
-                    ufo->pos.x += (ufo->right ? -1 : 1) * ufo->speed.x;
+                // shooting calc
+                dir = ship.dir;
+                cannon_offset_x = 0;
+                cannon_offset_y = -ship.tex.height/2;
 
-                    if (ufo->deviate) 
-                        ufo->pos.y += (ufo->up ? -1 : 1) * ufo->speed.y;
+                // rotate the offset based on the ship's rotation angle
+                rota_offset_x = cannon_offset_x * cos(angle) - cannon_offset_y * sin(angle);
+                rota_offset_y = cannon_offset_x * sin(angle) + cannon_offset_y * cos(angle);
 
-                    ufo->bounds.x = ufo->pos.x;
-                    ufo->bounds.y = ufo->pos.y;
+                // calculate the absolute coords of the cannon tip
+                ship.tip.x = ship.pos.x + rota_offset_x;
+                ship.tip.y = ship.pos.y + rota_offset_y;
 
-                    ////////// SHOOTING //////////
-                    switch(ufo->shoot_state) {
-                        case SHOOT_COOLDOWN: {
-                            if (TimerDone(ufo->cooldownTimer)) {
-                                // DrawText("enter COOLDOWN state...", 20, screen_height-90, 20, WHITE);
-                                ufo->shoot_state = SHOOT_TRANSIT;
-                                startTimer(&ufo->transitTimer, 0.1);
-                                // break;
-                            }            
-                            break;
-                        }  
-                        case SHOOT_TRANSIT: {
-                            if (TimerDone(ufo->transitTimer)) {
-                                // DrawText("enter TRANSIT state...", 300, screen_height-90, 20, WHITE);
-                                ufo->shoot_state = SHOOT_FIRE;
-                                startTimer(&ufo->transitTimer, 0.1);
-                                break;
-                            }
-                        }
-                        case SHOOT_FIRE: {
-                            // DrawText("enter SHOOT state...", 550, screen_height-90, 20, WHITE);
-                            if (TimerDone(ufo->transitTimer)) {
-                                if (strcmp(ufo->name, "sluggo") == 0) {
-                                    sluggo_dir = GetRandomValue(0, 7);
-                                    sluggo_dir *= 45;
-                                    sluggo_angle = sluggo_dir * (PI/180.0);
-                                    ufo->shootDir.x = cos(sluggo_angle);
-                                    ufo->shootDir.y = sin(sluggo_angle);
-                                } else {
-                                    if (ship.active) {
-                                        max_deviation = bill_deviation * (PI/180.0);
-                                        bill_random_deviation = GetRandomValue(-max_deviation, max_deviation);
-                                        bill_shoot_dir = Vector2Subtract(ship.pos, ufo->pos);
-                                        bill_angle = atan2(bill_shoot_dir.y, bill_shoot_dir.x);
-                                        bill_new_angle = bill_angle + bill_random_deviation;
-                                        ufo->shootDir.x = cos(bill_new_angle);
-                                        ufo->shootDir.y = sin(bill_new_angle);
-                                    }
-                                }
-                                if (ufo_torp_index == 15)
-                                    ufo_torp_index = 0;
-    
-                                startTimer(&ufo_torps[ufo_torp_index].timer, shot_time);
+                ///////////////// SHOOTING ///////////////
+                if (IsKeyPressed(KEY_LEFT_CONTROL) && !hyperspace) {
+                    // no burst timer
+                    if (torp_index == 4) 
+                        torp_index = 0;
 
-                                // update shooting coords 
-                                ufo_torps[ufo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
-                                ufo_torps[ufo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
-                                ufo_torps[ufo_torp_index].active = true;
-                                ufo_torp_index++;
+                    // start single shot timer
+                    // startTimer(&shot_timers[torp_index], shot_time);  
+                    startTimer(&torps[torp_index].timer, shot_time);
 
-                                startTimer(&ufo->cooldownTimer, 1);
-                                ufo->shoot_state = SHOOT_COOLDOWN;
-                                break;
-                            }
-                        }
-                    }
-                    /////////////////////////////
+                    // update tip coords in torps before shooting
+                    torps[torp_index].pos = (Vector2){ship.tip.x-ship.size.x/2, ship.tip.y-ship.size.y/2};
+                    torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
+                    torps[torp_index].active = true;
 
-                    if (ufo->pos.x > screen_width + ufo->tex.width || 
-                        ufo->pos.x < 0 - ufo->tex.width
-                        // || !ufo->state==UFO_ACTIVE
-                    ) {
-                        ufo->state = UFO_DEAD;
-                        ufo->onscreen = false;
-                        ufo_torp_index = 0;
-                    }
-                    break;
+                    torp_index++;
                 }
-            }
-            
-            // adding ufo->onscreen fixes the bug 
-            // where the ufo flashes briefly on screen before appearing from the side
-            if (ufo->state == UFO_ACTIVE && ufo->onscreen) {        
-                DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
-            }
 
-            // draw UFO torps
-            for (int i = 0; i < 15; i++) {
-                if (ufo_torps[i].active) {
-                    ufo_torps[i].pos.x += ufo_torps[i].dir.x * ufo_torps[i].speed.x;
-                    ufo_torps[i].pos.y += ufo_torps[i].dir.y * ufo_torps[i].speed.y;
-                    ufo_torps[i].dest = (Rectangle){ufo_torps[i].pos.x, ufo_torps[i].pos.y, ufo_torps[i].tex.width, ufo_torps[i].tex.height};
-                    DrawTexturePro(tex_torp, ufo_torps[i].source, ufo_torps[i].dest, ufo_torps[i].center, 0.0f, WHITE);
+                // burst timer (it dont feel right)
+                // if (torp_index == 4 && !cooldown_active) {
+                //     startTimer(&burst_timer, burst_time);
+                //     cooldown_active = true;
+                // }
+                // if (cooldown_active && getElapsed(burst_timer) >= burst_time) {
+                //     torp_index = 0;
+                //     cooldown_active = false;
+                // }
+
+                // draw ship torps
+                for (i = 0; i < 4; i++) {
+                    if (torps[i].active) {
+                        torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
+                        torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
+                        torps[i].dest = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].tex.width, torps[i].tex.height};
+                        DrawTexturePro(tex_torp, torps[i].source, torps[i].dest, torps[i].center, 0.0f, WHITE);
+
+                        // torp dissapears after 1.5 seconds
+                        // if (getElapsed(shot_timers[i]) >= shot_time)
+                        //     torps[i].active = false;
+                        if (TimerDone(torps[i].timer))
+                            torps[i].active = false;
+                    }
 
                     // wrap-around
-                    if (ufo_torps[i].pos.x-ufo_torps[i].tex.width >= screen_width)
-                        ufo_torps[i].pos.x = 0 - ufo_torps[i].tex.width;
-                    else if (ufo_torps[i].pos.x+ufo_torps[i].tex.width <= 0)
-                        ufo_torps[i].pos.x = screen_width + ufo_torps[i].tex.width;
+                    if (torps[i].pos.x-torps[i].tex.width >= screen_width)
+                        torps[i].pos.x = 0 - torps[i].tex.width;
+                    else if (torps[i].pos.x+torps[i].tex.width <= 0)
+                        torps[i].pos.x = screen_width + torps[i].tex.width;
 
-                    if (ufo_torps[i].pos.y-ufo_torps[i].tex.height >= screen_height)
-                        ufo_torps[i].pos.y = 0 - ufo_torps[i].tex.height;
-                    else if (ufo_torps[i].pos.y+ufo_torps[i].tex.height <= 0)
-                        ufo_torps[i].pos.y = screen_height + ufo_torps[i].tex.height;
-
-                    // torp dissapears after 1.5 seconds
-                    if (TimerDone(ufo_torps[i].timer))
-                        ufo_torps[i].active = false;
+                    if (torps[i].pos.y-torps[i].tex.height >= screen_height)
+                        torps[i].pos.y = 0 - torps[i].tex.height;
+                    else if (torps[i].pos.y+torps[i].tex.height <= 0)
+                        torps[i].pos.y = screen_height + torps[i].tex.height;
                 }
-            }
 
-            // UFO wrap-around
-            if (ufo->pos.y > screen_height+ufo->tex.height/2)
-                ufo->pos.y = 0 - ufo->tex.height/2;
-            else if (ufo->pos.y < 0-ufo->tex.height/2)
-                ufo->pos.y = screen_height + ufo->tex.height/2;
+                /////////////// THRUST ///////////////
+                if (IsKeyDown(KEY_UP) && ship.active) {
 
-            // UFO debug display
-            if (debug) {
-                DrawText("UFO: ", 20, screen_height-120, 20, WHITE);
-                // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
-                DrawText("shoot_state: ", 20, screen_height-70, 20, WHITE);
-                DrawText("UFO PosX: ", 20, screen_height-50, 20, WHITE);
-                DrawText("PosY: ", 220, screen_height-50, 20, WHITE);
-                DrawText(TextFormat("sluggo dir: ", sluggo_dir), 20, screen_height-30, 20, WHITE);
-                DrawText(TextFormat("angle: ", sluggo_angle), 220, screen_height-30, 20, WHITE);
-                // DrawText(TextFormat("UFO shoot: %d", ufo->shoot), 200, screen_height-30, 20, WHITE);
+                    // Recalculate thrust direction based on the ship's current rotation
+                    thrust = ship.dir;
+                    Vector2Normalize(thrust);  // Normalize to get direction only
+
+                    // Apply thrust to velocity (incremental acceleration)
+                    ship.vel.x += thrust.x * thrust_force;
+                    ship.vel.y += thrust.y * thrust_force;
+
+                    // Optional: Cap the velocity to top speed
+                    speed = Vector2Length(ship.vel);
+                    if (speed > top_speed) {
+                        Vector2Normalize(ship.vel);
+                        ship.vel.x *= ship.lowSpeed;
+                        ship.vel.y *= ship.lowSpeed;
+                    }
+                } else {
+                    // No thrust, but apply slight friction to slow down gradually
+                    ship.vel.x *= friction;
+                    ship.vel.y *= friction;
+                }
+
+                // Update the ship's position based on velocity
+                ship.pos.x += ship.vel.x;
+                ship.pos.y += ship.vel.y;
+
+                // update ship's bounds to match the new position
+                ship.bounds.x = ship.pos.x - ship.center.x;
+                ship.bounds.y = ship.pos.y - ship.center.y;
+
+                ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
+
+                /////////////// MOVEMENT LOGIC ///////////////
                 
-                if (ufo->state == UFO_ACTIVE) {
-                    DrawText(TextFormat("%s", ufo->name), 72, screen_height-120, 20, WHITE);
-                    // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
-                    DrawText(TextFormat("torp index: %d", ufo_torp_index), 20, screen_height-90, 20, WHITE);
-                    DrawText(TextFormat("%d", ufo->shoot_state), 172, screen_height-70, 20, WHITE);
-                    DrawText(TextFormat("%.2f", ufo->pos.x), 135, screen_height-50, 20, WHITE);
-                    DrawText(TextFormat("%.2f", ufo->pos.y), 290, screen_height-50, 20, WHITE);
-                    DrawText(TextFormat("%d", sluggo_dir), 135, screen_height-30, 20, WHITE);
-                    DrawText(TextFormat("%.2f", sluggo_angle), 290, screen_height-30, 20, WHITE);
+                // ship
+                // for some reason, drawing twice (here or line 658)
+                // somewhat remediates this ugly stuttering the ship has.
+                // maybe Im just imagining it...
+                if (ship.active) 
+                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+                
+                if (ship.active) 
+                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+                // wrap-around
+                if (ship.pos.x-ship.size.x >= screen_width) 
+                    ship.pos.x = 0 - ship.size.x/2;
+                else if (ship.pos.x+ship.size.x/2 <= 0)
+                    ship.pos.x = screen_width + ship.size.x;
+
+                if (ship.pos.y-ship.size.y >= screen_height)
+                    ship.pos.y = 0 - ship.size.y/2;
+                else if (ship.pos.y+ship.size.y/2 <= 0)
+                    ship.pos.y = screen_height + ship.size.y;
+
+                // UFO
+                bool anyUFOActive = false; 
+                UFO* ufo = NULL;        // ?
+
+                for (int i = 0; i < 2; i++) {
+                    ufo = &ufos[i];
+                    if (ufo->state != UFO_DEAD) {
+                        anyUFOActive = true;
+                        break;
+                    }
                 }
-            }
-        }
 
-        ///////////// asteroids pos update and wrap-around logic /////////////
-
-        // single wrap-around logic for all asteroids
-        int ast_lim;
-        for (i = 0; i < 3; i++) {
-            if (i == 0)
-                ast_lim = ast_num;
-            else if (i == 1)
-                ast_lim = mid_ast_num;
-            else
-                ast_lim = lil_ast_num;
-
-            for (j = 0; j < ast_lim; j++) {
-                if (all_asts[i][j].pos.x-all_asts[i][j].size.x/2 >= screen_width) 
-                    all_asts[i][j].pos.x = 0 - all_asts[i][j].size.x/2;
-                else if (all_asts[i][j].pos.x+all_asts[i][j].size.x/2 <= 0) 
-                    all_asts[i][j].pos.x = screen_width + all_asts[i][j].size.x/2;
-
-                if (all_asts[i][j].pos.y-all_asts[i][j].size.y/2 >= screen_height) 
-                    all_asts[i][j].pos.y = 0 - all_asts[i][j].size.y/2;
-                else if (all_asts[i][j].pos.y+all_asts[i][j].size.y/2 <= 0) 
-                    all_asts[i][j].pos.y = screen_height +  all_asts[i][j].size.y/2;
-            }
-        }
-
-        // POSITION UPDATE
-        // BIG
-        for (i = 0; i < ast_num; i++) {
-            switch(asteroids[i].dir) {            
-                case 0:
-                    asteroids[i].pos.x -= asteroids[i].speed.x;
-                    asteroids[i].pos.y -= asteroids[i].speed.y;
-                    break;
-                case 1:
-                    asteroids[i].pos.x += asteroids[i].speed.x;
-                    asteroids[i].pos.y -= asteroids[i].speed.y;
-                    break;
-                case 2:
-                    asteroids[i].pos.x -= asteroids[i].speed.x;
-                    asteroids[i].pos.y += asteroids[i].speed.y;
-                    break;
-                case 3:
-                    asteroids[i].pos.x += asteroids[i].speed.x;
-                    asteroids[i].pos.y += asteroids[i].speed.y;
-                    break;
-            }
-            asteroids[i].bounds.x = asteroids[i].pos.x;
-            asteroids[i].bounds.y = asteroids[i].pos.y;
-        }
-
-        // MID
-        for (i = 0; i < mid_ast_num; i++) {
-            if (mid_asts[i].active) {
-                switch(mid_asts[i].dir) {
-                    case 0:
-                        mid_asts[i].pos.x -= mid_asts[i].speed.x;
-                        mid_asts[i].pos.y -= mid_asts[i].speed.y;
-                        break;
-                    case 1:
-                        mid_asts[i].pos.x += mid_asts[i].speed.x;
-                        mid_asts[i].pos.y -= mid_asts[i].speed.y;
-                        break;
-                    case 2:
-                        mid_asts[i].pos.x -= mid_asts[i].speed.x;
-                        mid_asts[i].pos.y += mid_asts[i].speed.y;
-                        break;
-                    case 3:
-                        mid_asts[i].pos.x += mid_asts[i].speed.x;
-                        mid_asts[i].pos.y += mid_asts[i].speed.y;
-                        break;
+                int selectedUFO;
+                // pick UFO and put it on hold
+                if (!anyUFOActive) {
+                    selectedUFO = rand() % 2; 
+                    ufo = &ufos[selectedUFO];
+                    startTimer(&ufo->respawnTimer, GetRandomValue(5, 10));  // time before 1st appearance
+                    ufo->state = UFO_WAITING;
+                    // set cooldown time before shooting
+                    startTimer(&ufo->cooldownTimer, GetRandomValue(1, 2));
+                    ufo->shoot_state = SHOOT_COOLDOWN;
+                    ufo->onscreen = false;
+                    sluggo_dir = 0;
+                    sluggo_angle = 0;
                 }
-                mid_asts[i].bounds.x = mid_asts[i].pos.x;
-                mid_asts[i].bounds.y = mid_asts[i].pos.y;
-            }
-        }
 
-        // LIL
-        for (i = 0; i < lil_ast_num; i++) {
-            if (lil_asts[i].active) {
-                switch(lil_asts[i].dir) {
-                    case 0:
-                        lil_asts[i].pos.x -= lil_asts[i].speed.x;
-                        lil_asts[i].pos.y -= lil_asts[i].speed.y;
-                        break;
-                    case 1:
-                        lil_asts[i].pos.x += lil_asts[i].speed.x;
-                        lil_asts[i].pos.y -= lil_asts[i].speed.y;
-                        break;
-                    case 2:
-                        lil_asts[i].pos.x -= lil_asts[i].speed.x;
-                        lil_asts[i].pos.y += lil_asts[i].speed.y;
-                        break;
-                    case 3:
-                        lil_asts[i].pos.x += lil_asts[i].speed.x;
-                        lil_asts[i].pos.y += lil_asts[i].speed.y;
-                        break;
+                // Process each UFO individually
+                for (int i = 0; i < 2; i++) {
+                    ufo = &ufos[i];
+
+                    switch (ufo->state) {
+                        case UFO_WAITING: {
+                            if (TimerDone(ufo->respawnTimer)) {
+                                ufo->state = UFO_SPAWNING;
+                                ufo->right = rand() % 2;
+                                ufo->pos.x = (ufo->right) ? screen_width + ufo->tex.width : 0 - ufo->tex.width;
+                                ufo->pos.y = RandPos(0, screen_height);
+
+                                startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
+                            }
+                            break;
+                        }
+                        case UFO_SPAWNING: {
+                            ufo->state = UFO_ACTIVE;
+                            break;
+                        }
+                        case UFO_ACTIVE: {
+                            if (ufo->pos.x > 0 || ufo->pos.x < screen_width)
+                                ufo->onscreen = true;
+
+                            if (TimerDone(ufo->movementTimer)) {
+                                int deviation = GetRandomValue(-1, 1);
+                                ufo->deviate = (deviation != 0); 
+                                ufo->up = (deviation == -1);  
+
+                                startTimer(&ufo->movementTimer, GetRandomValue(1, 5));
+                            }
+
+                            ufo->pos.x += (ufo->right ? -1 : 1) * ufo->speed.x;
+
+                            if (ufo->deviate) 
+                                ufo->pos.y += (ufo->up ? -1 : 1) * ufo->speed.y;
+
+                            ufo->bounds.x = ufo->pos.x;
+                            ufo->bounds.y = ufo->pos.y;
+
+                            ////////// SHOOTING //////////
+                            switch(ufo->shoot_state) {
+                                case SHOOT_COOLDOWN: {
+                                    if (TimerDone(ufo->cooldownTimer)) {
+                                        // DrawText("enter COOLDOWN state...", 20, screen_height-90, 20, WHITE);
+                                        ufo->shoot_state = SHOOT_TRANSIT;
+                                        startTimer(&ufo->transitTimer, 0.1);
+                                        // break;
+                                    }            
+                                    break;
+                                }  
+                                case SHOOT_TRANSIT: {
+                                    if (TimerDone(ufo->transitTimer)) {
+                                        // DrawText("enter TRANSIT state...", 300, screen_height-90, 20, WHITE);
+                                        ufo->shoot_state = SHOOT_FIRE;
+                                        startTimer(&ufo->transitTimer, 0.1);
+                                        break;
+                                    }
+                                }
+                                case SHOOT_FIRE: {
+                                    // DrawText("enter SHOOT state...", 550, screen_height-90, 20, WHITE);
+                                    if (TimerDone(ufo->transitTimer)) {
+                                        if (strcmp(ufo->name, "sluggo") == 0) {
+                                            sluggo_dir = GetRandomValue(0, 7);
+                                            sluggo_dir *= 45;
+                                            sluggo_angle = sluggo_dir * (PI/180.0);
+                                            ufo->shootDir.x = cos(sluggo_angle);
+                                            ufo->shootDir.y = sin(sluggo_angle);
+                                        } else {
+                                            if (!player_dead) {
+                                                max_deviation = bill_deviation * (PI/180.0);
+                                                bill_random_deviation = GetRandomValue(-max_deviation, max_deviation);
+                                                bill_shoot_dir = Vector2Subtract(ship.pos, ufo->pos);
+                                                bill_angle = atan2(bill_shoot_dir.y, bill_shoot_dir.x);
+                                                bill_new_angle = bill_angle + bill_random_deviation;
+                                                ufo->shootDir.x = cos(bill_new_angle);
+                                                ufo->shootDir.y = sin(bill_new_angle);
+                                            }  // else shoot at random 
+                                        }
+                                        if (ufo_torp_index == 15)
+                                            ufo_torp_index = 0;
+            
+                                        startTimer(&ufo_torps[ufo_torp_index].timer, shot_time);
+
+                                        // update shooting coords 
+                                        ufo_torps[ufo_torp_index].pos = (Vector2){ufo->pos.x, ufo->pos.y};
+                                        ufo_torps[ufo_torp_index].dir = (Vector2){ufo->shootDir.x, ufo->shootDir.y};
+                                        ufo_torps[ufo_torp_index].active = true;
+                                        ufo_torp_index++;
+
+                                        startTimer(&ufo->cooldownTimer, 1);
+                                        ufo->shoot_state = SHOOT_COOLDOWN;
+                                        break;
+                                    }
+                                }
+                            }
+                            /////////////////////////////
+
+                            if (ufo->pos.x > screen_width + ufo->tex.width || 
+                                ufo->pos.x < 0 - ufo->tex.width
+                                // || !ufo->state==UFO_ACTIVE
+                            ) {
+                                ufo->state = UFO_DEAD;
+                                ufo->onscreen = false;
+                                ufo_torp_index = 0;
+                            }
+                            break;
+                        }
+                    }
+                    
+                    // adding ufo->onscreen fixes the bug 
+                    // where the ufo flashes briefly on screen before appearing from the side
+                    if (ufo->state == UFO_ACTIVE && ufo->onscreen) {        
+                        DrawTexturePro(ufo->tex, ufo->rect, ufo->bounds, ufo->center, 0.0f, WHITE);
+                    }
+
+                    // draw UFO torps
+                    for (int i = 0; i < 15; i++) {
+                        if (ufo_torps[i].active) {
+                            ufo_torps[i].pos.x += ufo_torps[i].dir.x * ufo_torps[i].speed.x;
+                            ufo_torps[i].pos.y += ufo_torps[i].dir.y * ufo_torps[i].speed.y;
+                            ufo_torps[i].dest = (Rectangle){ufo_torps[i].pos.x, ufo_torps[i].pos.y, ufo_torps[i].tex.width, ufo_torps[i].tex.height};
+                            DrawTexturePro(tex_torp, ufo_torps[i].source, ufo_torps[i].dest, ufo_torps[i].center, 0.0f, WHITE);
+
+                            // wrap-around
+                            if (ufo_torps[i].pos.x-ufo_torps[i].tex.width >= screen_width)
+                                ufo_torps[i].pos.x = 0 - ufo_torps[i].tex.width;
+                            else if (ufo_torps[i].pos.x+ufo_torps[i].tex.width <= 0)
+                                ufo_torps[i].pos.x = screen_width + ufo_torps[i].tex.width;
+
+                            if (ufo_torps[i].pos.y-ufo_torps[i].tex.height >= screen_height)
+                                ufo_torps[i].pos.y = 0 - ufo_torps[i].tex.height;
+                            else if (ufo_torps[i].pos.y+ufo_torps[i].tex.height <= 0)
+                                ufo_torps[i].pos.y = screen_height + ufo_torps[i].tex.height;
+
+                            // torp dissapears after 1.5 seconds
+                            if (TimerDone(ufo_torps[i].timer))
+                                ufo_torps[i].active = false;
+                        }
+                    }
+
+                    // UFO wrap-around
+                    if (ufo->pos.y > screen_height+ufo->tex.height/2)
+                        ufo->pos.y = 0 - ufo->tex.height/2;
+                    else if (ufo->pos.y < 0-ufo->tex.height/2)
+                        ufo->pos.y = screen_height + ufo->tex.height/2;
+
+                    // UFO debug display
+                    if (debug) {
+                        DrawText("UFO: ", 20, screen_height-120, 20, WHITE);
+                        // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
+                        DrawText("shoot_state: ", 20, screen_height-70, 20, WHITE);
+                        DrawText("UFO PosX: ", 20, screen_height-50, 20, WHITE);
+                        DrawText("PosY: ", 220, screen_height-50, 20, WHITE);
+                        DrawText(TextFormat("sluggo dir: ", sluggo_dir), 20, screen_height-30, 20, WHITE);
+                        DrawText(TextFormat("angle: ", sluggo_angle), 220, screen_height-30, 20, WHITE);
+                        // DrawText(TextFormat("UFO shoot: %d", ufo->shoot), 200, screen_height-30, 20, WHITE);
+                        
+                        if (ufo->state == UFO_ACTIVE) {
+                            DrawText(TextFormat("%s", ufo->name), 72, screen_height-120, 20, WHITE);
+                            // DrawText(TextFormat("shootDirX: %.2f,\tshootDirY: %.2f", ufo->shootDir.x, ufo->shootDir.y), 20, screen_height-90, 20, WHITE);
+                            DrawText(TextFormat("torp index: %d", ufo_torp_index), 20, screen_height-90, 20, WHITE);
+                            DrawText(TextFormat("%d", ufo->shoot_state), 172, screen_height-70, 20, WHITE);
+                            DrawText(TextFormat("%.2f", ufo->pos.x), 135, screen_height-50, 20, WHITE);
+                            DrawText(TextFormat("%.2f", ufo->pos.y), 290, screen_height-50, 20, WHITE);
+                            DrawText(TextFormat("%d", sluggo_dir), 135, screen_height-30, 20, WHITE);
+                            DrawText(TextFormat("%.2f", sluggo_angle), 290, screen_height-30, 20, WHITE);
+                        }
+                    }
                 }
-                lil_asts[i].bounds.x = lil_asts[i].pos.x;
-                lil_asts[i].bounds.y = lil_asts[i].pos.y;
-            }
-        }
 
-        ///////////// draw asteroids /////////////
+                ///////////// asteroids pos update and wrap-around logic /////////////
 
-        // BIG
-        for (i = 0; i < ast_num; i++) {
-            if (asteroids[i].active) 
-                DrawTexturePro(asteroids[i].tex, asteroids[i].rect, asteroids[i].bounds, asteroids[i].center, asteroids[i].rotation, RAYWHITE);
-        }
+                // single wrap-around logic for all asteroids
+                int ast_lim;
+                for (i = 0; i < 3; i++) {
+                    if (i == 0)
+                        ast_lim = ast_num;
+                    else if (i == 1)
+                        ast_lim = mid_ast_num;
+                    else
+                        ast_lim = lil_ast_num;
 
-        // MID
-        for (i = 0; i < mid_ast_num; i++) {
-            if (mid_asts[i].active)
-                DrawTexturePro(mid_asts[i].tex, mid_asts[i].rect, mid_asts[i].bounds, mid_asts[i].center, 0.0f, RAYWHITE);
-        }
+                    for (j = 0; j < ast_lim; j++) {
+                        if (all_asts[i][j].pos.x-all_asts[i][j].size.x/2 >= screen_width) 
+                            all_asts[i][j].pos.x = 0 - all_asts[i][j].size.x/2;
+                        else if (all_asts[i][j].pos.x+all_asts[i][j].size.x/2 <= 0) 
+                            all_asts[i][j].pos.x = screen_width + all_asts[i][j].size.x/2;
 
-        // LIL
-        for (i = 0; i < lil_ast_num; i++) {
-            if (lil_asts[i].active)
-                DrawTexturePro(lil_asts[i].tex, lil_asts[i].rect, lil_asts[i].bounds, lil_asts[i].center, 0.0f, RAYWHITE);
-        }
-
-        ///////////// draw ship and ufos /////////////
-        // if (ship.active) 
-        //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
-
-        // if (ufo_test.active)
-        //     DrawTexturePro(ufo_test.tex, ufo_test.rect, ufo_test.bounds, ufo_test.center, 0.0f, WHITE);
-
-        ////////////////////////// COLLISIONS //////////////////////////
-
-        // BIG ASTEROIDS
-        Vector2 asteroid_top_left;
-        for (i = 0; i < ast_num; i++) {
-            asteroid_top_left = (Vector2){ 
-                asteroids[i].pos.x - asteroids[i].tex.width / 2,
-                asteroids[i].pos.y - asteroids[i].tex.height / 2 
-            };
-
-            // vs ship
-            if (asteroids[i].active && ship.active) {
-                if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
-                    // collision_found = false;
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    asteroids[i].active = false;
-                    AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                    lives--;
-                    ships[lives].active = false;     // lives display
-                    ship.active = false;
-                    startTimer(&ship_spawn_timer, ship_spawn_time);
+                        if (all_asts[i][j].pos.y-all_asts[i][j].size.y/2 >= screen_height) 
+                            all_asts[i][j].pos.y = 0 - all_asts[i][j].size.y/2;
+                        else if (all_asts[i][j].pos.y+all_asts[i][j].size.y/2 <= 0) 
+                            all_asts[i][j].pos.y = screen_height +  all_asts[i][j].size.y/2;
+                    }
                 }
-            }
-            ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, spawn_point, &game_state);
 
-            // vs ship torps (pixel-perfect using alpha channels)
-            for (j = 0; j < 4; j++) {
-                if (asteroids[i].active && torps[j].active) {
-                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, torps[j].pos, torps[j].radius)) {
-                        collision_found = false;
-                        // DrawText("1st Check", 10, 20, 30, GREEN);
-                        for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
-                            for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
-                                int ast_local_x  = x;
-                                int ast_local_y  = y;
-                                int torp_local_x = (x + (int)(asteroid_top_left.x - torps[j].pos.x));
-                                int torp_local_y = (y + (int)(asteroid_top_left.y - torps[j].pos.y));
+                // POSITION UPDATE
+                // BIG
+                for (i = 0; i < ast_num; i++) {
+                    switch(asteroids[i].dir) {            
+                        case 0:
+                            asteroids[i].pos.x -= asteroids[i].speed.x;
+                            asteroids[i].pos.y -= asteroids[i].speed.y;
+                            break;
+                        case 1:
+                            asteroids[i].pos.x += asteroids[i].speed.x;
+                            asteroids[i].pos.y -= asteroids[i].speed.y;
+                            break;
+                        case 2:
+                            asteroids[i].pos.x -= asteroids[i].speed.x;
+                            asteroids[i].pos.y += asteroids[i].speed.y;
+                            break;
+                        case 3:
+                            asteroids[i].pos.x += asteroids[i].speed.x;
+                            asteroids[i].pos.y += asteroids[i].speed.y;
+                            break;
+                    }
+                    asteroids[i].bounds.x = asteroids[i].pos.x;
+                    asteroids[i].bounds.y = asteroids[i].pos.y;
+                }
 
-                                if (torp_local_x >= 0 && torp_local_y >= 0 
-                                    && torp_local_x < torps[j].tex.width && torp_local_y < torps[j].tex.height) {
+                // MID
+                for (i = 0; i < mid_ast_num; i++) {
+                    if (mid_asts[i].active) {
+                        switch(mid_asts[i].dir) {
+                            case 0:
+                                mid_asts[i].pos.x -= mid_asts[i].speed.x;
+                                mid_asts[i].pos.y -= mid_asts[i].speed.y;
+                                break;
+                            case 1:
+                                mid_asts[i].pos.x += mid_asts[i].speed.x;
+                                mid_asts[i].pos.y -= mid_asts[i].speed.y;
+                                break;
+                            case 2:
+                                mid_asts[i].pos.x -= mid_asts[i].speed.x;
+                                mid_asts[i].pos.y += mid_asts[i].speed.y;
+                                break;
+                            case 3:
+                                mid_asts[i].pos.x += mid_asts[i].speed.x;
+                                mid_asts[i].pos.y += mid_asts[i].speed.y;
+                                break;
+                        }
+                        mid_asts[i].bounds.x = mid_asts[i].pos.x;
+                        mid_asts[i].bounds.y = mid_asts[i].pos.y;
+                    }
+                }
 
-                                    Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
-                                    Color torp_pixel = torps[j].pix[torp_local_y * torps[j].tex.width + torp_local_x];
+                // LIL
+                for (i = 0; i < lil_ast_num; i++) {
+                    if (lil_asts[i].active) {
+                        switch(lil_asts[i].dir) {
+                            case 0:
+                                lil_asts[i].pos.x -= lil_asts[i].speed.x;
+                                lil_asts[i].pos.y -= lil_asts[i].speed.y;
+                                break;
+                            case 1:
+                                lil_asts[i].pos.x += lil_asts[i].speed.x;
+                                lil_asts[i].pos.y -= lil_asts[i].speed.y;
+                                break;
+                            case 2:
+                                lil_asts[i].pos.x -= lil_asts[i].speed.x;
+                                lil_asts[i].pos.y += lil_asts[i].speed.y;
+                                break;
+                            case 3:
+                                lil_asts[i].pos.x += lil_asts[i].speed.x;
+                                lil_asts[i].pos.y += lil_asts[i].speed.y;
+                                break;
+                        }
+                        lil_asts[i].bounds.x = lil_asts[i].pos.x;
+                        lil_asts[i].bounds.y = lil_asts[i].pos.y;
+                    }
+                }
 
-                                    if (ast_pixel.a > 0 && torp_pixel.a > 0) {
-                                        collision_found = true;
-                                        asteroids[i].active = false;
-                                        torps[j].active = false;
-                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                                        score += 20;
+                ///////////// draw asteroids /////////////
+
+                // BIG
+                for (i = 0; i < ast_num; i++) {
+                    if (asteroids[i].active) 
+                        DrawTexturePro(asteroids[i].tex, asteroids[i].rect, asteroids[i].bounds, asteroids[i].center, asteroids[i].rotation, RAYWHITE);
+                }
+
+                // MID
+                for (i = 0; i < mid_ast_num; i++) {
+                    if (mid_asts[i].active)
+                        DrawTexturePro(mid_asts[i].tex, mid_asts[i].rect, mid_asts[i].bounds, mid_asts[i].center, 0.0f, RAYWHITE);
+                }
+
+                // LIL
+                for (i = 0; i < lil_ast_num; i++) {
+                    if (lil_asts[i].active)
+                        DrawTexturePro(lil_asts[i].tex, lil_asts[i].rect, lil_asts[i].bounds, lil_asts[i].center, 0.0f, RAYWHITE);
+                }
+
+                ///////////// draw ship and ufos /////////////
+                // if (ship.active) 
+                //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+
+                // if (ufo_test.active)
+                //     DrawTexturePro(ufo_test.tex, ufo_test.rect, ufo_test.bounds, ufo_test.center, 0.0f, WHITE);
+
+                ////////////////////////// COLLISIONS //////////////////////////
+
+                // BIG ASTEROIDS
+                Vector2 asteroid_top_left;
+                for (i = 0; i < ast_num; i++) {
+                    asteroid_top_left = (Vector2){ 
+                        asteroids[i].pos.x - asteroids[i].tex.width / 2,
+                        asteroids[i].pos.y - asteroids[i].tex.height / 2 
+                    };
+
+                    // vs ship
+                    if (asteroids[i].active && ship.active) {
+                        if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
+                            // collision_found = false;
+                            DrawText("Collision!", 10, 50, 40, RED);
+                            asteroids[i].active = false;
+                            AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                            lives--;
+                            ships[lives].active = false;     // lives display
+                            ship.active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                        }
+                    }
+                    ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, spawn_point, &player_dead);
+
+                    // vs ship torps (pixel-perfect using alpha channels)
+                    for (j = 0; j < 4; j++) {
+                        if (asteroids[i].active && torps[j].active) {
+                            if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, torps[j].pos, torps[j].radius)) {
+                                collision_found = false;
+                                // DrawText("1st Check", 10, 20, 30, GREEN);
+                                for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
+                                    for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
+                                        int ast_local_x  = x;
+                                        int ast_local_y  = y;
+                                        int torp_local_x = (x + (int)(asteroid_top_left.x - torps[j].pos.x));
+                                        int torp_local_y = (y + (int)(asteroid_top_left.y - torps[j].pos.y));
+
+                                        if (torp_local_x >= 0 && torp_local_y >= 0 
+                                            && torp_local_x < torps[j].tex.width && torp_local_y < torps[j].tex.height) {
+
+                                            Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
+                                            Color torp_pixel = torps[j].pix[torp_local_y * torps[j].tex.width + torp_local_x];
+
+                                            if (ast_pixel.a > 0 && torp_pixel.a > 0) {
+                                                collision_found = true;
+                                                asteroids[i].active = false;
+                                                torps[j].active = false;
+                                                AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                                                score += 20;
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }
 
-            // vs ufo torps
-            for (j = 0; j < 15; j++) {
-                if (asteroids[i].active && ufo_torps[j].active) {
-                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
-                        collision_found = false;
-                        // DrawText("1st Check", 10, 20, 30, GREEN);
-                        for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
-                            for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
-                                int ast_local_x  = x;
-                                int ast_local_y  = y;
-                                int torp_local_x = (x + (int)(asteroid_top_left.x - ufo_torps[j].pos.x));
-                                int torp_local_y = (y + (int)(asteroid_top_left.y - ufo_torps[j].pos.y));
+                    // vs ufo torps
+                    for (j = 0; j < 15; j++) {
+                        if (asteroids[i].active && ufo_torps[j].active) {
+                            if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius*check1_radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                                collision_found = false;
+                                // DrawText("1st Check", 10, 20, 30, GREEN);
+                                for (int y = 0; y < asteroids[i].tex.height && !collision_found; y++) {
+                                    for (int x = 0; x < asteroids[i].tex.width && !collision_found; x++) {
+                                        int ast_local_x  = x;
+                                        int ast_local_y  = y;
+                                        int torp_local_x = (x + (int)(asteroid_top_left.x - ufo_torps[j].pos.x));
+                                        int torp_local_y = (y + (int)(asteroid_top_left.y - ufo_torps[j].pos.y));
 
-                                if (torp_local_x >= 0 && torp_local_y >= 0 
-                                    && torp_local_x < ufo_torps[j].tex.width && torp_local_y < ufo_torps[j].tex.height) {
+                                        if (torp_local_x >= 0 && torp_local_y >= 0 
+                                            && torp_local_x < ufo_torps[j].tex.width && torp_local_y < ufo_torps[j].tex.height) {
 
-                                    Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
-                                    Color torp_pixel = ufo_torps[j].pix[torp_local_y * ufo_torps[j].tex.width + torp_local_x];
+                                            Color ast_pixel  = asteroids[i].pix[ast_local_y * asteroids[i].tex.width + ast_local_x];
+                                            Color torp_pixel = ufo_torps[j].pix[torp_local_y * ufo_torps[j].tex.width + torp_local_x];
 
-                                    if (ast_pixel.a > 0 && torp_pixel.a > 0) {  // !
-                                        collision_found = true;
-                                        asteroids[i].active = false;
-                                        ufo_torps[j].active = false;
-                                        AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                                            if (ast_pixel.a > 0 && torp_pixel.a > 0) {  // !
+                                                collision_found = true;
+                                                asteroids[i].active = false;
+                                                ufo_torps[j].active = false;
+                                                AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }
 
-            // vs ufos
-            for (k = 0; k < 2; k++) {
-                if (asteroids[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
-                    if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufos[k].pos, ufos[k].radius)) {
-                        DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                        // asteroids[i].active = false;
-                        // AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
-                        // ufos[k].state = UFO_DEAD;
+                    // vs ufos
+                    for (k = 0; k < 2; k++) {
+                        if (asteroids[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
+                            if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufos[k].pos, ufos[k].radius)) {
+                                DrawText("UFO Collision!", 10, 50, 40, ORANGE);
+                                // asteroids[i].active = false;
+                                // AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
+                                // ufos[k].state = UFO_DEAD;
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        // MID ASTEROIDS
-        for (i = 0; i < mid_ast_num; i++) {
-            // vs ship
-            if (mid_asts[i].active && ship.active) {
-                if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ship.circle_center, ship.radius)) {
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    mid_asts[i].active = false;
-                    AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
-                    lives--;
-                    ship.active = false;
-                    ships[lives].active = false;
-                    startTimer(&ship_spawn_timer, ship_spawn_time);
-                }
-            }
-            ShipSpawn(&ship, lives, mid_asts, mid_ast_num, ship_spawn_timer, spawn_point, &game_state);
+                // MID ASTEROIDS
+                for (i = 0; i < mid_ast_num; i++) {
+                    // vs ship
+                    if (mid_asts[i].active && ship.active) {
+                        if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ship.circle_center, ship.radius)) {
+                            DrawText("Collision!", 10, 50, 40, RED);
+                            mid_asts[i].active = false;
+                            AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
+                            lives--;
+                            ship.active = false;
+                            ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                        }
+                    }
+                    ShipSpawn(&ship, lives, mid_asts, mid_ast_num, ship_spawn_timer, spawn_point, &player_dead);
 
-            // vs ship torps
-            for (j = 0; j < 4; j++) {
-                if (mid_asts[i].active && torps[j].active) {
-                    if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, torps[j].pos, torps[j].radius)) {
-                        mid_asts[i].active = false;
-                        torps[j].active = false;
-                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
-                        score += 50;
+                    // vs ship torps
+                    for (j = 0; j < 4; j++) {
+                        if (mid_asts[i].active && torps[j].active) {
+                            if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, torps[j].pos, torps[j].radius)) {
+                                mid_asts[i].active = false;
+                                torps[j].active = false;
+                                AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
+                                score += 50;
+                            }
+                        }
+                    }
+
+                    // vs ufo torps
+                    for (j = 0; j < 15; j++) {
+                        if (mid_asts[i].active && ufo_torps[j].active) {
+                            if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                                mid_asts[i].active = false;
+                                ufo_torps[j].active = false;
+                                AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
+                            }
+                        }
+                    }
+
+                    // vs ufos
+                    for (k = 0; k < 2; k++) {
+                        if (mid_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
+                            if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
+                                DrawText("UFO Collision!", 10, 50, 40, ORANGE);
+                                // mid_asts[i].active = false;
+                                // AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
+                                // ufos[k].state = UFO_DEAD;
+                            }
+                        }
                     }
                 }
-            }
 
-            // vs ufo torps
-            for (j = 0; j < 15; j++) {
-                if (mid_asts[i].active && ufo_torps[j].active) {
-                    if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
-                        mid_asts[i].active = false;
-                        ufo_torps[j].active = false;
-                        AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
+                // LIL ASTEROIDS
+                for (i = 0; i < lil_ast_num; i++) {
+                    // vs ship
+                    if (lil_asts[i].active && ship.active) {
+                        if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ship.circle_center, ship.radius)) {
+                            DrawText("Collision!", 10, 50, 40, RED);
+                            lil_asts[i].active = false;
+                            lives--;
+                            ship.active = false;
+                            ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                        }
+                    }
+                    ShipSpawn(&ship, lives, lil_asts, lil_ast_num, ship_spawn_timer, spawn_point, &player_dead);
+
+                    // vs ship torps
+                    for (j = 0; j < 4; j++) {
+                        if (lil_asts[i].active && torps[j].active) {
+                            if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, torps[j].pos, torps[j].radius)) {
+                                lil_asts[i].active = false;
+                                torps[j].active = false;
+                                score += 100;
+                            }
+                        }
+                    }
+
+                    // vs ufo torps
+                    for (j = 0; j < 15; j++) {
+                        if (lil_asts[i].active && ufo_torps[j].active) {
+                            if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                                lil_asts[i].active = false;
+                                ufo_torps[j].active = false;
+                            }
+                        }
+                    }
+
+                    // vs ufos
+                    for (k = 0; k < 2; k++) {
+                        if (lil_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
+                            if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
+                                DrawText("UFO Collision!", 10, 50, 40, ORANGE);
+                                // lil_asts[i].active = false;
+                                // ufos[k].state = UFO_DEAD;
+                            }
+                        }
                     }
                 }
-            }
 
-            // vs ufos
-            for (k = 0; k < 2; k++) {
-                if (mid_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
-                    if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
-                        DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                        // mid_asts[i].active = false;
-                        // AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
-                        // ufos[k].state = UFO_DEAD;
+                // UFO
+                for (i = 0; i < 2; i++) {
+                    // vs ship
+                    if (ufos[i].state==UFO_ACTIVE && ship.active) {
+                        if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, ship.pos, ship.radius)) {
+                            DrawText("UFO Collision!", 10, 50, 40, ORANGE);
+                            ufos[i].state = UFO_DEAD;
+                            lives--;
+                            ship.active = false;
+                            ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                        }
+                    }
+                    // ShipSpawn2(&ship, lives, ufos, 2, ship_spawn_timer, spawn_point, &game_state);
+
+                    // if (!ship.active && lives > 0) {
+                    //     if (TimerDone(ship_spawn_timer)) {
+                    //         // reset ship state
+                    //         ship.vel.x = 0;
+                    //         ship.vel.y = 0;
+                    //         ship.pos = spawn_point;
+                    //         // Check if spawn area is clear
+                    //         bool spawn_area_clear = true;
+                    //         if (asteroids[j].active && CheckCollisionCircles(spawn_point, ship.radius*6, asteroids[j].pos, asteroids[j].radius)) {
+                    //             spawn_area_clear = false;
+                    //             break;
+                    //         }
+
+                    //         if (spawn_area_clear) {
+                    //             ship.active = true;
+                    //         } else {
+                    //             // Restart timer to try again next frame
+                    //             startTimer(&ship_spawn_timer, 0.5f); // Short delay to avoid excessive checks
+                    //         }
+                    //     }
+                    // } else if (lives <= 0 && !ship.active) {
+                    //     game_state = GAME_OVER; 
+                    // }
+
+                    // vs torps
+                    for (j = 0; j < 4; j++) {
+                        if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius) && 
+                            torps[j].active && 
+                            ufos[i].state == UFO_ACTIVE
+                        ) {
+                            // DrawText("Collision!", 10, 50, 40, RED);
+                            if (strcmp(ufos[i].name, "sluggo") == 0)
+                                score += 200;
+                            else if (strcmp(ufos[i].name, "mr bill") == 0)
+                                score += 1000;
+
+                            torps[j].active = false;
+                            ufos[i].state = UFO_DEAD;
+                        }
                     }
                 }
-            }
-        }
 
-        // LIL ASTEROIDS
-        for (i = 0; i < lil_ast_num; i++) {
-            // vs ship
-            if (lil_asts[i].active && ship.active) {
-                if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ship.circle_center, ship.radius)) {
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    lil_asts[i].active = false;
-                    lives--;
-                    ship.active = false;
-                    ships[lives].active = false;
-                    startTimer(&ship_spawn_timer, ship_spawn_time);
-                }
-            }
-            ShipSpawn(&ship, lives, lil_asts, lil_ast_num, ship_spawn_timer, spawn_point, &game_state);
-
-            // vs ship torps
-            for (j = 0; j < 4; j++) {
-                if (lil_asts[i].active && torps[j].active) {
-                    if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, torps[j].pos, torps[j].radius)) {
-                        lil_asts[i].active = false;
-                        torps[j].active = false;
-                        score += 100;
+                // SHIP VS UFO TORPS
+                for (i = 0; i < 15; i++) {
+                    if (ufo_torps[i].active && ship.active) {
+                        if (CheckCollisionCircles(ufo_torps[i].pos, ufo_torps[i].radius, ship.circle_center, ship.radius)) {
+                            DrawText("Collision!", 10, 50, 40, RED);
+                            ufo_torps[i].active = false;
+                            ship.active = false;
+                            lives--;
+                            ships[lives].active = false;
+                            // ship.pos = spawn_point;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                        }
                     }
                 }
-            }
 
-            // vs ufo torps
-            for (j = 0; j < 15; j++) {
-                if (lil_asts[i].active && ufo_torps[j].active) {
-                    if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
-                        lil_asts[i].active = false;
-                        ufo_torps[j].active = false;
+                /////////////// DEBUGGING DISPLAY ///////////////
+                
+                if (debug) {
+                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
+                    // DrawText(TextFormat("Lives left: %d", lives), 20, screen_height-110, 20, WHITE);
+                    // DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-110, 20, WHITE);
+                    // DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-90, 20, WHITE);
+                    // DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-90, 20, WHITE);
+                    // DrawText("TEST", 20, screen_height-30, 20, WHITE);
+                    
+                    // SHOW BOUNDING CIRCLES
+                    // ship
+                    if (ship.active) {
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*6, RED);     // safe zone for spawning
                     }
-                }
-            }
-
-            // vs ufos
-            for (k = 0; k < 2; k++) {
-                if (lil_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
-                    if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
-                        DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                        // lil_asts[i].active = false;
-                        // ufos[k].state = UFO_DEAD;
+                    
+                    // UFO
+                    for (i = 0; i < 2; i++) {
+                        if (ufos[i].state == UFO_ACTIVE) {
+                            DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
+                            DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
+                        }
                     }
+                    // big asteroids
+                    for (i = 0; i < ast_num; i++) {
+                        if (asteroids[i].active) {
+                            DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);                 // vs ship collision
+                            DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*check1_radius, RED);      // 1st check for torps
+                            // DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                                      // center coords  
+                        }
+                        // DrawText(TextFormat("ast_type: %s", asteroids[0].type), 20, screen_height-30, 20, WHITE);
+                    }
+
+                    // mid asteroids
+                    for (i = 0; i < mid_ast_num; i++) {
+                        if (mid_asts[i].active) {
+                            DrawCircleLines(mid_asts[i].pos.x, mid_asts[i].pos.y, mid_asts[i].radius, ORANGE);              
+                            // DrawCircle(mid_asts[i].pos.x, mid_asts[i].pos.y, 3, GREEN); 
+                            // DrawText(TextFormat("ast_type: %s", mid_asts[0].type), 20, screen_height-30, 20, WHITE);                                     
+                        }
+                    }
+
+                    // lil asteroids
+                    for (i = 0; i < lil_ast_num; i++) {
+                        if (lil_asts[i].active) {
+                            DrawCircleLines(lil_asts[i].pos.x, lil_asts[i].pos.y, lil_asts[i].radius, ORANGE);              
+                            // DrawCircle(lil_asts[i].pos.x, lil_asts[i].pos.y, 3, GREEN);
+                            // DrawText(TextFormat("ast_type: %s", lil_asts[0].type), 20, screen_height-30, 20, WHITE);                                       
+                        }
+                    }
+                    
+                    // torps
+                    // for (i = 0; i < 4; i++) {
+                    //     // if (torps[i].active)
+                    //         DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
+                    //         // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
+                    // } 
                 }
-            }
-        }
 
-        // UFO
-        for (i = 0; i < 2; i++) {
-            // vs ship
-            if (ufos[i].state==UFO_ACTIVE && ship.active) {
-                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, ship.pos, ship.radius)) {
-                    DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                    ufos[i].state = UFO_DEAD;
-                    lives--;
-                    ship.active = false;
-                    ships[lives].active = false;
-                    startTimer(&ship_spawn_timer, ship_spawn_time);
+                ///////////////////////////////////////////////////////
+
+                /////////////// INFO DISPLAY ///////////////
+
+                DrawText(TextFormat("%d", score), screen_width/10, 50, 40, RAYWHITE);
+                for (i = 0; i < lives; i++) 
+                    if (ships[i].active) 
+                        DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
+
+                ///////////////////////////////////////////
+
+                // new level logic
+
+                if (player_dead) {
+                    // Vector2 msg_coords_1 = {spawn_point.x-300, spawn_point.y};
+                    // Vector2 msg_coords_2 = {spawn_point.x-500, spawn_point.y+100};
+                    DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
+                    DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
+                    if (IsKeyDown(KEY_ENTER))      // IsKeyPressed
+                        game_state = GAME_NEW;
                 }
-            }
-            // ShipSpawn2(&ship, lives, ufos, 2, ship_spawn_timer, spawn_point, &game_state);
+                break;
+            }  // GAME_ACTIVE
+            case GAME_NEW: {
+                if (IsKeyPressed(KEY_D))
+                    debug = !debug;
+                if (debug) 
+                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
 
-            // if (!ship.active && lives > 0) {
-            //     if (TimerDone(ship_spawn_timer)) {
-            //         // reset ship state
-            //         ship.vel.x = 0;
-            //         ship.vel.y = 0;
-            //         ship.pos = spawn_point;
-            //         // Check if spawn area is clear
-            //         bool spawn_area_clear = true;
-            //         if (asteroids[j].active && CheckCollisionCircles(spawn_point, ship.radius*6, asteroids[j].pos, asteroids[j].radius)) {
-            //             spawn_area_clear = false;
-            //             break;
-            //         }
-
-            //         if (spawn_area_clear) {
-            //             ship.active = true;
-            //         } else {
-            //             // Restart timer to try again next frame
-            //             startTimer(&ship_spawn_timer, 0.5f); // Short delay to avoid excessive checks
-            //         }
-            //     }
-            // } else if (lives <= 0 && !ship.active) {
-            //     game_state = GAME_OVER; 
-            // }
-
-            // vs torps
-            for (j = 0; j < 4; j++) {
-                if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, torps[j].pos, torps[j].radius) && 
-                    torps[j].active && 
-                    ufos[i].state == UFO_ACTIVE
-                ) {
-                    // DrawText("Collision!", 10, 50, 40, RED);
-                    if (strcmp(ufos[i].name, "sluggo") == 0)
-                        score += 200;
-                    else if (strcmp(ufos[i].name, "mr bill") == 0)
-                        score += 1000;
-
-                    torps[j].active = false;
-                    ufos[i].state = UFO_DEAD;
-                }
-            }
-        }
-
-        // SHIP VS UFO TORPS
-        for (i = 0; i < 15; i++) {
-            if (ufo_torps[i].active && ship.active) {
-                if (CheckCollisionCircles(ufo_torps[i].pos, ufo_torps[i].radius, ship.circle_center, ship.radius)) {
-                    DrawText("Collision!", 10, 50, 40, RED);
-                    ufo_torps[i].active = false;
-                    ship.active = false;
-                    lives--;
-                    ships[lives].active = false;
-                    // ship.pos = spawn_point;
-                    startTimer(&ship_spawn_timer, ship_spawn_time);
-                }
-            }
-        }
-
-        /////////////// DEBUGGING DISPLAY ///////////////
-        
-        if (debug) {
-            // DrawText(TextFormat("Lives left: %d", lives), 20, screen_height-110, 20, WHITE);
-            // DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-110, 20, WHITE);
-            // DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-90, 20, WHITE);
-            // DrawText(TextFormat("PosY: %.2f", ship.pos.y), 180, screen_height-90, 20, WHITE);
-            // DrawText("TEST", 20, screen_height-30, 20, WHITE);
-            
-            // SHOW BOUNDING CIRCLES
-            // ship
-            if (ship.active) {
-                DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
-                DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
-                DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*6, RED);     // safe zone for spawning
-            }
-            
-            // UFO
-            for (i = 0; i < 2; i++) {
-                if (ufos[i].state == UFO_ACTIVE) {
-                    DrawCircle(ufos[i].pos.x, ufos[i].pos.y, 3, GREEN);
-                    DrawCircleLines(ufos[i].pos.x, ufos[i].pos.y, ufos[i].radius, ORANGE);
-                }
-            }
-            // big asteroids
-            for (i = 0; i < ast_num; i++) {
-                if (asteroids[i].active) {
-                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius, ORANGE);                 // vs ship collision
-                    DrawCircleLines(asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].radius*check1_radius, RED);      // 1st check for torps
-                    // DrawCircle(asteroids[i].pos.x, asteroids[i].pos.y, 3, GREEN);                                      // center coords  
-                }
-                // DrawText(TextFormat("ast_type: %s", asteroids[0].type), 20, screen_height-30, 20, WHITE);
+                first_level = true;
+                high_score = score;
+                game_state = GAME_INIT;
+                break;
             }
 
-            // mid asteroids
-            for (i = 0; i < mid_ast_num; i++) {
-                if (mid_asts[i].active) {
-                    DrawCircleLines(mid_asts[i].pos.x, mid_asts[i].pos.y, mid_asts[i].radius, ORANGE);              
-                    // DrawCircle(mid_asts[i].pos.x, mid_asts[i].pos.y, 3, GREEN); 
-                    // DrawText(TextFormat("ast_type: %s", mid_asts[0].type), 20, screen_height-30, 20, WHITE);                                     
-                }
-            }
-
-            // lil asteroids
-            for (i = 0; i < lil_ast_num; i++) {
-                if (lil_asts[i].active) {
-                    DrawCircleLines(lil_asts[i].pos.x, lil_asts[i].pos.y, lil_asts[i].radius, ORANGE);              
-                    // DrawCircle(lil_asts[i].pos.x, lil_asts[i].pos.y, 3, GREEN);
-                    // DrawText(TextFormat("ast_type: %s", lil_asts[0].type), 20, screen_height-30, 20, WHITE);                                       
-                }
-            }
-            
-            // torps
-            // for (i = 0; i < 4; i++) {
-            //     // if (torps[i].active)
-            //         DrawCircleLines(torps[i].pos.x, torps[i].pos.y, torps[i].radius, RED);
-            //         // DrawCircle(torps[i].pos.x, torps[i].pos.y, 1.0f, GREEN);
-            // } 
-        }
-
-        // info display
-        DrawText(TextFormat("%d", score), screen_width/10, 50, 40, RAYWHITE);
-        for (i = 0; i < lives; i++) 
-            if (ships[i].active) 
-                DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
+        }  // switch
         
         EndDrawing();
     }

@@ -4,14 +4,8 @@
 typedef enum GameState {
     GAME_INIT,
     GAME_ACTIVE,
-    GAME_OVER
+    GAME_NEW
 } GameState;
-
-// typedef enum ShipState {
-//     SHIP_ACTIVE,
-//     SHIP_SHOT,
-//     SHIP_DEAD
-// } ShipState;
 
 typedef enum UFOState {
     UFO_DEAD,
