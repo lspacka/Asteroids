@@ -49,7 +49,6 @@ int main()
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
 
-    // INIT
     // asteroid quantities
     int ast_num;
     int mid_ast_num;
@@ -177,19 +176,6 @@ int main()
         tex_ast4, tex_ast4_1, tex_ast4_2, tex_ast4_3
     };
 
-    // INIT
-    // init ship lives positions
-    // int life_pos_x = screen_width / 12;
-    // for (i = 0; i < lives; i++) {
-    //     ships[i].active = true;
-    //     ships[i].tex = tex_ship;
-    //     ships[i].tex.width *= 0.7;
-    //     ships[i].tex.height *= 0.7;
-    //     ships[i].pos.x = life_pos_x;
-    //     ships[i].pos.y = 100;
-    //     life_pos_x += ships[i].tex.width;
-    // } 
-
     ///////////////////////////////////////////////////////
     
     // init UFOs
@@ -207,28 +193,12 @@ int main()
     UFO ufos[2] = {sluggo, mr_bill};
 
     for (i = 0; i < 2; i++) {
-        // startTimer(&ufos[i].respawnTimer, GetRandomValue(0, 10));
-        // startTimer(&ufos[i].movementTimer, GetRandomValue(2, 5));
-        // ufos[i].right = rand() % 2;
-
-        // if (ufos[i].right)
-        //     init_ufo_x = screen_width + ufos[i].tex.width;
-        // else 
-        //     init_ufo_x = 0 - ufos[i].tex.width;
-        
-        // init_ufo_y = RandPos(0, screen_height);
         ufos[i].speed = (Vector2){2.5, 2.5};
-        // ufos[i].pos = (Vector2){init_ufo_x, init_ufo_y};
         ufos[i].size = (Vector2){ufos[i].tex.width, ufos[i].tex.height};
         ufos[i].center = (Vector2){ufos[i].size.x/2, ufos[i].size.y/2};
         ufos[i].rect = (Rectangle){0, 0, ufos[i].size.x, ufos[i].size.y};
         ufos[i].bounds = (Rectangle){ufos[i].pos.x, ufos[i].pos.y, ufos[i].size.x, ufos[i].size.y};
         ufos[i].radius = ufos[i].size.x / 2.2f;
-        // ufos[i].active = true;      // ?
-        // ufos[i].state = UFO_DEAD;
-        // // ufos[i].shoot_state = TRANSIT;
-        // ufos[i].onscreen = false;
-        // ufos[i].shoot = false;
     }
 
     // UFO ufo_test = ufos[rand() % 2];
@@ -238,7 +208,6 @@ int main()
     ship.pix = LoadImageColors(ship_img);
     ship.tex.width *= 0.9;
     ship.tex.height *= 0.9;
-    // ship.pos = (Vector2){screen_width/2, screen_height/2};
     ship.size = (Vector2){ship.tex.width, ship.tex.height};
     ship.center = (Vector2){ship.size.x/2, ship.size.y/2};
     ship.rect = (Rectangle){0, 0, ship.size.x, ship.size.y};
@@ -262,55 +231,6 @@ int main()
     float radians;
     float check1_radius = 1.4f;     // 1st check for torps collision.  1.2f
     float ast_speed = 0.0f;  // 1.5
-
-    // INIT
-    // for (i = 0; i < ast_num; i++) {
-        // set up a "safe zone" for the ship
-        // so that asteroids dont spawn right next to it
-        // init_ast_pos = rand() % 2;
-        // if (init_ast_pos == 0)
-        //     x_pos = RandPos(-10, (screen_width/2)-(ship.tex.width*4));
-        // else
-        //     x_pos = RandPos((screen_width/2)+(ship.tex.width*4), screen_width+10);
-        // y_pos = RandPos(-10, screen_height+10);
-
-        // ast_speed = GetRandomFloat(1.5f, 2.5f);
-        // direction = rand() % 4;
-        // spr_ind = rand() % 16;
-        // tex_ast = ast_sprites[spr_ind];
-
-        // asteroids[i].type = "big";
-        // asteroids[i].tex = tex_ast;
-        // asteroids[i].pix = ast_pixels[spr_ind];
-        // asteroids[i].pos = (Vector2){x_pos, y_pos};
-
-        // asteroids[i].speed = (Vector2){ast_speed, ast_speed};
-        // asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
-        // asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
-        // asteroids[i].rect = (Rectangle){0, 0, asteroids[i].size.x, asteroids[i].size.y};
-        // asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
-        // asteroids[i].dir = direction;
-        // asteroids[i].scale = 1.0;
-        // asteroids[i].active = true;
-        // asteroids[i].radius = asteroids[i].size.x / 2.0f;
-
-        // setting temp textures here 
-        // so I can use them in the wrap-around logic for all asteroids
-        // for(j = 0; j < mid_ast_num; j++) {
-        //     mid_asts[j].type = "mid";
-        //     mid_asts[j].tex = asteroids[i].tex;
-        // }
-
-        // for (k = 0; k < lil_ast_num; k++) {
-        //     lil_asts[k].type = "lil";
-        //     lil_asts[k].tex = asteroids[i].tex;
-        // }   
-    // }
-
-    // INIT
-    // all_asts[0] = asteroids;
-    // all_asts[1] = mid_asts;
-    // all_asts[2] = lil_asts;
 
     // init ship torps
     int torp_index = 0;
@@ -494,6 +414,7 @@ int main()
                     }
                 }
 
+                // LIVES DISPLAY
                 int life_pos_x = screen_width / 12;
                 for (i = 0; i < lives; i++) {
                     ships[i].active = true;
@@ -1027,6 +948,7 @@ int main()
                         if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
                             // collision_found = false;
                             DrawText("Collision!", 10, 50, 40, RED);
+                            active_asteroids--;
                             asteroids[i].active = false;
                             AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
                             lives--;
@@ -1058,6 +980,7 @@ int main()
 
                                             if (ast_pixel.a > 0 && torp_pixel.a > 0) {
                                                 collision_found = true;
+                                                active_asteroids--;
                                                 asteroids[i].active = false;
                                                 torps[j].active = false;
                                                 AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
@@ -1091,6 +1014,7 @@ int main()
 
                                             if (ast_pixel.a > 0 && torp_pixel.a > 0) {  // !
                                                 collision_found = true;
+                                                active_asteroids--;
                                                 asteroids[i].active = false;
                                                 ufo_torps[j].active = false;
                                                 AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
@@ -1107,9 +1031,10 @@ int main()
                         if (asteroids[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
                             if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ufos[k].pos, ufos[k].radius)) {
                                 DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                                // asteroids[i].active = false;
-                                // AstBlast(asteroids[i], mid_asts, mid_ast_ptr);
-                                // ufos[k].state = UFO_DEAD;
+                                active_asteroids--;
+                                asteroids[i].active = false;
+                                AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                                ufos[k].state = UFO_DEAD;
                             }
                         }
                     }
@@ -1121,6 +1046,7 @@ int main()
                     if (mid_asts[i].active && ship.active) {
                         if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ship.circle_center, ship.radius)) {
                             DrawText("Collision!", 10, 50, 40, RED);
+                            active_asteroids--;
                             mid_asts[i].active = false;
                             AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
                             lives--;
@@ -1135,6 +1061,7 @@ int main()
                     for (j = 0; j < 4; j++) {
                         if (mid_asts[i].active && torps[j].active) {
                             if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, torps[j].pos, torps[j].radius)) {
+                                active_asteroids--;
                                 mid_asts[i].active = false;
                                 torps[j].active = false;
                                 AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
@@ -1147,6 +1074,7 @@ int main()
                     for (j = 0; j < 15; j++) {
                         if (mid_asts[i].active && ufo_torps[j].active) {
                             if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                                active_asteroids--;
                                 mid_asts[i].active = false;
                                 ufo_torps[j].active = false;
                                 AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
@@ -1159,9 +1087,10 @@ int main()
                         if (mid_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
                             if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
                                 DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                                // mid_asts[i].active = false;
-                                // AstBlast(mid_asts[i], lil_asts, lil_ast_ptr);
-                                // ufos[k].state = UFO_DEAD;
+                                active_asteroids--;
+                                mid_asts[i].active = false;
+                                AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
+                                ufos[k].state = UFO_DEAD;
                             }
                         }
                     }
@@ -1173,6 +1102,7 @@ int main()
                     if (lil_asts[i].active && ship.active) {
                         if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ship.circle_center, ship.radius)) {
                             DrawText("Collision!", 10, 50, 40, RED);
+                            active_asteroids--;
                             lil_asts[i].active = false;
                             lives--;
                             ship.active = false;
@@ -1186,6 +1116,7 @@ int main()
                     for (j = 0; j < 4; j++) {
                         if (lil_asts[i].active && torps[j].active) {
                             if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, torps[j].pos, torps[j].radius)) {
+                                active_asteroids--;
                                 lil_asts[i].active = false;
                                 torps[j].active = false;
                                 score += 100;
@@ -1197,6 +1128,7 @@ int main()
                     for (j = 0; j < 15; j++) {
                         if (lil_asts[i].active && ufo_torps[j].active) {
                             if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufo_torps[j].pos, ufo_torps[j].radius)) {
+                                active_asteroids--;
                                 lil_asts[i].active = false;
                                 ufo_torps[j].active = false;
                             }
@@ -1208,8 +1140,9 @@ int main()
                         if (lil_asts[i].active && ufos[k].state==UFO_ACTIVE && ufos[k].onscreen) {
                             if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ufos[k].pos, ufos[k].radius)) {
                                 DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                                // lil_asts[i].active = false;
-                                // ufos[k].state = UFO_DEAD;
+                                active_asteroids--;
+                                lil_asts[i].active = false;
+                                ufos[k].state = UFO_DEAD;
                             }
                         }
                     }
@@ -1229,30 +1162,6 @@ int main()
                         }
                     }
                     // ShipSpawn2(&ship, lives, ufos, 2, ship_spawn_timer, spawn_point, &game_state);
-
-                    // if (!ship.active && lives > 0) {
-                    //     if (TimerDone(ship_spawn_timer)) {
-                    //         // reset ship state
-                    //         ship.vel.x = 0;
-                    //         ship.vel.y = 0;
-                    //         ship.pos = spawn_point;
-                    //         // Check if spawn area is clear
-                    //         bool spawn_area_clear = true;
-                    //         if (asteroids[j].active && CheckCollisionCircles(spawn_point, ship.radius*6, asteroids[j].pos, asteroids[j].radius)) {
-                    //             spawn_area_clear = false;
-                    //             break;
-                    //         }
-
-                    //         if (spawn_area_clear) {
-                    //             ship.active = true;
-                    //         } else {
-                    //             // Restart timer to try again next frame
-                    //             startTimer(&ship_spawn_timer, 0.5f); // Short delay to avoid excessive checks
-                    //         }
-                    //     }
-                    // } else if (lives <= 0 && !ship.active) {
-                    //     game_state = GAME_OVER; 
-                    // }
 
                     // vs torps
                     for (j = 0; j < 4; j++) {
@@ -1287,6 +1196,12 @@ int main()
                     }
                 }
 
+                // level progression
+                if (!player_dead && active_asteroids==0 && !ufo->onscreen) {
+                    first_level = false;
+                    game_state = GAME_INIT;
+                }
+
                 /////////////// DEBUGGING DISPLAY ///////////////
                 
                 if (debug) {
@@ -1294,6 +1209,7 @@ int main()
                     DrawText(TextFormat("high score: %d", high_score), 20, screen_height-160, 20, RAYWHITE);
                     DrawText(TextFormat("asteroids: %d", ast_num), 20, screen_height-140, 20, RAYWHITE);
                     DrawText(TextFormat("all: %d", all_asts_num), 160, screen_height-140, 20, RAYWHITE);
+                    DrawText(TextFormat("active: %d", active_asteroids), 260, screen_height-140, 20, RAYWHITE);
                     // DrawText(TextFormat("Lives left: %d", lives), 20, screen_height-110, 20, WHITE);
                     // DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-110, 20, WHITE);
                     // DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-90, 20, WHITE);
@@ -1390,7 +1306,7 @@ int main()
                 break;
             }
 
-        }  // switch
+        }  
         
         EndDrawing();
     }

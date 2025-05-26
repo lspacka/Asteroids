@@ -92,12 +92,12 @@ REFACTOR:
 
 - leaderboard
 
-- explosions
-- fix GAME_INIT timer
-- fix safe zone
-- add high score display
+- explosions +
+- fix GAME_INIT timer  ++
+- fix safe zone  ++
+- add high score display ++
 - add presentation screen_
 - add pause_
-- fix screen size issue
+- fix screen size issue ++
 - fix font issue_
-- SHIP
+- SHIP ++
