@@ -3,6 +3,7 @@
 
 typedef enum GameState {
     GAME_INIT,
+    GAME_TRANSIT,
     GAME_ACTIVE,
     GAME_NEW
 } GameState;

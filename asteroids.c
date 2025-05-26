@@ -50,16 +50,18 @@ int main()
     const float ast_scale =  0.703125;
 
     // INIT
-    int ast_num = 4;
-    int mid_ast_num = ast_num * 2;
-    int lil_ast_num = mid_ast_num * 2;
-    int all_asts_num = ast_num * mid_ast_num * lil_ast_num;
-    int active_asteroids = all_asts_num;
+    // asteroid quantities
+    int ast_num;
+    int mid_ast_num;
+    int lil_ast_num;
+    int all_asts_num;
+    int active_asteroids;
 
-    int mid_ast_ind = 0;
-    int lil_ast_ind = 0;
-    int* mid_ast_ptr = &mid_ast_ind;
-    int* lil_ast_ptr = &lil_ast_ind; 
+    // asteroid indexes for AstBlast()
+    int mid_ast_ind;
+    int lil_ast_ind;
+    int* mid_ast_ptr;
+    int* lil_ast_ptr; 
 
     int i, j, k;
     int lives = 3;  // INIT
@@ -82,10 +84,10 @@ int main()
     mr_bill.name = "mr bill";
     
     // INIT
-    Asteroid* asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
-    Asteroid* mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
-    Asteroid* lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
-    Asteroid** all_asts  = (Asteroid**)calloc((all_asts_num), sizeof(Asteroid));
+    Asteroid* asteroids;
+    Asteroid* mid_asts;
+    Asteroid* lil_asts;
+    Asteroid** all_asts;
 
     /////////////// IMAGES AND TEXTURES SETUP ///////////////
 
@@ -175,17 +177,18 @@ int main()
         tex_ast4, tex_ast4_1, tex_ast4_2, tex_ast4_3
     };
 
+    // INIT
     // init ship lives positions
-    int life_pos_x = screen_width / 12;
-    for (i = 0; i < lives; i++) {
-        ships[i].active = true;
-        ships[i].tex = tex_ship;
-        ships[i].tex.width *= 0.7;
-        ships[i].tex.height *= 0.7;
-        ships[i].pos.x = life_pos_x;
-        ships[i].pos.y = 100;
-        life_pos_x += ships[i].tex.width;
-    } 
+    // int life_pos_x = screen_width / 12;
+    // for (i = 0; i < lives; i++) {
+    //     ships[i].active = true;
+    //     ships[i].tex = tex_ship;
+    //     ships[i].tex.width *= 0.7;
+    //     ships[i].tex.height *= 0.7;
+    //     ships[i].pos.x = life_pos_x;
+    //     ships[i].pos.y = 100;
+    //     life_pos_x += ships[i].tex.width;
+    // } 
 
     ///////////////////////////////////////////////////////
     
@@ -261,7 +264,7 @@ int main()
     float ast_speed = 0.0f;  // 1.5
 
     // INIT
-    for (i = 0; i < ast_num; i++) {
+    // for (i = 0; i < ast_num; i++) {
         // set up a "safe zone" for the ship
         // so that asteroids dont spawn right next to it
         // init_ast_pos = rand() % 2;
@@ -280,15 +283,16 @@ int main()
         // asteroids[i].tex = tex_ast;
         // asteroids[i].pix = ast_pixels[spr_ind];
         // asteroids[i].pos = (Vector2){x_pos, y_pos};
-        asteroids[i].speed = (Vector2){ast_speed, ast_speed};
-        asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
-        asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
-        asteroids[i].rect = (Rectangle){0, 0, asteroids[i].size.x, asteroids[i].size.y};
-        asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
-        asteroids[i].dir = direction;
-        asteroids[i].scale = 1.0;
+
+        // asteroids[i].speed = (Vector2){ast_speed, ast_speed};
+        // asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
+        // asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
+        // asteroids[i].rect = (Rectangle){0, 0, asteroids[i].size.x, asteroids[i].size.y};
+        // asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
+        // asteroids[i].dir = direction;
+        // asteroids[i].scale = 1.0;
         // asteroids[i].active = true;
-        asteroids[i].radius = asteroids[i].size.x / 2.0f;
+        // asteroids[i].radius = asteroids[i].size.x / 2.0f;
 
         // setting temp textures here 
         // so I can use them in the wrap-around logic for all asteroids
@@ -301,7 +305,7 @@ int main()
         //     lil_asts[k].type = "lil";
         //     lil_asts[k].tex = asteroids[i].tex;
         // }   
-    }
+    // }
 
     // INIT
     // all_asts[0] = asteroids;
@@ -376,6 +380,7 @@ int main()
     float bill_random_deviation = 0.0f;
     int sluggo_dir = 0;
     int bill_deviation = 10;
+    // startTimer(&init_timer, 5);
 
     ///////////////////////////////////////////////////////////// GAME LOOP /////////////////////////////////////////////////////////////
 
@@ -396,21 +401,33 @@ int main()
                     ast_num = 4;
                     ship.pos = (Vector2){screen_width/2, screen_height/2};
                     ship.active = false;
-                    startTimer(&init_timer, 0.5);
+                    // startTimer(&init_timer, 5);
                 } else {
                     ast_num += 2;
-                    startTimer(&init_timer, 1.5);
+                    // startTimer(&init_timer, 1.5);
                 }
 
                 mid_ast_num = ast_num * 2;
                 lil_ast_num = mid_ast_num * 2;
-                all_asts_num = ast_num * mid_ast_num * lil_ast_num;
+                all_asts_num = ast_num + mid_ast_num + lil_ast_num;
                 active_asteroids = all_asts_num;
 
-                asteroids = (Asteroid*)realloc(asteroids, ast_num*sizeof(Asteroid));
-                mid_asts  = (Asteroid*)realloc(mid_asts, mid_ast_num*sizeof(Asteroid));
-                lil_asts  = (Asteroid*)realloc(lil_asts, lil_ast_num*sizeof(Asteroid));
-                all_asts  = (Asteroid**)realloc(all_asts, all_asts_num*sizeof(Asteroid));
+                if (first_level) {
+                    asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
+                    mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
+                    lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
+                    all_asts  = (Asteroid**)calloc((all_asts_num), sizeof(Asteroid));
+                } else {
+                    asteroids = (Asteroid*)realloc(asteroids, ast_num*sizeof(Asteroid));
+                    mid_asts  = (Asteroid*)realloc(mid_asts, mid_ast_num*sizeof(Asteroid));
+                    lil_asts  = (Asteroid*)realloc(lil_asts, lil_ast_num*sizeof(Asteroid));
+                    all_asts  = (Asteroid**)realloc(all_asts, all_asts_num*sizeof(Asteroid));
+                }
+
+                mid_ast_ind = 0;
+                lil_ast_ind = 0;
+                mid_ast_ptr = &mid_ast_ind;
+                lil_ast_ptr = &lil_ast_ind; 
 
                 // UFOs
                 for (i = 0; i < 2; i++) {
@@ -452,7 +469,17 @@ int main()
                     asteroids[i].tex = tex_ast;
                     asteroids[i].pix = ast_pixels[spr_ind];
                     asteroids[i].pos = (Vector2){x_pos, y_pos};
-                    asteroids[i].active = false;
+
+                    asteroids[i].speed = (Vector2){ast_speed, ast_speed};
+                    asteroids[i].size = (Vector2){asteroids[i].tex.width, asteroids[i].tex.height};
+                    asteroids[i].center = (Vector2){asteroids[i].size.x/2, asteroids[i].size.y/2};
+                    asteroids[i].rect = (Rectangle){0, 0, asteroids[i].size.x, asteroids[i].size.y};
+                    asteroids[i].bounds = (Rectangle){asteroids[i].pos.x, asteroids[i].pos.y, asteroids[i].size.x, asteroids[i].size.y};
+                    asteroids[i].dir = direction;
+                    asteroids[i].scale = 1.0;
+                    asteroids[i].active = true;
+                    asteroids[i].radius = asteroids[i].size.x / 2.0f;
+                    asteroids[i].active = true;
 
                     // setting temp textures here 
                     // so I can use them in the wrap-around logic for all asteroids
@@ -466,18 +493,36 @@ int main()
                         lil_asts[k].tex = asteroids[i].tex;
                     }
                 }
+
+                int life_pos_x = screen_width / 12;
+                for (i = 0; i < lives; i++) {
+                    ships[i].active = true;
+                    ships[i].tex = tex_ship;
+                    ships[i].tex.width *= 0.7;
+                    ships[i].tex.height *= 0.7;
+                    ships[i].pos.x = life_pos_x;
+                    ships[i].pos.y = 100;
+                    life_pos_x += ships[i].tex.width;
+                }
+
                 all_asts[0] = asteroids;
                 all_asts[1] = mid_asts;
                 all_asts[2] = lil_asts;
 
-                if (TimerDone(init_timer)) {
-                    for (i = 0; i < ast_num; i++) 
-                        asteroids[i].active;
-                    ship.active = true;
-                    game_state = GAME_ACTIVE;
-                }
-
+                game_state = GAME_TRANSIT;
+                // if (TimerDone(init_timer)) {
+                //     ship.active = true;
+                //     game_state = GAME_ACTIVE;
+                //     break;
+                // }
                 break;
+            }
+            case GAME_TRANSIT: {
+                if (TimerDone(init_timer)) {
+                    // ship.active = true;
+                    game_state = GAME_ACTIVE;
+                    break;
+                }
             }
             case GAME_ACTIVE: {
                 // move ship with mouse for testing collisions
@@ -1245,7 +1290,10 @@ int main()
                 /////////////// DEBUGGING DISPLAY ///////////////
                 
                 if (debug) {
-                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
+                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-180, 20, RAYWHITE);
+                    DrawText(TextFormat("high score: %d", high_score), 20, screen_height-160, 20, RAYWHITE);
+                    DrawText(TextFormat("asteroids: %d", ast_num), 20, screen_height-140, 20, RAYWHITE);
+                    DrawText(TextFormat("all: %d", all_asts_num), 160, screen_height-140, 20, RAYWHITE);
                     // DrawText(TextFormat("Lives left: %d", lives), 20, screen_height-110, 20, WHITE);
                     // DrawText(TextFormat("Rotation: %.2f", ship.rotation), 20, screen_height-110, 20, WHITE);
                     // DrawText(TextFormat("PosX: %.2f, ", ship.pos.x), 20, screen_height-90, 20, WHITE);
@@ -1315,25 +1363,29 @@ int main()
                 ///////////////////////////////////////////
 
                 // new level logic
-
                 if (player_dead) {
                     // Vector2 msg_coords_1 = {spawn_point.x-300, spawn_point.y};
                     // Vector2 msg_coords_2 = {spawn_point.x-500, spawn_point.y+100};
                     DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
                     DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
-                    if (IsKeyDown(KEY_ENTER))      // IsKeyPressed
+                    if (IsKeyPressed(KEY_ENTER))  {
                         game_state = GAME_NEW;
+                    }   
+                        
                 }
                 break;
-            }  // GAME_ACTIVE
+            } 
             case GAME_NEW: {
                 if (IsKeyPressed(KEY_D))
                     debug = !debug;
                 if (debug) 
                     DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
 
+                if (score > high_score)
+                    high_score = score;
+                    
                 first_level = true;
-                high_score = score;
+                player_dead = false;
                 game_state = GAME_INIT;
                 break;
             }
