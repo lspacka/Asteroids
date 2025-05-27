@@ -319,12 +319,14 @@ int main()
                     lives = 3;
                     score = 0;
                     ast_num = 4;
+                    ship.vel.x = 0;
+                    ship.vel.y = 0;
                     ship.pos = (Vector2){screen_width/2, screen_height/2};
-                    ship.active = false;
-                    // startTimer(&init_timer, 5);
+                    ship.active = true;
+                    startTimer(&init_timer, 0.05);
                 } else {
                     ast_num += 2;
-                    // startTimer(&init_timer, 1.5);
+                    startTimer(&init_timer, 1.5);
                 }
 
                 mid_ast_num = ast_num * 2;
@@ -429,21 +431,18 @@ int main()
                 all_asts[0] = asteroids;
                 all_asts[1] = mid_asts;
                 all_asts[2] = lil_asts;
+                ship.active = true;
 
                 game_state = GAME_TRANSIT;
-                // if (TimerDone(init_timer)) {
-                //     ship.active = true;
-                //     game_state = GAME_ACTIVE;
-                //     break;
-                // }
                 break;
             }
             case GAME_TRANSIT: {
                 if (TimerDone(init_timer)) {
                     // ship.active = true;
                     game_state = GAME_ACTIVE;
-                    break;
+                    // break;
                 }
+                break;
             }
             case GAME_ACTIVE: {
                 // move ship with mouse for testing collisions
@@ -1285,26 +1284,32 @@ int main()
                     DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
                     DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
                     if (IsKeyPressed(KEY_ENTER))  {
-                        game_state = GAME_NEW;
+                        // game_state = GAME_NEW;
+                        if (score > high_score)
+                        high_score = score;
+                        
+                        first_level = true;
+                        player_dead = false;
+                        game_state = GAME_INIT;
                     }   
                         
                 }
                 break;
             } 
-            case GAME_NEW: {
-                if (IsKeyPressed(KEY_D))
-                    debug = !debug;
-                if (debug) 
-                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
+            // case GAME_NEW: {
+            //     if (IsKeyPressed(KEY_D))
+            //         debug = !debug;
+            //     if (debug) 
+            //         DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
 
-                if (score > high_score)
-                    high_score = score;
+            //     if (score > high_score)
+            //         high_score = score;
                     
-                first_level = true;
-                player_dead = false;
-                game_state = GAME_INIT;
-                break;
-            }
+            //     first_level = true;
+            //     player_dead = false;
+            //     game_state = GAME_INIT;
+            //     break;
+            // }
 
         }  
         
