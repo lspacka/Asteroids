@@ -64,6 +64,7 @@ int main()
     int* lil_ast_ptr; 
 
     int i, j, k;
+    int level = 1;
     int lives = 3;  // INIT
     int score = 0;  // INIT
     int high_score = 0; // INIT
@@ -327,8 +328,8 @@ int main()
             if (ships[i].active) 
                 DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
 
-        // moved ship drawing and movement code here
-        // so it stays active during state changes
+        // moved ship movement and shooting code here
+        // so it stays active during level progression
         // if (ship.active) 
         //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
@@ -369,6 +370,62 @@ int main()
         ship.bounds.y = ship.pos.y - ship.center.y;
 
         ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
+
+        // wrap-around
+        if (ship.pos.x-ship.size.x >= screen_width) 
+            ship.pos.x = 0 - ship.size.x/2;
+        else if (ship.pos.x+ship.size.x/2 <= 0)
+            ship.pos.x = screen_width + ship.size.x;
+
+        if (ship.pos.y-ship.size.y >= screen_height)
+            ship.pos.y = 0 - ship.size.y/2;
+        else if (ship.pos.y+ship.size.y/2 <= 0)
+            ship.pos.y = screen_height + ship.size.y;
+
+        // shooting
+        // if (IsKeyPressed(KEY_LEFT_CONTROL) && !hyperspace && ship.active) {
+        //     // no burst timer
+        //     if (torp_index == 4) 
+        //         torp_index = 0;
+
+        //     // start single shot timer
+        //     // startTimer(&shot_timers[torp_index], shot_time);  
+        //     startTimer(&torps[torp_index].timer, shot_time);
+
+        //     // update tip coords in torps before shooting
+        //     torps[torp_index].pos = (Vector2){ship.tip.x-ship.size.x/2, ship.tip.y-ship.size.y/2};
+        //     torps[torp_index].dir = (Vector2){ship.dir.x, ship.dir.y};
+        //     torps[torp_index].active = true;
+
+        //     torp_index++;
+        // }
+
+        // // draw ship torps
+        // for (i = 0; i < 4; i++) {
+        //     if (torps[i].active) {
+        //         torps[i].pos.x += torps[i].dir.x * torps[i].speed.x;
+        //         torps[i].pos.y += torps[i].dir.y * torps[i].speed.y;
+        //         torps[i].dest = (Rectangle){torps[i].pos.x, torps[i].pos.y, torps[i].tex.width, torps[i].tex.height};
+        //         DrawTexturePro(tex_torp, torps[i].source, torps[i].dest, torps[i].center, 0.0f, WHITE);
+
+        //         // torp dissapears after 1.5 seconds
+        //         // if (getElapsed(shot_timers[i]) >= shot_time)
+        //         //     torps[i].active = false;
+        //         if (TimerDone(torps[i].timer))
+        //             torps[i].active = false;
+        //     }
+
+        //     // wrap-around
+        //     if (torps[i].pos.x-torps[i].tex.width >= screen_width)
+        //         torps[i].pos.x = 0 - torps[i].tex.width;
+        //     else if (torps[i].pos.x+torps[i].tex.width <= 0)
+        //         torps[i].pos.x = screen_width + torps[i].tex.width;
+
+        //     if (torps[i].pos.y-torps[i].tex.height >= screen_height)
+        //         torps[i].pos.y = 0 - torps[i].tex.height;
+        //     else if (torps[i].pos.y+torps[i].tex.height <= 0)
+        //         torps[i].pos.y = screen_height + torps[i].tex.height;
+        // }
 
         switch(game_state) {
             case GAME_INIT: {
@@ -670,16 +727,16 @@ int main()
                 
                 // if (ship.active) 
                 //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
-                // wrap-around
-                if (ship.pos.x-ship.size.x >= screen_width) 
-                    ship.pos.x = 0 - ship.size.x/2;
-                else if (ship.pos.x+ship.size.x/2 <= 0)
-                    ship.pos.x = screen_width + ship.size.x;
+                // // wrap-around
+                // if (ship.pos.x-ship.size.x >= screen_width) 
+                //     ship.pos.x = 0 - ship.size.x/2;
+                // else if (ship.pos.x+ship.size.x/2 <= 0)
+                //     ship.pos.x = screen_width + ship.size.x;
 
-                if (ship.pos.y-ship.size.y >= screen_height)
-                    ship.pos.y = 0 - ship.size.y/2;
-                else if (ship.pos.y+ship.size.y/2 <= 0)
-                    ship.pos.y = screen_height + ship.size.y;
+                // if (ship.pos.y-ship.size.y >= screen_height)
+                //     ship.pos.y = 0 - ship.size.y/2;
+                // else if (ship.pos.y+ship.size.y/2 <= 0)
+                //     ship.pos.y = screen_height + ship.size.y;
 
                 // UFO
                 bool anyUFOActive = false; 
@@ -1276,13 +1333,15 @@ int main()
                     ufo->state==UFO_DEAD || 
                     ufo->state==UFO_SPAWNING)) {
                     first_level = false;
+                    level++;
                     game_state = GAME_INIT;
                 }
 
                 /////////////// DEBUGGING DISPLAY ///////////////
                 
                 if (debug) {
-                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-180, 20, RAYWHITE);
+                    DrawText(TextFormat("game state: %d", game_state), 20, screen_height-200, 20, RAYWHITE);
+                    DrawText(TextFormat("level: %d", level), 20, screen_height-180, 20, RAYWHITE);
                     DrawText(TextFormat("high score: %d", high_score), 20, screen_height-160, 20, RAYWHITE);
                     DrawText(TextFormat("asteroids: %d", ast_num), 20, screen_height-140, 20, RAYWHITE);
                     DrawText(TextFormat("all: %d", all_asts_num), 160, screen_height-140, 20, RAYWHITE);
@@ -1368,6 +1427,7 @@ int main()
                         
                         lives = 3;
                         score = 0;
+                        level = 1;
                         // first_session = false;
                         first_level = true;
                         player_dead = false;
