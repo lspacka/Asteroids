@@ -27,6 +27,7 @@ int main()
 
     GameState game_state = GAME_INIT;
     bool first_level = true;
+    bool first_session = true;
     Font my_font = LoadFont("D:/GitHub/C/raylib/asteroids");
 
     // InitWindow(800, 600, "Asteroids");
@@ -308,6 +309,67 @@ int main()
         BeginDrawing();
         ClearBackground(BLACK);
 
+        // LIVES DISPLAY
+        int life_pos_x = screen_width / 12;
+        for (i = 0; i < lives; i++) {
+            ships[i].active = true;
+            ships[i].tex = tex_ship;
+            ships[i].tex.width *= 0.7;
+            ships[i].tex.height *= 0.7;
+            ships[i].pos.x = life_pos_x;
+            ships[i].pos.y = 100;
+            life_pos_x += ships[i].tex.width;
+        }
+
+        // info display
+        DrawText(TextFormat("%d", score), screen_width/10, 50, 40, RAYWHITE);
+        for (i = 0; i < lives; i++) 
+            if (ships[i].active) 
+                DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
+
+        // moved ship drawing and movement code here
+        // so it stays active during state changes
+        // if (ship.active) 
+        //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+
+        if (IsKeyDown(KEY_RIGHT)) 
+            ship.rotation += rotation_speed;
+        if (IsKeyDown(KEY_LEFT))  
+            ship.rotation -= rotation_speed;
+
+        if (IsKeyDown(KEY_UP) && ship.active) {
+
+            // Recalculate thrust direction based on the ship's current rotation
+            thrust = ship.dir;
+            Vector2Normalize(thrust);  // Normalize to get direction only
+
+            // Apply thrust to velocity (incremental acceleration)
+            ship.vel.x += thrust.x * thrust_force;
+            ship.vel.y += thrust.y * thrust_force;
+
+            // Optional: Cap the velocity to top speed
+            speed = Vector2Length(ship.vel);
+            if (speed > top_speed) {
+                Vector2Normalize(ship.vel);
+                ship.vel.x *= ship.lowSpeed;
+                ship.vel.y *= ship.lowSpeed;
+            }
+        } else {
+            // No thrust, but apply slight friction to slow down gradually
+            ship.vel.x *= friction;
+            ship.vel.y *= friction;
+        }
+
+        // Update the ship's position based on velocity
+        ship.pos.x += ship.vel.x;
+        ship.pos.y += ship.vel.y;
+
+        // update ship's bounds to match the new position
+        ship.bounds.x = ship.pos.x - ship.center.x;
+        ship.bounds.y = ship.pos.y - ship.center.y;
+
+        ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
+
         switch(game_state) {
             case GAME_INIT: {
                 if (IsKeyPressed(KEY_D))
@@ -315,9 +377,27 @@ int main()
                 if (debug) 
                     DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
 
+                // // LIVES DISPLAY
+                // int life_pos_x = screen_width / 12;
+                // for (i = 0; i < lives; i++) {
+                //     ships[i].active = true;
+                //     ships[i].tex = tex_ship;
+                //     ships[i].tex.width *= 0.7;
+                //     ships[i].tex.height *= 0.7;
+                //     ships[i].pos.x = life_pos_x;
+                //     ships[i].pos.y = 100;
+                //     life_pos_x += ships[i].tex.width;
+                // }
+
+                // // info display
+                // DrawText(TextFormat("%d", score), screen_width/10, 50, 40, RAYWHITE);
+                // for (i = 0; i < lives; i++) 
+                //     if (ships[i].active) 
+                //         DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
+
                 if (first_level) {
-                    lives = 3;
-                    score = 0;
+                    // lives = 3;
+                    // score = 0;
                     ast_num = 4;
                     ship.vel.x = 0;
                     ship.vel.y = 0;
@@ -335,6 +415,8 @@ int main()
                 active_asteroids = all_asts_num;
 
                 if (first_level) {
+                    // add first session bool
+                    // this is working but i suspect it is a very very wrong thing to do
                     asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
                     mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
                     lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
@@ -416,27 +498,21 @@ int main()
                     }
                 }
 
-                // LIVES DISPLAY
-                int life_pos_x = screen_width / 12;
-                for (i = 0; i < lives; i++) {
-                    ships[i].active = true;
-                    ships[i].tex = tex_ship;
-                    ships[i].tex.width *= 0.7;
-                    ships[i].tex.height *= 0.7;
-                    ships[i].pos.x = life_pos_x;
-                    ships[i].pos.y = 100;
-                    life_pos_x += ships[i].tex.width;
-                }
-
                 all_asts[0] = asteroids;
                 all_asts[1] = mid_asts;
                 all_asts[2] = lil_asts;
+
                 ship.active = true;
+                if (ship.active) 
+                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
                 game_state = GAME_TRANSIT;
                 break;
             }
             case GAME_TRANSIT: {
+                if (ship.active) 
+                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+
                 if (TimerDone(init_timer)) {
                     // ship.active = true;
                     game_state = GAME_ACTIVE;
@@ -453,10 +529,10 @@ int main()
                 if (IsKeyPressed(KEY_D)) 
                     debug = !debug;
 
-                if (IsKeyDown(KEY_RIGHT)) 
-                    ship.rotation += rotation_speed;
-                if (IsKeyDown(KEY_LEFT))  
-                    ship.rotation -= rotation_speed;
+                // if (IsKeyDown(KEY_RIGHT)) 
+                //     ship.rotation += rotation_speed;
+                // if (IsKeyDown(KEY_LEFT))  
+                //     ship.rotation -= rotation_speed;
 
                 if (IsKeyDown(KEY_SPACE)) {
                     if (!hyperspace && ship.active) {
@@ -495,7 +571,7 @@ int main()
                 ship.tip.y = ship.pos.y + rota_offset_y;
 
                 ///////////////// SHOOTING ///////////////
-                if (IsKeyPressed(KEY_LEFT_CONTROL) && !hyperspace) {
+                if (IsKeyPressed(KEY_LEFT_CONTROL) && !hyperspace && ship.active) {
                     // no burst timer
                     if (torp_index == 4) 
                         torp_index = 0;
@@ -550,38 +626,38 @@ int main()
                 }
 
                 /////////////// THRUST ///////////////
-                if (IsKeyDown(KEY_UP) && ship.active) {
+                // if (IsKeyDown(KEY_UP) && ship.active) {
 
-                    // Recalculate thrust direction based on the ship's current rotation
-                    thrust = ship.dir;
-                    Vector2Normalize(thrust);  // Normalize to get direction only
+                //     // Recalculate thrust direction based on the ship's current rotation
+                //     thrust = ship.dir;
+                //     Vector2Normalize(thrust);  // Normalize to get direction only
 
-                    // Apply thrust to velocity (incremental acceleration)
-                    ship.vel.x += thrust.x * thrust_force;
-                    ship.vel.y += thrust.y * thrust_force;
+                //     // Apply thrust to velocity (incremental acceleration)
+                //     ship.vel.x += thrust.x * thrust_force;
+                //     ship.vel.y += thrust.y * thrust_force;
 
-                    // Optional: Cap the velocity to top speed
-                    speed = Vector2Length(ship.vel);
-                    if (speed > top_speed) {
-                        Vector2Normalize(ship.vel);
-                        ship.vel.x *= ship.lowSpeed;
-                        ship.vel.y *= ship.lowSpeed;
-                    }
-                } else {
-                    // No thrust, but apply slight friction to slow down gradually
-                    ship.vel.x *= friction;
-                    ship.vel.y *= friction;
-                }
+                //     // Optional: Cap the velocity to top speed
+                //     speed = Vector2Length(ship.vel);
+                //     if (speed > top_speed) {
+                //         Vector2Normalize(ship.vel);
+                //         ship.vel.x *= ship.lowSpeed;
+                //         ship.vel.y *= ship.lowSpeed;
+                //     }
+                // } else {
+                //     // No thrust, but apply slight friction to slow down gradually
+                //     ship.vel.x *= friction;
+                //     ship.vel.y *= friction;
+                // }
 
-                // Update the ship's position based on velocity
-                ship.pos.x += ship.vel.x;
-                ship.pos.y += ship.vel.y;
+                // // Update the ship's position based on velocity
+                // ship.pos.x += ship.vel.x;
+                // ship.pos.y += ship.vel.y;
 
-                // update ship's bounds to match the new position
-                ship.bounds.x = ship.pos.x - ship.center.x;
-                ship.bounds.y = ship.pos.y - ship.center.y;
+                // // update ship's bounds to match the new position
+                // ship.bounds.x = ship.pos.x - ship.center.x;
+                // ship.bounds.y = ship.pos.y - ship.center.y;
 
-                ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
+                // ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
 
                 /////////////// MOVEMENT LOGIC ///////////////
                 
@@ -592,8 +668,8 @@ int main()
                 if (ship.active) 
                     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
                 
-                if (ship.active) 
-                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+                // if (ship.active) 
+                //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
                 // wrap-around
                 if (ship.pos.x-ship.size.x >= screen_width) 
                     ship.pos.x = 0 - ship.size.x/2;
@@ -950,10 +1026,10 @@ int main()
                             active_asteroids--;
                             asteroids[i].active = false;
                             AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                            lives--;
-                            ships[lives].active = false;     // lives display
-                            ship.active = false;
-                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                            // lives--;
+                            // ships[lives].active = false;     // lives display
+                            // ship.active = false;
+                            // startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1048,10 +1124,10 @@ int main()
                             active_asteroids--;
                             mid_asts[i].active = false;
                             AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
-                            lives--;
-                            ship.active = false;
-                            ships[lives].active = false;
-                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                            // lives--;
+                            // ship.active = false;
+                            // ships[lives].active = false;
+                            // startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, mid_asts, mid_ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1103,10 +1179,10 @@ int main()
                             DrawText("Collision!", 10, 50, 40, RED);
                             active_asteroids--;
                             lil_asts[i].active = false;
-                            lives--;
-                            ship.active = false;
-                            ships[lives].active = false;
-                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                            // lives--;
+                            // ship.active = false;
+                            // ships[lives].active = false;
+                            // startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, lil_asts, lil_ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1154,10 +1230,10 @@ int main()
                         if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, ship.pos, ship.radius)) {
                             DrawText("UFO Collision!", 10, 50, 40, ORANGE);
                             ufos[i].state = UFO_DEAD;
-                            lives--;
-                            ship.active = false;
-                            ships[lives].active = false;
-                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                            // lives--;
+                            // ship.active = false;
+                            // ships[lives].active = false;
+                            // startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     // ShipSpawn2(&ship, lives, ufos, 2, ship_spawn_timer, spawn_point, &game_state);
@@ -1186,17 +1262,19 @@ int main()
                         if (CheckCollisionCircles(ufo_torps[i].pos, ufo_torps[i].radius, ship.circle_center, ship.radius)) {
                             DrawText("Collision!", 10, 50, 40, RED);
                             ufo_torps[i].active = false;
-                            ship.active = false;
-                            lives--;
-                            ships[lives].active = false;
-                            // ship.pos = spawn_point;
-                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                            // ship.active = false;
+                            // lives--;
+                            // ships[lives].active = false;
+                            // startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                 }
 
                 // level progression
-                if (!player_dead && active_asteroids==0 && !ufo->onscreen) {
+                if (!player_dead && active_asteroids==0 && 
+                    (!ufo->onscreen || 
+                    ufo->state==UFO_DEAD || 
+                    ufo->state==UFO_SPAWNING)) {
                     first_level = false;
                     game_state = GAME_INIT;
                 }
@@ -1286,13 +1364,19 @@ int main()
                     if (IsKeyPressed(KEY_ENTER))  {
                         // game_state = GAME_NEW;
                         if (score > high_score)
-                        high_score = score;
+                            high_score = score;
                         
+                        lives = 3;
+                        score = 0;
+                        // first_session = false;
                         first_level = true;
                         player_dead = false;
+                        free(asteroids);
+                        free(mid_asts);
+                        free(lil_asts);
+                        free(all_asts);
                         game_state = GAME_INIT;
-                    }   
-                        
+                    }                         
                 }
                 break;
             } 
