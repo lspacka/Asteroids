@@ -2,84 +2,17 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include "raylib.h"
 #include "types.h"
 #include "funcs.h"
 
-// typedef struct Particle {
-//     Vector2 pos;
-//     Timer timer;
-//     bool dir;
-//     bool active;
-// } Particle;
-
-// int main()
-// {
-//     SetTraceLogLevel(LOG_WARNING);
-//     srand(time(NULL));
-//     InitWindow(600, 600, "EXPLOSION TEST");   
-//     SetTargetFPS(60);
-
-//     bool is_pressed = false;
-//     bool right = true;
-//     int xdir = rand() % 2;
-//     float xspeed = 0.5f;
-//     float yspeed = 0.5f;
-//     float ptime = 0.0f;
-//     Particle particle = { 0 };
-
-//     particle.pos.x = 300;
-//     particle.pos.y = 300;
-//     particle.active = false;
-
-//     right = rand() % 1;
-//     ptime = (float)rand() / RAND_MAX;
-
-//     while(!WindowShouldClose()) {
-//         BeginDrawing();
-//         ClearBackground(BLACK);
-
-//         if (IsKeyPressed(KEY_SPACE)) {
-//             is_pressed = !is_pressed;
-//             startTimer(&particle.timer, ptime);
-//         }
-
-//         if (is_pressed) {
-//             // right = rand() % 2;
-//             // ptime = rand() % 2;
-//             if (right)
-//                 particle.pos.x += xdir * xspeed;
-//             else
-//                 particle.pos.x -= xdir * xspeed;
-
-//             particle.pos.y -= yspeed;
-//             particle.active = true;
-            
-//             if (particle.active)
-//                 DrawPixel(particle.pos.x, particle.pos.y, WHITE);
-
-//             if (TimerDone(particle.timer))
-//                 particle.active = false;
-//         }
-            
-//         EndDrawing();
-//     }
-//     CloseWindow();
-
-//     return 0;
-// }
-
-#include "raylib.h"
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-
 typedef struct Particle {
     Vector2 pos;
-    // float timer; 
-    float angle; 
-    bool active;
     Timer timer;
+    float angle; 
+    float speed;
+    bool active;
 } Particle;
 
 int main() {
@@ -88,51 +21,63 @@ int main() {
     InitWindow(600, 600, "EXPLOSION TEST");
     SetTargetFPS(60);
 
-    Particle particle = {0};
-    Particle particles[10] = {0};
-    particle.pos.x = 300;
-    particle.pos.y = 300;
-    particle.active = false;
+    int i;
+    int p_quant = 19;
+    Particle* particles = (Particle*)malloc(p_quant * sizeof(Particle));
+    
+    for (i = 0; i < p_quant; i++) {
+        particles[i].pos.x = 300;
+        particles[i].pos.y = 300;
+        particles[i].active = false;
+    }
 
-    float speed = 0.5f;    // Overall speed of particle (pixels per frame)
-    float duration = 2.0f; // Particle disappears after 2 seconds
+    float speed;
+    float duration;
     bool is_pressed = false;
 
     while (!WindowShouldClose()) {
-        // Input handling
         if (IsKeyPressed(KEY_SPACE)) {
             is_pressed = !is_pressed;
-            if (is_pressed) {
-                particle.pos.x = 300; // Reset position
-                particle.pos.y = 300;
-                // Random angle between -45° and 45° (converted to radians)
-                particle.angle = (float)(rand() % 361) * DEG2RAD;
-                // particle.timer = duration; // Start timer
-                startTimer(&particle.timer, duration);
-                particle.active = true;
-            } else {
-                particle.active = false; // Stop particle if toggled off
+
+            for (i = 0; i < p_quant; i++) {
+                if (is_pressed) {
+                    duration = (float)rand() / RAND_MAX;
+                    particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;
+                    particles[i].pos.x = 300;   // Reset position
+                    particles[i].pos.y = 300;
+                    particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 120-61
+                    startTimer(&particles[i].timer, duration);
+                    particles[i].active = true;
+                } else {
+                    particles[i].active = false;
+                }
             }
         }
 
-        // Update particle
-        if (is_pressed && particle.active) {
-            // Move particle based on angle
-            particle.pos.x += speed * cosf(particle.angle); // Horizontal component
-            particle.pos.y -= speed * sinf(particle.angle); // Vertical component (upward)
+        // Update particles
+        for (i = 0; i < p_quant; i++) {
+            if (is_pressed && particles[i].active) {
+                particles[i].pos.x += particles[i].speed * cosf(particles[i].angle);
+                particles[i].pos.y -= particles[i].speed * sinf(particles[i].angle);
 
-            if (TimerDone(particle.timer))
-                particle.active = false;
+                if (TimerDone(particles[i].timer))
+                    particles[i].active = false;
+            }
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
-        if (particle.active) {
-            DrawPixel((int)particle.pos.x, (int)particle.pos.y, WHITE);
-        }
+
+        for (i = 0; i < p_quant; i++)
+            if (particles[i].active) {
+                DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
+            }
+
         EndDrawing();
     }
 
+    free(particles);
     CloseWindow();
+
     return 0;
 }
