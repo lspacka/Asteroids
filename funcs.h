@@ -1,6 +1,8 @@
 #ifndef FUNCS_H
 #define FUNCS_H
 
+#include <string.h>
+#include <math.h>
 #include "types.h"
 #include "raylib.h"
 
@@ -33,30 +35,91 @@ void ShipSpawn(
                 bool* playerstate
               )
 {
+    // if (!ship->active && lives > 0) {
+    //     if (TimerDone(timer)) {
+    //         // reset ship state
+    //         ship->vel.x = 0;
+    //         ship->vel.y = 0;
+    //         ship->pos = spawnpoint;
+    //         // Check if spawn area is clear
+    //         bool spawn_area_clear = true;
+    //         float spawn_radius = ship->radius*16;
+    //         Vector2 spawn_point = spawnpoint;
+    //         for (int j = 0; j < astnum; j++) {  // add safe_radius attr to Ship
+    //             if (asteroids[j].active && CheckCollisionCircles(spawnpoint, ship->radius*16, asteroids[j].pos, asteroids[j].radius)) {
+    //                 spawn_area_clear = false;
+    //                 break;
+    //             }
+    //         }
+
+    //         if (spawn_area_clear) {
+    //             ship->active = true;
+    //         } else {
+    //             // Restart timer to try again next frame
+    //             startTimer(&timer, 0.5f); // Short delay to avoid excessive checks
+    //         }
+    //     }
+    // } else if (lives <= 0 && !ship->active) {
+    //     *playerstate = true; 
+    // }
+
     if (!ship->active && lives > 0) {
         if (TimerDone(timer)) {
-            // reset ship state
-            ship->vel.x = 0;
-            ship->vel.y = 0;
-            ship->pos = spawnpoint;
-            // Check if spawn area is clear
+            Vector2 spawn_point = spawnpoint;
+            float safe_width = spawnpoint.x / 2;  // ~1/4 screen width, like Asteroids
+            float safe_height = spawnpoint.y / 2; // ~1/4 screen height
             bool spawn_area_clear = true;
-            for (int j = 0; j < astnum; j++) { 
-                if (asteroids[j].active && CheckCollisionCircles(spawnpoint, ship->radius*6, asteroids[j].pos, asteroids[j].radius)) {
+
+            // Check asteroid centers in rectangular safe zone
+            for (int j = 0; j < astnum; j++) {
+                if (!asteroids[j].active) continue;
+                float dx = fabs(asteroids[j].pos.x - spawn_point.x);
+                float dy = fabs(asteroids[j].pos.y - spawn_point.y);
+                if (dx < safe_width && dy < safe_height) {
                     spawn_area_clear = false;
                     break;
                 }
             }
 
+            // Minimal velocity check for asteroids just outside safe zone
             if (spawn_area_clear) {
-                ship->active = true;
-            } else {
-                // Restart timer to try again next frame
-                startTimer(&timer, 0.5f); // Short delay to avoid excessive checks
+                for (int j = 0; j < astnum; j++) {
+                    if (!asteroids[j].active) continue;
+                    float dx = asteroids[j].pos.x - spawn_point.x;
+                    float dy = asteroids[j].pos.y - spawn_point.y;
+                    float distance = sqrtf(dx * dx + dy * dy);
+                    if (distance < safe_width * 1.5) { // Check slightly larger area
+                        float dot_product = dx * asteroids[j].speed.x + dy * asteroids[j].speed.y;
+                        if (dot_product < 0) { // Moving toward spawn point
+                            spawn_area_clear = false;
+                            break;
+                        }
+                    }
+                }
             }
+
+            if (spawn_area_clear) {
+                ship->pos.x = spawnpoint.x;
+                ship->pos.y = spawnpoint.y;
+                ship->active = true;
+                // Optional: Brief invulnerability
+                // ship.invulnerable = true;
+                // startTimer(&ship_invulnerability_timer, 1.0f);
+            } else {
+                startTimer(&timer, 0.1f); // Retry every 1/60s, like Asteroids
+            }
+
+            // Debug visualization: Draw safe zone rectangle
+            // Rectangle safe_zone = {
+            //     spawn_point.x - safe_width,
+            //     spawn_point.y - safe_height,
+            //     safe_width * 2,
+            //     safe_height * 2
+            // };
+            // DrawRectangleLinesEx(safe_zone, 2.0f, spawn_area_clear ? GREEN : RED);
         }
     } else if (lives <= 0 && !ship->active) {
-        *playerstate = true; 
+        *playerstate = true;
     }
 }
 
