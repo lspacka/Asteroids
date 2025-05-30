@@ -29,6 +29,7 @@ May 28th, 20 levels tested. these 2 dissapeared after hitting one of the asteroi
 REFACTOR:
   - pixel-perfect logic into function
   - all sprites into one sprite sheet
+  - asteroids init and blast directions with random angle
   + helper functions into own file
   - debug display into one helper function?
   - UFO's shooting logic into function?
@@ -57,6 +58,7 @@ REFACTOR:
       + determine shooting direction (player.pos - ufo.pos?)
       + add deviation factor (or do the "window" thing on the ship...)
       - fix funny shooting when ship is dead 
+      - fix shooting at !ship.active
       - increment accuracy on each level
 
 + physics

@@ -116,4 +116,12 @@ typedef struct Torp {
     float shoot_angle;
 } Torp;
 
+typedef struct Particle {
+    Vector2 pos;
+    Timer timer;
+    float angle; 
+    float speed;
+    bool active;
+} Particle;
+
 #endif

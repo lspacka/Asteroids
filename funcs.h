@@ -12,6 +12,7 @@ double getElapsed(Timer timer);
 void startTimer(Timer* timer, double lifetime);
 void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
 void ShipSpawn(Ship* ship, int lives, Asteroid* asteroids, int astnum, Timer timer, Vector2 spawnpoint, bool* playerstate);
+void POF(Vector2 pos);
 bool TimerDone(Timer timer);
 
 int RandPos(int a, int b)
@@ -123,43 +124,6 @@ void ShipSpawn(
     }
 }
 
-// void ShipSpawn2(
-//                 Ship* ship, 
-//                 int lives, 
-//                 UFO* ufos, 
-//                 int ufonum, 
-//                 Timer timer, 
-//                 Vector2 spawnpoint, 
-//                 GameState* gamestate
-//               )
-// {
-//     if (!ship->active && lives > 0) {
-//         if (TimerDone(timer)) {
-//             // reset ship state
-//             ship->vel.x = 0;
-//             ship->vel.y = 0;
-//             ship->pos = spawnpoint;
-//             // Check if spawn area is clear
-//             bool spawn_area_clear = true;
-//             for (int j = 0; j < ufonum; j++) { 
-//                 if (ufos[j].active && CheckCollisionCircles(spawnpoint, ship->radius*6, ufos[j].pos, ufos[j].radius)) {
-//                     spawn_area_clear = false;
-//                     break;
-//                 }
-//             }
-
-//             if (spawn_area_clear) {
-//                 ship->active = true;
-//             } else {
-//                 // Restart timer to try again next frame
-//                 startTimer(&timer, 0.5f); // Short delay to avoid excessive checks
-//             }
-//         }
-//     } else if (lives <= 0 && !ship->active) {
-//         *gamestate = GAME_OVER; 
-//     }
-// }
-
 void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
 {
     int i, direction, prev_dir = -1, spr_ind;
@@ -171,6 +135,7 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
         // } while (direction == ast.dir || (i == 1 && direction == prev_dir));
 
         // prev_dir = direction;
+        // improve with random angle
         direction = rand() % 4;
 
         spr_ind = GetRandomValue(0, 15);
@@ -203,6 +168,45 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
 
         (*index)++;
     }
+}
+
+void POF(Vector2 pos) 
+{
+    int i;
+    int p_quant = 19;
+    float speed;
+    float duration;
+    Particle* particles = (Particle*)malloc(p_quant * sizeof(Particle));
+
+    for (i = 0; i < p_quant; i++) {
+        particles[i].pos.x = pos.x;
+        particles[i].pos.y = pos.y;
+        particles[i].active = false;
+    }
+
+    for (i = 0; i < p_quant; i++) {
+        duration = (float)rand() / RAND_MAX;
+        particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;
+        particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 120-61
+        startTimer(&particles[i].timer, duration);
+        particles[i].active = true;
+    }
+
+    for (i = 0; i < p_quant; i++) {
+        if (particles[i].active) {
+            particles[i].pos.x += particles[i].speed * cosf(particles[i].angle);
+            particles[i].pos.y -= particles[i].speed * sinf(particles[i].angle);
+
+            if (TimerDone(particles[i].timer))
+                particles[i].active = false;
+        }
+    }
+
+    for (i = 0; i < p_quant; i++)
+        if (particles[i].active) 
+            DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
+        
+    free(particles);
 }
 
 void UFOShoot(Ship ship, UFO* ufo) 

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <string.h>
+// #include <string.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "types.h"
@@ -474,8 +474,6 @@ int main()
                 active_asteroids = all_asts_num;
 
                 if (first_level) {
-                    // add first session bool
-                    // this is working but i suspect it is a very very wrong thing to do
                     asteroids = (Asteroid*)calloc(ast_num, sizeof(Asteroid));
                     mid_asts  = (Asteroid*)calloc(mid_ast_num, sizeof(Asteroid));
                     lil_asts  = (Asteroid*)calloc(lil_ast_num, sizeof(Asteroid));
@@ -1118,6 +1116,7 @@ int main()
                                                 asteroids[i].active = false;
                                                 torps[j].active = false;
                                                 AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                                                POF(asteroids[i].pos);
                                                 score += 20;
                                             }
                                         }
