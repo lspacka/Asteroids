@@ -1,16 +1,13 @@
 //  -lraylib -lgdi32 -lwinmm -Wall -std=c99 -I c:/raylib/raylib/src
 
-// #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-// #include <string.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "types.h"
 #include "funcs.h"
 // #include "synth.h"
-// #include "animations.h"
 
 int main()
 {
@@ -25,22 +22,14 @@ int main()
     int screen_width = 1200;
     int screen_height = 900;
     
-    // SetConfigFlags(FLAG_FULLSCREEN_MODE); // Set fullscreen before InitWindow
     InitWindow(screen_width, screen_height, "Asteroids"); 
     SetTargetFPS(60); 
-    // HERE
-    // InitWindow(0, 0, "ASTEROIDS");   
-    // SetTargetFPS(60); 
 
-    // int screen_width = GetMonitorWidth(0);
-    // int screen_height = GetMonitorHeight(0);
     Vector2 spawn_point = { screen_width/2, screen_height/2};   // to reset the ship pos to the middle of the screen
-    // Vector2 msg_coords_1 = {spawn_point.x-300, spawn_point.y};
-    // Vector2 msg_coords_2 = {spawn_point.x-500, spawn_point.y+300};
-
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
+    const int particle_number = 150;
 
     // asteroid quantities
     int ast_num;
@@ -59,7 +48,7 @@ int main()
     int level = 1;
     int lives = 3;  // INIT
     int score = 0;  // INIT
-    int high_score = 0; // INIT
+    int high_score = 0; // INI
     bool debug = false;
     bool collision_found = false;
     bool hyperspace = false;
@@ -72,6 +61,7 @@ int main()
     Torp torps[4] = { 0 };
     Torp ufo_torps[15] = { 0 };
     Ship ships[3] = { 0 };
+    Particle* particles = (Particle*)malloc(particle_number * sizeof(Particle));
 
     sluggo.name = "sluggo";
     mr_bill.name = "mr bill";
@@ -1090,6 +1080,21 @@ int main()
                         DrawTexturePro(lil_asts[i].tex, lil_asts[i].rect, lil_asts[i].bounds, lil_asts[i].center, 0.0f, RAYWHITE);
                 }
 
+                // draw explosion
+                for (i = 0; i < particle_number; i++) {
+                    if (particles[i].active) {
+                        particles[i].pos.x += particles[i].speed * cosf(particles[i].angle);
+                        particles[i].pos.y -= particles[i].speed * sinf(particles[i].angle);
+
+                        if (TimerDone(particles[i].timer))
+                            particles[i].active = false;
+                    }
+                }
+
+                for (i = 0; i < particle_number; i++)
+                    if (particles[i].active) 
+                        DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
+
                 ///////////// draw ship and ufos /////////////
                 // if (ship.active) 
                 //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
@@ -1148,7 +1153,7 @@ int main()
                                                 asteroids[i].active = false;
                                                 torps[j].active = false;
                                                 AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                                                POF(asteroids[i].pos);
+                                                POF(asteroids[i].pos, particles, particle_number);
                                                 score += 20;
                                             }
                                         }

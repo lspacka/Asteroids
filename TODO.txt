@@ -84,14 +84,16 @@ REFACTOR:
 
 - hyperspace
   - add random ship explosion
-  When jumping into hyperspace, a random number from 0-31 is generated. 
+
+  from: https://6502disassembly.com/va-asteroids/:
+  "When jumping into hyperspace, a random number from 0-31 is generated. 
   If it's 24-31 (25%), the jump fails and the ship is destroyed. 
   The random value is reduced to 0-7, doubled, and increased by 4 (4 - 18). 
   If that value is less than the current number of asteroids on screen, 
   the jump fails, which means the chance of failure increases as the screen gets more crowded. 
   If the jump succeeds, the game will wait until there are no asteroids 
   in the immediate vicinity of the spawn-in point. 
-  The position is random, but limited so that the ship doesn't appear near the edges of the screen.
+  The position is random, but limited so that the ship doesn't appear near the edges of the screen."
 
 - animations
   - asteroid blast
@@ -114,6 +116,6 @@ REFACTOR:
 + add high score display ++
 - add presentation screen_
 - add pause_
-- fix screen size issue ++
++ fix screen size issue ++
 - fix font issue_
 - SHIP ++

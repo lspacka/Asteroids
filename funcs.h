@@ -12,7 +12,7 @@ double getElapsed(Timer timer);
 void startTimer(Timer* timer, double lifetime);
 void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
 void ShipSpawn(Ship* ship, int lives, Asteroid* asteroids, int astnum, Timer timer, Vector2 spawnpoint, bool* playerstate);
-void POF(Vector2 pos);
+void POF(Vector2 pos, Particle* particle, const int particlenum);
 bool TimerDone(Timer timer);
 
 int RandPos(int a, int b)
@@ -172,21 +172,21 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
     }
 }
 
-void POF(Vector2 pos) 
+void POF(Vector2 pos, Particle* particles, const int particlenum) 
 {
     int i;
-    int p_quant = 19;
+    // int particlenum = 19;
     float speed;
     float duration;
-    Particle* particles = (Particle*)malloc(p_quant * sizeof(Particle));
+    // Particle* particles = (Particle*)malloc(particlenum * sizeof(Particle));
 
-    for (i = 0; i < p_quant; i++) {
+    for (i = 0; i < particlenum; i++) {
         particles[i].pos.x = pos.x;
         particles[i].pos.y = pos.y;
         particles[i].active = false;
     }
 
-    for (i = 0; i < p_quant; i++) {
+    for (i = 0; i < particlenum; i++) {
         duration = (float)rand() / RAND_MAX;
         particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;
         particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 120-61
@@ -194,21 +194,21 @@ void POF(Vector2 pos)
         particles[i].active = true;
     }
 
-    for (i = 0; i < p_quant; i++) {
-        if (particles[i].active) {
-            particles[i].pos.x += particles[i].speed * cosf(particles[i].angle);
-            particles[i].pos.y -= particles[i].speed * sinf(particles[i].angle);
+    // for (i = 0; i < particlenum; i++) {
+    //     if (particles[i].active) {
+    //         particles[i].pos.x += particles[i].speed * cosf(particles[i].angle);
+    //         particles[i].pos.y -= particles[i].speed * sinf(particles[i].angle);
 
-            if (TimerDone(particles[i].timer))
-                particles[i].active = false;
-        }
-    }
+    //         if (TimerDone(particles[i].timer))
+    //             particles[i].active = false;
+    //     }
+    // }
 
-    for (i = 0; i < p_quant; i++)
-        if (particles[i].active) 
-            DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
+    // for (i = 0; i < particlenum; i++)
+    //     if (particles[i].active) 
+    //         DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
         
-    free(particles);
+    // free(particles);
 }
 
 void UFOShoot(Ship ship, UFO* ufo) 
