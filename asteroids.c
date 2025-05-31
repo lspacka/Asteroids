@@ -12,14 +12,6 @@
 // #include "synth.h"
 // #include "animations.h"
 
-
-// int RandPos(int a, int b);
-// float GetRandomFloat(float min, float max);
-// double getElapsed(Timer timer);
-// void startTimer(Timer* timer, double lifetime);
-// void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
-// bool TimerDone(Timer timer);
-
 int main()
 {
     SetTraceLogLevel(LOG_WARNING);
@@ -29,22 +21,22 @@ int main()
     bool first_level = true;
     bool first_session = true;
     Font my_font = LoadFont("D:/GitHub/C/raylib/asteroids");
-
-    // InitWindow(800, 600, "Asteroids");
-
-    // int screen_width = GetMonitorWidth(0);
-    // int screen_height = GetMonitorHeight(0);
-
-    // SetWindowSize(screen_width, screen_height);
     
     int screen_width = 1200;
     int screen_height = 900;
-    Vector2 spawn_point = { screen_width/2, screen_height/2 };   // to reset the ship pos to the middle of the screen
+    
+    // SetConfigFlags(FLAG_FULLSCREEN_MODE); // Set fullscreen before InitWindow
+    InitWindow(screen_width, screen_height, "Asteroids"); 
+    SetTargetFPS(60); 
+    // HERE
+    // InitWindow(0, 0, "ASTEROIDS");   
+    // SetTargetFPS(60); 
+
+    // int screen_width = GetMonitorWidth(0);
+    // int screen_height = GetMonitorHeight(0);
+    Vector2 spawn_point = { screen_width/2, screen_height/2};   // to reset the ship pos to the middle of the screen
     // Vector2 msg_coords_1 = {spawn_point.x-300, spawn_point.y};
     // Vector2 msg_coords_2 = {spawn_point.x-500, spawn_point.y+300};
-
-    InitWindow(screen_width, screen_height, "Asteroids");   
-    SetTargetFPS(60); 
 
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
@@ -309,6 +301,46 @@ int main()
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
+
+        // toggle fullscreen
+        // if (IsKeyPressed(KEY_TAB)) {
+        //     int display = GetCurrentMonitor();
+            
+        //     if (IsWindowFullscreen()) {
+        //         screen_width = 1200;
+        //         screen_height = 900;
+        //         SetWindowSize(screen_width, screen_height);
+        //     } else {
+        //         SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
+        //         screen_width = GetMonitorWidth(display);
+        //         screen_height = GetMonitorHeight(display);
+        //     }
+        //     spawn_point = (Vector2){ screen_width/2, screen_height/2 };
+
+        //     ToggleFullscreen();
+        // }
+
+        if (IsKeyPressed(KEY_TAB)) {
+            int display = GetCurrentMonitor();
+
+            if (IsWindowFullscreen()) {
+                // Exit fullscreen
+                screen_width = 1200;
+                screen_height = 900;
+                ToggleFullscreen();
+                SetWindowSize(screen_width, screen_height); // Restore original size
+            } else {
+                // Enter fullscreen
+                SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
+                screen_width = GetMonitorWidth(display);
+                screen_height = GetMonitorHeight(display);
+                ToggleFullscreen();
+            }
+
+            // Update spawn point
+            spawn_point = (Vector2){ (float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2 };
+            // spawn_point = (Vector2){ screen_width/2, screen_height/2 };
+        }
 
         // LIVES DISPLAY
         int life_pos_x = screen_width / 12;
@@ -1443,21 +1475,6 @@ int main()
                 }
                 break;
             } 
-            // case GAME_NEW: {
-            //     if (IsKeyPressed(KEY_D))
-            //         debug = !debug;
-            //     if (debug) 
-            //         DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
-
-            //     if (score > high_score)
-            //         high_score = score;
-                    
-            //     first_level = true;
-            //     player_dead = false;
-            //     game_state = GAME_INIT;
-            //     break;
-            // }
-
         }  
         
         EndDrawing();

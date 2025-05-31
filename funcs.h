@@ -102,6 +102,8 @@ void ShipSpawn(
             if (spawn_area_clear) {
                 ship->pos.x = spawnpoint.x;
                 ship->pos.y = spawnpoint.y;
+                ship->vel.x = 0;
+                ship->vel.y = 0;
                 ship->active = true;
                 // Optional: Brief invulnerability
                 // ship.invulnerable = true;

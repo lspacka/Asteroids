@@ -18,6 +18,7 @@
 + fix ufos disappearing randomly
 + fix flashing ufos before spawning
 + fix score bug with ufos
+- fix flashing torp before a new wave hits
 - fix ship's 4-shot problem (maybe torp_num = ast_num*100 lol)
 
 May 28th, 20 levels tested. these 2 dissapeared after hitting one of the asteroids:
