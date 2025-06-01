@@ -13,6 +13,7 @@ void startTimer(Timer* timer, double lifetime);
 void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
 void ShipSpawn(Ship* ship, int lives, Asteroid* asteroids, int astnum, Timer timer, Vector2 spawnpoint, bool* playerdead);
 void pof(Vector2 pos, float radius, Particle* particle, const int particlenum);
+void desint(Ship ship, Stick* sticks, float* spawntime);
 bool TimerDone(Timer timer);
 
 int RandPos(int a, int b)
@@ -34,6 +35,7 @@ void ShipSpawn(
                 Timer timer, 
                 Vector2 spawnpoint, 
                 bool* playerdead
+                // UFO ufo
               )
 {
     if (!ship->active && lives > 0) {
@@ -56,7 +58,8 @@ void ShipSpawn(
                     CheckCollisionCircles(spawnpoint, ship->radius*6, asteroids[j].pos, asteroids[j].radius)   ||
                     CheckCollisionCircles(spawnpoint, ship->radius*4, asteroids[j].pos, asteroids[j].radius)   ||
                     CheckCollisionCircles(spawnpoint, ship->radius*1.7, asteroids[j].pos, asteroids[j].radius) ||
-                    CheckCollisionCircles(spawnpoint, ship->radius, asteroids[j].pos, asteroids[j].radius))) {
+                    CheckCollisionCircles(spawnpoint, ship->radius, asteroids[j].pos, asteroids[j].radius)     || 
+                    CheckCollisionPointCircle(spawnpoint, asteroids[j].center, asteroids[j].radius))) {
                     spawn_area_clear = false;
                     break;
                 }
@@ -136,23 +139,25 @@ void pof(Vector2 pos, float radius, Particle* particles, const int particlenum)
     }
 }
 
-void desint(Ship ship, Stick* sticks) 
+void desint(Ship ship, Stick* sticks, float* spawntime) 
 {
     int i;
-    float rotation, duration;
+    float rotation;
+    float duration = 0.7f;
 
     for (i = 0; i < 5; i++) {
-        rotation = (float)rand() / RAND_MAX - 0.5f;
-        duration = (float)rand() / RAND_MAX;
-        // sticks[i].pos.x = (ship.pos.x-30) + (rand()/RAND_MAX) * ((ship.pos.x-30) - (ship.pos.x+30));
-        // sticks[i].pos.y = ship.pos.y;
-        sticks[i].pos = ship.pos;
+        rotation = rand() % 361;     // (float)rand() / RAND_MAX - 0.5f;
+        // duration = (float)rand() / RAND_MAX;
+        sticks[i].center = (Vector2){sticks[i].size.x/2, sticks[i].size.y/2};
+        sticks[i].pos.x = (ship.pos.x - 5) + rand() % 11;
+        sticks[i].pos.y = (ship.pos.y - 5) + rand() % 11;
         sticks[i].rotation = rotation;
         sticks[i].bounds = (Rectangle){sticks[i].pos.x, sticks[i].pos.y, sticks[i].size.x, sticks[i].size.y};
         startTimer(&sticks[i].timer, duration);
+        duration += 0.7f;
         sticks[i].active = true;
-        // printf("rotation: %f\n", sticks[i].rotation);
     }
+    *spawntime = duration;   // time for the ship to spawn
 }
 
 void UFOShoot(Ship ship, UFO* ufo) 

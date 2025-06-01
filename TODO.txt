@@ -20,6 +20,7 @@
 + fix score bug with ufos
 - fix flashing torp before a new wave hits
 - fix only one explosion at a time
+- fix explosion not happening on last asteroid before new wave
 - fix ship's 4-shot problem (maybe torp_num = ast_num*100 lol)
 
 May 28th, 20 levels tested. these 2 dissapeared after hitting one of the asteroids:

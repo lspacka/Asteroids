@@ -255,7 +255,7 @@ int main()
     for (i = 0; i < 5; i++) {
         sticks[i].tex = tex_stick;
         sticks[i].size = (Vector2){sticks[i].tex.width, sticks[i].tex.height};
-        sticks[i].center = (Vector2){sticks[i].size.x/2, sticks[i].size.y/2};
+        // sticks[i].center = (Vector2){sticks[i].size.x/2, sticks[i].size.y/2};
         sticks[i].rect = (Rectangle){0, 0, sticks[i].size.x, sticks[i].size.y};
         // sticks[i].bounds = (Rectangle){sticks[i].pos.x, sticks[i].pos.y, sticks[i].size.x, sticks[i].size.y};
         sticks[i].active = false;
@@ -288,7 +288,7 @@ int main()
     // float burst_time = 0.4f;
     float shot_time  = 1.5f;
     float hyper_time = 1.0f;
-    float ship_spawn_time = 2.0f;
+    float ship_spawn_time = 0.0f;
     bool cooldown_active = false;
 
     // UFO shooting vars
@@ -1078,8 +1078,8 @@ int main()
                 // draw disintegration
                 for (i = 0; i < 5; i++) {
                     if (sticks[i].active) {
-                        sticks[i].pos.x += (float)rand() / RAND_MAX - 0.5f;
-                        sticks[i].pos.y += (float)rand() / RAND_MAX - 0.5f;
+                        sticks[i].center.x += 0.2;  //(float)rand() / RAND_MAX - 0.3f
+                        sticks[i].center.y += 0.2;  //(float)rand() / RAND_MAX - 0.3f
                     }
 
                     if (TimerDone(sticks[i].timer))
@@ -1088,7 +1088,7 @@ int main()
 
                 for (i = 0; i < 5; i++) 
                     if (sticks[i].active)
-                        DrawTexturePro(tex_stick, sticks[i].rect, sticks[i].bounds, sticks[i].center, sticks[i].rotation, RAYWHITE);
+                        DrawTexturePro(sticks[i].tex, sticks[i].rect, sticks[i].bounds, sticks[i].center, sticks[i].rotation, RAYWHITE);
 
                 ///////////// draw ship and ufos /////////////
                 // if (ship.active) 
@@ -1115,7 +1115,7 @@ int main()
                             active_asteroids--;
                             asteroids[i].active = false;
                             AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                            desint(ship, sticks);
+                            desint(ship, sticks, &ship_spawn_time);
                             pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
                             lives--;
                             ships[lives].active = false;     // lives display
@@ -1219,6 +1219,7 @@ int main()
                             active_asteroids--;
                             mid_asts[i].active = false;
                             pof(mid_asts[i].pos, mid_asts[i].radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
                             AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
                             lives--;
                             ship.active = false;
@@ -1280,6 +1281,7 @@ int main()
                             active_asteroids--;
                             lil_asts[i].active = false;
                             pof(lil_asts[i].pos, lil_asts[i].radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
                             lives--;
                             ship.active = false;
                             ships[lives].active = false;
@@ -1336,6 +1338,7 @@ int main()
                             // DrawText("UFO Collision!", 10, 50, 40, ORANGE);
                             ufos[i].state = UFO_DEAD;
                             pof(ufos[i].pos, ufos[i].radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
                             lives--;
                             ship.active = false;
                             ships[lives].active = false;
@@ -1370,6 +1373,7 @@ int main()
                             // DrawText("Collision!", 10, 50, 40, RED);
                             ufo_torps[i].active = false;
                             pof(ship.pos, ship.radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
                             ship.active = false;
                             lives--;
                             ships[lives].active = false;
@@ -1491,9 +1495,12 @@ int main()
 
                         for (i = 0; i < 4; i++)
                             torps[i].active = false;
-
                         for (i = 0; i < 15; i++)
                             ufo_torps[i].active = false;
+                        for (i = 0; i < particle_number; i++)
+                            particles[i].active = false;
+                        for (i = 0; i < 5; i++)
+                            sticks[i].active = false;
                         
                         game_state = GAME_INIT;
                     }                         
