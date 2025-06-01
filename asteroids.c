@@ -1,5 +1,6 @@
 //  -lraylib -lgdi32 -lwinmm -Wall -std=c99 -I c:/raylib/raylib/src
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
@@ -29,7 +30,7 @@ int main()
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
-    const int particle_number = 150;
+    const int particle_number = 41;
 
     // asteroid quantities
     int ast_num;
@@ -60,8 +61,11 @@ int main()
     UFO mr_bill = { 0 };
     Torp torps[4] = { 0 };
     Torp ufo_torps[15] = { 0 };
+    // Torp** all_torps[2];
+    // Torp all_torps[[torps, ufo_torps]];
     Ship ships[3] = { 0 };
     Particle* particles = (Particle*)malloc(particle_number * sizeof(Particle));
+    Stick sticks[5] = { 0 };
 
     sluggo.name = "sluggo";
     mr_bill.name = "mr bill";
@@ -74,9 +78,10 @@ int main()
 
     /////////////// IMAGES AND TEXTURES SETUP ///////////////
 
-    Image ship_img = LoadImage("./resources/images/ship.png");
-    Image torp     = LoadImage("./resources/images/torp2.png");
-    Image ufo_img  = LoadImage("./resources/images/ufo_2.png");
+    Image ship_img  = LoadImage("./resources/images/ship.png");
+    Image torp      = LoadImage("./resources/images/torp2.png");
+    Image ufo_img   = LoadImage("./resources/images/ufo_2.png");
+    Image stick_img = LoadImage("./resources/images/stick.png");
 
     Image ast1   = LoadImage("./resources/images/ast1.png");
     Image ast1_1 = LoadImage("./resources/images/ast1_1.png");
@@ -122,9 +127,10 @@ int main()
     Color* ast4_3_pix = LoadImageColors(ast4_3);
 
     // load texture from images
-    Texture2D tex_ship = LoadTextureFromImage(ship_img);
-    Texture2D tex_torp = LoadTextureFromImage(torp);
-    Texture2D tex_ufo  = LoadTextureFromImage(ufo_img);
+    Texture2D tex_ship   = LoadTextureFromImage(ship_img);
+    Texture2D tex_torp   = LoadTextureFromImage(torp);
+    Texture2D tex_ufo    = LoadTextureFromImage(ufo_img);
+    Texture2D tex_stick  = LoadTextureFromImage(stick_img);
 
     Texture2D tex_ast1   = LoadTextureFromImage(ast1);
     Texture2D tex_ast1_1 = LoadTextureFromImage(ast1_1);
@@ -245,6 +251,16 @@ int main()
         ufo_torps[i].radius = ufo_torps[i].tex.width / 1.7;
     }
 
+    // init sticks
+    for (i = 0; i < 5; i++) {
+        sticks[i].tex = tex_stick;
+        sticks[i].size = (Vector2){sticks[i].tex.width, sticks[i].tex.height};
+        sticks[i].center = (Vector2){sticks[i].size.x/2, sticks[i].size.y/2};
+        sticks[i].rect = (Rectangle){0, 0, sticks[i].size.x, sticks[i].size.y};
+        // sticks[i].bounds = (Rectangle){sticks[i].pos.x, sticks[i].pos.y, sticks[i].size.x, sticks[i].size.y};
+        sticks[i].active = false;
+    }
+
     // vars 4 trig calcs
     Vector2 thrust;
     Vector2 dir;    //
@@ -293,23 +309,6 @@ int main()
         ClearBackground(BLACK);
 
         // toggle fullscreen
-        // if (IsKeyPressed(KEY_TAB)) {
-        //     int display = GetCurrentMonitor();
-            
-        //     if (IsWindowFullscreen()) {
-        //         screen_width = 1200;
-        //         screen_height = 900;
-        //         SetWindowSize(screen_width, screen_height);
-        //     } else {
-        //         SetWindowSize(GetMonitorWidth(display), GetMonitorHeight(display));
-        //         screen_width = GetMonitorWidth(display);
-        //         screen_height = GetMonitorHeight(display);
-        //     }
-        //     spawn_point = (Vector2){ screen_width/2, screen_height/2 };
-
-        //     ToggleFullscreen();
-        // }
-
         if (IsKeyPressed(KEY_TAB)) {
             int display = GetCurrentMonitor();
 
@@ -329,7 +328,6 @@ int main()
 
             // Update spawn point
             spawn_point = (Vector2){ (float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2 };
-            // spawn_point = (Vector2){ screen_width/2, screen_height/2 };
         }
 
         // LIVES DISPLAY
@@ -457,24 +455,6 @@ int main()
                     debug = !debug;
                 if (debug) 
                     DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
-
-                // // LIVES DISPLAY
-                // int life_pos_x = screen_width / 12;
-                // for (i = 0; i < lives; i++) {
-                //     ships[i].active = true;
-                //     ships[i].tex = tex_ship;
-                //     ships[i].tex.width *= 0.7;
-                //     ships[i].tex.height *= 0.7;
-                //     ships[i].pos.x = life_pos_x;
-                //     ships[i].pos.y = 100;
-                //     life_pos_x += ships[i].tex.width;
-                // }
-
-                // // info display
-                // DrawText(TextFormat("%d", score), screen_width/10, 50, 40, RAYWHITE);
-                // for (i = 0; i < lives; i++) 
-                //     if (ships[i].active) 
-                //         DrawTexture(ships[i].tex, ships[i].pos.x, ships[i].pos.y, WHITE);
 
                 if (first_level) {
                     // lives = 3;
@@ -856,7 +836,7 @@ int main()
                                             ufo->shootDir.x = cos(sluggo_angle);
                                             ufo->shootDir.y = sin(sluggo_angle);
                                         } else {
-                                            if (!player_dead) {
+                                            if (ship.active) {
                                                 max_deviation = bill_deviation * (PI/180.0);
                                                 bill_random_deviation = GetRandomValue(-max_deviation, max_deviation);
                                                 bill_shoot_dir = Vector2Subtract(ship.pos, ufo->pos);
@@ -1095,6 +1075,21 @@ int main()
                     if (particles[i].active) 
                         DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
 
+                // draw disintegration
+                for (i = 0; i < 5; i++) {
+                    if (sticks[i].active) {
+                        sticks[i].pos.x += (float)rand() / RAND_MAX - 0.5f;
+                        sticks[i].pos.y += (float)rand() / RAND_MAX - 0.5f;
+                    }
+
+                    if (TimerDone(sticks[i].timer))
+                        sticks[i].active = false;
+                }
+
+                for (i = 0; i < 5; i++) 
+                    if (sticks[i].active)
+                        DrawTexturePro(tex_stick, sticks[i].rect, sticks[i].bounds, sticks[i].center, sticks[i].rotation, RAYWHITE);
+
                 ///////////// draw ship and ufos /////////////
                 // if (ship.active) 
                 //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
@@ -1120,6 +1115,8 @@ int main()
                             active_asteroids--;
                             asteroids[i].active = false;
                             AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                            desint(ship, sticks);
+                            pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
                             lives--;
                             ships[lives].active = false;     // lives display
                             ship.active = false;
@@ -1152,8 +1149,8 @@ int main()
                                                 active_asteroids--;
                                                 asteroids[i].active = false;
                                                 torps[j].active = false;
+                                                pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
                                                 AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                                                POF(asteroids[i].pos, particles, particle_number);
                                                 score += 20;
                                             }
                                         }
@@ -1455,10 +1452,8 @@ int main()
 
                 ///////////////////////////////////////////
 
-                // new level logic
+                // new game logic
                 if (player_dead) {
-                    // Vector2 msg_coords_1 = {spawn_point.x-300, spawn_point.y};
-                    // Vector2 msg_coords_2 = {spawn_point.x-500, spawn_point.y+100};
                     DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
                     DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
                     if (IsKeyPressed(KEY_ENTER))  {
@@ -1474,6 +1469,12 @@ int main()
                         free(mid_asts);
                         free(lil_asts);
                         free(all_asts);
+
+                        for (i = 0; i < 4; i++)
+                            torps[i].active = false;
+
+                        for (i = 0; i < 15; i++)
+                            ufo_torps[i].active = false;
                         
                         game_state = GAME_INIT;
                     }                         

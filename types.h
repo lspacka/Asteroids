@@ -124,4 +124,16 @@ typedef struct Particle {
     bool active;
 } Particle;
 
+typedef struct Stick {
+    Vector2 pos;
+    Vector2 center;
+    Vector2 size;
+    Timer timer;
+    Texture2D tex;
+    Rectangle bounds;
+    Rectangle rect;
+    float rotation;
+    bool active;
+} Stick;
+
 #endif

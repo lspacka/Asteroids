@@ -12,7 +12,7 @@ double getElapsed(Timer timer);
 void startTimer(Timer* timer, double lifetime);
 void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[]);
 void ShipSpawn(Ship* ship, int lives, Asteroid* asteroids, int astnum, Timer timer, Vector2 spawnpoint, bool* playerstate);
-void POF(Vector2 pos, Particle* particle, const int particlenum);
+void pof(Vector2 pos, float radius, Particle* particle, const int particlenum);
 bool TimerDone(Timer timer);
 
 int RandPos(int a, int b)
@@ -132,19 +132,11 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
     float new_speed;
 
     for (i = 0; i < 2; i++) {
-        // do {
-        //     direction = rand() % 4;
-        // } while (direction == ast.dir || (i == 1 && direction == prev_dir));
-
-        // prev_dir = direction;
-        // improve with random angle
         direction = rand() % 4;
-
         spr_ind = GetRandomValue(0, 15);
         new_speed = GetRandomFloat(.97f, 3.7f);
         asts[*index].active = true;
         asts[*index].tex = sprites[spr_ind];
-        // asts[*index].tex = ast.tex;
 
         if (strcmp(ast.type, "big") == 0) {
             asts[*index].type = "mid";
@@ -172,13 +164,12 @@ void AstBlast(Asteroid ast, Asteroid* asts, int* index, Texture2D sprites[])
     }
 }
 
-void POF(Vector2 pos, Particle* particles, const int particlenum) 
+void pof(Vector2 pos, float radius, Particle* particles, const int particlenum) 
 {
     int i;
-    // int particlenum = 19;
     float speed;
     float duration;
-    // Particle* particles = (Particle*)malloc(particlenum * sizeof(Particle));
+    float limit = radius / 20;
 
     for (i = 0; i < particlenum; i++) {
         particles[i].pos.x = pos.x;
@@ -187,28 +178,31 @@ void POF(Vector2 pos, Particle* particles, const int particlenum)
     }
 
     for (i = 0; i < particlenum; i++) {
-        duration = (float)rand() / RAND_MAX;
-        particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;
+        duration = (float)rand() / RAND_MAX;    // radius/20
+        particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;    // the bigger the faster 
         particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 120-61
         startTimer(&particles[i].timer, duration);
         particles[i].active = true;
     }
+}
 
-    // for (i = 0; i < particlenum; i++) {
-    //     if (particles[i].active) {
-    //         particles[i].pos.x += particles[i].speed * cosf(particles[i].angle);
-    //         particles[i].pos.y -= particles[i].speed * sinf(particles[i].angle);
+void desint(Ship ship, Stick* sticks) 
+{
+    int i;
+    float rotation, duration;
 
-    //         if (TimerDone(particles[i].timer))
-    //             particles[i].active = false;
-    //     }
-    // }
-
-    // for (i = 0; i < particlenum; i++)
-    //     if (particles[i].active) 
-    //         DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
-        
-    // free(particles);
+    for (i = 0; i < 5; i++) {
+        rotation = (float)rand() / RAND_MAX - 0.5f;
+        duration = (float)rand() / RAND_MAX;
+        // sticks[i].pos.x = (ship.pos.x-30) + (rand()/RAND_MAX) * ((ship.pos.x-30) - (ship.pos.x+30));
+        // sticks[i].pos.y = ship.pos.y;
+        sticks[i].pos = ship.pos;
+        sticks[i].rotation = rotation;
+        sticks[i].bounds = (Rectangle){sticks[i].pos.x, sticks[i].pos.y, sticks[i].size.x, sticks[i].size.y};
+        startTimer(&sticks[i].timer, duration);
+        sticks[i].active = true;
+        printf("rotation: %f\n", sticks[i].rotation);
+    }
 }
 
 void UFOShoot(Ship ship, UFO* ufo) 
