@@ -19,11 +19,14 @@
 + fix flashing ufos before spawning
 + fix score bug with ufos
 - fix flashing torp before a new wave hits
+- fix only one explosion at a time
 - fix ship's 4-shot problem (maybe torp_num = ast_num*100 lol)
 
 May 28th, 20 levels tested. these 2 dissapeared after hitting one of the asteroids:
  - gray block in top left at level 5. (same color as the asteroids I think)
  - 2 sets of lines in top left at level 9. they frame the collision message
+
+sometimes, after the first level, one or two big asteroids appear not drawn completely. no idea why.
 
 ////////////////////////////////////////////////////
 
@@ -59,7 +62,7 @@ REFACTOR:
       + determine shooting direction (player.pos - ufo.pos?)
       + add deviation factor (or do the "window" thing on the ship...)
       - fix funny shooting when ship is dead 
-      - fix shooting at !ship.active
+      + fix shooting at !ship.active
       - increment accuracy on each level
 
 + physics
@@ -81,6 +84,8 @@ REFACTOR:
   - improve safe zone
 
 + levels
+ - fix onscreen ufo sometimes dissapearing before next wave comes in
+   when there are one asteroid and ufo left, it dissapears when hitting the asteroids
 
 - hyperspace
   - add random ship explosion

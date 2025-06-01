@@ -1369,6 +1369,7 @@ int main()
                         if (CheckCollisionCircles(ufo_torps[i].pos, ufo_torps[i].radius, ship.circle_center, ship.radius)) {
                             // DrawText("Collision!", 10, 50, 40, RED);
                             ufo_torps[i].active = false;
+                            pof(ship.pos, ship.radius, particles, particle_number);
                             ship.active = false;
                             lives--;
                             ships[lives].active = false;
@@ -1407,7 +1408,13 @@ int main()
                     if (ship.active) {
                         DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius, GREEN);
                         DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*1.7, ORANGE);
-                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*16, RED);     // safe zone for spawning
+                        // safe zone for spawning:
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*14, RED);     
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*12, RED);
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*10, RED);
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*8, RED);     
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*6, RED);
+                        DrawCircleLines(ship.circle_center.x, ship.circle_center.y, ship.radius*4, RED);
                     }
                     
                     // UFO
