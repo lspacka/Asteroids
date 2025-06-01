@@ -169,7 +169,8 @@ void pof(Vector2 pos, float radius, Particle* particles, const int particlenum)
     int i;
     float speed;
     float duration;
-    float limit = radius / 20;
+    float max = radius / 19.0f;
+    int steps;
 
     for (i = 0; i < particlenum; i++) {
         particles[i].pos.x = pos.x;
@@ -178,8 +179,11 @@ void pof(Vector2 pos, float radius, Particle* particles, const int particlenum)
     }
 
     for (i = 0; i < particlenum; i++) {
+        steps = (int)((max - 0.3f) / 0.1f) + 1;
         duration = (float)rand() / RAND_MAX;    // radius/20
-        particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;    // the bigger the faster 
+        // duration = (int)(rand() % 2);
+        // particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;    // the bigger the faster 
+        particles[i].speed = 0.3f + (float)(rand() % steps) * 0.1f;
         particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 120-61
         startTimer(&particles[i].timer, duration);
         particles[i].active = true;
@@ -201,7 +205,7 @@ void desint(Ship ship, Stick* sticks)
         sticks[i].bounds = (Rectangle){sticks[i].pos.x, sticks[i].pos.y, sticks[i].size.x, sticks[i].size.y};
         startTimer(&sticks[i].timer, duration);
         sticks[i].active = true;
-        printf("rotation: %f\n", sticks[i].rotation);
+        // printf("rotation: %f\n", sticks[i].rotation);
     }
 }
 
