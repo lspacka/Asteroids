@@ -2,8 +2,6 @@
 
 My take on the original arcade game. Made with [raylib](https://www.raylib.com/). 
 
-[Play it Here]()
-
 ## Controls
 
 ##### Left:         `rotate left`

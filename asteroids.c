@@ -21,17 +21,18 @@ int main()
 
     GameState game_state = GAME_INIT;
     bool first_level = true;
-    bool first_session = true;
+    // bool first_session = true;
     // Font my_font = LoadFont("D:/GitHub/C/raylib/asteroids/Hyperspace-JvEM.ttf");
     
     int screen_width = 1200;
     int screen_height = 900;
 
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    // SetConfigFlags(FLAG_FULLSCREEN_MODE);
+    // SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screen_width, screen_height, "Asteroids"); 
     SetTargetFPS(60); 
 
-    Vector2 spawn_point = { screen_width/2, screen_height/2};   // to reset the ship pos to the middle of the screen
+    Vector2 spawn_point = { screen_width/2, screen_height/2 };   // to reset the ship pos to the middle of the screen
     const float rotation_speed = 2.5f;
     const float ufo_speed = 0.9;
     const float ast_scale =  0.703125;
@@ -85,7 +86,7 @@ int main()
 
     Image ship_img  = LoadImage("./resources/images/ship.png");
     Image torp      = LoadImage("./resources/images/torp2.png");
-    Image ufo_img   = LoadImage("./resources/images/ufo_2.png");
+    Image ufo_img   = LoadImage("./resources/images/UFO_2.png");
     Image stick_img = LoadImage("./resources/images/stick.png");
 
     Image ast1   = LoadImage("./resources/images/ast1.png");
@@ -305,6 +306,8 @@ int main()
     float bill_random_deviation = 0.0f;
     int sluggo_dir = 0;
     int bill_deviation = 10;
+
+    // Vector2 spawn_point = { screen_width/2, screen_height/2 };
     // startTimer(&init_timer, 5);
 
     ///////////////////////////////////////////////////////////// GAME LOOP /////////////////////////////////////////////////////////////
@@ -312,6 +315,8 @@ int main()
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
+
+        
 
         // toggle fullscreen
         if (IsKeyPressed(KEY_TAB)) {

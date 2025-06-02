@@ -1,7 +1,0 @@
-howdy. so Im working on an asteroids clone with raylib, and Im in a bit of a pickle.
-I want to handle the game states with an enum {GAME_INIT, GAME_ACTIVE, GAME_OVER} and a switch(game_state).
-so, this is a bit of a silly hill to die on but bare with me. what I want to do is to display a "game over" message (when its over obv)
-but while the game is still running, that is, the spaceship is dead, but the asteroids are moving around.
-the problem is that by switching states, once it is GAME_OVER you can only see the message. 
-I did a quick fix and I can achieve what I want by checking if (game_state==GAME_OVER) while the game runs, but Im not sure if 
-I want to handle the game states with if statements, it might get too messy, what do you think?
