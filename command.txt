@@ -1,0 +1,1 @@
+emcc asteroids.c -o bin\asteroids.html -Os -Wall -I C:\raylib\raylib\src -L C:\raylib\raylib\src -lraylib -s USE_GLFW=3 -s ASYNCIFY -s "EXPORTED_FUNCTIONS=['_main','_UpdateViewport']" -s "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']" --shell-file D:\GitHub\C\raylib\asteroids\my_shell.html -DPLATFORM_WEB --preload-file resources

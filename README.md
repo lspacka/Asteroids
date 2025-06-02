@@ -13,9 +13,14 @@ My take on the original arcade game. Made with [raylib](https://www.raylib.com/)
 ##### Space:        `hyperspace`
 ##### TAB:          `toggle fullscreen`
 
-#
-compile with: `-lraylib -lgdi32 -lwinmm`
+## Building
+To build the game, ensure you have a C compiler (e.g., `gcc` or `clang`) and raylib installed. Compile asteroids.c with:
+`gcc asteroids.c -o asteroids -lraylib -lgdi32 -lwinmm`
 
-optional: `-Wall -std=c99`
+Optional flags: `-Wall -std=c99` for warnings and C99 standard compliance.
 
-If there is a compiler error, `error: incompatible types when assigning to type 'Vector2' from type 'int'`, or error related to raymath.h not being found, add the additional flag `-I` with the path to the raylib source folder. for example in windows: `-I c:/raylib/raylib/src`
+### Troubleshooting: 
+If you encounter errors like `error: incompatible types when assigning to type 'Vector2' from type 'int'` or `raymath.h not found`, ensure the raylib source path is included with the additional flag `-I`. 
+
+For example, on Windows:
+`gcc asteroids.c -o asteroids -lraylib -lgdi32 -lwinmm -I C:/raylib/raylib/src`

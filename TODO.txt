@@ -28,6 +28,17 @@ May 28th, 20 levels tested. these 2 dissapeared after hitting one of the asteroi
  - 2 sets of lines in top left at level 9. they frame the collision message
 
 sometimes, after the first level, one or two big asteroids appear not drawn completely. no idea why.
+  edit may 31: did a small change in the code (lines 520, 525) and it seemed to have solved this, but 
+  random crashes were happening; so ig ima keep the drawing bug for now, defo better than random crashes.
+
+  edit may 31, 4:34 pm: the above fix is not the culprit for the crashes. might it have smtn to do with the explosion animation?
+  it didnt crash once on the 28th, I only stopped cos I was bored
+
+  5:07 pm: just tested 20 levels with the code fix. no drawing bugs and no crashes, so idk, pretty weird.
+
+May 31
+- crashes: level 4, 
+  - 2 bars at top left, each was linked to an asteroid (that is, it dissapeared with the asteroid) 
 
 ////////////////////////////////////////////////////
 

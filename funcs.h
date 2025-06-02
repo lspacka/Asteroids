@@ -49,6 +49,8 @@ void ShipSpawn(
             float spawn_radius = ship->radius*16;
             Vector2 spawn_point = spawnpoint;
             for (int j = 0; j < astnum; j++) {  // add safe_radius attr to Ship
+                // brute force check for the ship to spawn safely.
+                // doesnt work too well...
                 if (asteroids[j].active && 
                     (CheckCollisionCircles(spawnpoint, ship->radius*16, asteroids[j].pos, asteroids[j].radius) || 
                     CheckCollisionCircles(spawnpoint, ship->radius*14, asteroids[j].pos, asteroids[j].radius)  || 
@@ -146,8 +148,7 @@ void desint(Ship ship, Stick* sticks, float* spawntime)
     float duration = 0.7f;
 
     for (i = 0; i < 5; i++) {
-        rotation = rand() % 361;     // (float)rand() / RAND_MAX - 0.5f;
-        // duration = (float)rand() / RAND_MAX;
+        rotation = rand() % 361;  
         sticks[i].center = (Vector2){sticks[i].size.x/2, sticks[i].size.y/2};
         sticks[i].pos.x = (ship.pos.x - 5) + rand() % 11;
         sticks[i].pos.y = (ship.pos.y - 5) + rand() % 11;
