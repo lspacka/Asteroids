@@ -20,7 +20,7 @@
 + fix score bug with ufos
 - fix flashing torp before a new wave hits
 - fix only one explosion at a time
-- fix explosion not happening on last asteroid before new wave
+- fix explosion not happening on last object before new wave
 - fix ship's 4-shot problem (maybe torp_num = ast_num*100 lol)
 
 May 28th, 20 levels tested. these 2 dissapeared after hitting one of the asteroids:
@@ -38,7 +38,7 @@ sometimes, after the first level, one or two big asteroids appear not drawn comp
 
 May 31
 - crashes: level 4, 
-  - 2 bars at top left, each was linked to an asteroid (that is, it dissapeared with the asteroid) 
+  - 2 horizontal bars at top left, each was linked to an asteroid (that is, it dissapeared with the asteroid) 
 
 ////////////////////////////////////////////////////
 

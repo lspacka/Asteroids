@@ -4,16 +4,7 @@
 #include <time.h>
 #include <math.h>
 #include "raylib.h"
-#include "types.h"
 #include "funcs.h"
-
-typedef struct Particle {
-    Vector2 pos;
-    Timer timer;
-    float angle; 
-    float speed;
-    bool active;
-} Particle;
 
 int main() {
     SetTraceLogLevel(LOG_WARNING);
@@ -36,6 +27,8 @@ int main() {
     bool is_pressed = false;
 
     while (!WindowShouldClose()) {
+        DrawText("HIT SPACEBAR", 20, 20, 20, RAYWHITE);
+
         if (IsKeyPressed(KEY_SPACE)) {
             is_pressed = !is_pressed;
 
@@ -45,7 +38,7 @@ int main() {
                     particles[i].speed = 0.3f + (float)(rand() % 8) / 10.0f;
                     particles[i].pos.x = 300;   // Reset position
                     particles[i].pos.y = 300;
-                    particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 120-61
+                    particles[i].angle = (float)(rand() % 361) * DEG2RAD;      // random angle. 0-360
                     startTimer(&particles[i].timer, duration);
                     particles[i].active = true;
                 } else {
@@ -69,9 +62,8 @@ int main() {
         ClearBackground(BLACK);
 
         for (i = 0; i < p_quant; i++)
-            if (particles[i].active) {
+            if (particles[i].active) 
                 DrawPixel((int)particles[i].pos.x, (int)particles[i].pos.y, WHITE);
-            }
 
         EndDrawing();
     }
