@@ -352,6 +352,7 @@ int main()
     float max_deviation = 0.0f;
     float bill_random_deviation = 0.0f;
     int sluggo_dir = 0;
+    int bill_dir = 0;
     int bill_deviation = 10;
 
     // Vector2 spawn_point = { screen_width/2, screen_height/2 };
@@ -904,7 +905,13 @@ int main()
                                                 bill_new_angle = bill_angle + bill_random_deviation;
                                                 ufo->shootDir.x = cos(bill_new_angle);
                                                 ufo->shootDir.y = sin(bill_new_angle);
-                                            }  // else shoot at random 
+                                            } else {    
+                                                bill_dir = GetRandomValue(0, 7);
+                                                bill_dir *= 45;
+                                                bill_angle = bill_dir * (PI/180.0);
+                                                ufo->shootDir.x = cos(bill_angle);
+                                                ufo->shootDir.y = sin(bill_angle);
+                                            } 
                                         }
                                         if (ufo_torp_index == MAX_UFO_TORPS)
                                             ufo_torp_index = 0;
