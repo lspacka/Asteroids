@@ -91,13 +91,7 @@ int main()
     Torp* ship_torps = NULL;
     Torp* ufo_torps = NULL;
     Ship* dummy_ships = NULL;
-    UFO* ufos = NULL;
-    // Color* ast_pixels = NULL;
-    // Texture2D* ast_sprites = NULL;
-    // Stick sticks[NUM_STICKS] = { 0 };
-    // Torp ship_torps[MAX_SHIP_TORPS] = { 0 };
-    // Torp ufo_torps[MAX_UFO_TORPS] = { 0 };
-    // Ship dummy_ships[MAX_SHIP_LIVES] = { 0 };                      
+    UFO* ufos = NULL;                    
     // Torp** all_torps[2];
     // Torp all_torps[[ship_torps, ufo_torps]];
 
@@ -106,8 +100,6 @@ int main()
     ufo_torps = calloc(MAX_UFO_TORPS, sizeof(Torp));
     dummy_ships = calloc(MAX_SHIP_LIVES, sizeof(Ship));             // array of dummy ships for displaying ship lives 
     ufos = calloc(NUM_UFOS, sizeof(UFO));
-    // ast_pixels = calloc(AST_TEX_NUM, sizeof(Color));
-    // ast_sprites = calloc(AST_TEX_NUM, sizeof(Texture2D));
 
     if (!sticks || !ship_torps || !ufo_torps || !dummy_ships || !ufos) {
         fprintf(stderr, "Memory allocation failed\n");
@@ -199,7 +191,6 @@ int main()
     Texture2D tex_ast4_3 = LoadTextureFromImage(ast4_3);
     
     Color* ast_pixels[16]  = {
-    // ast_pixels = (Color*){
         ast1_pix, ast1_1_pix, ast1_2_pix, ast1_3_pix,
         ast2_pix, ast2_1_pix, ast2_2_pix, ast2_3_pix,
         ast3_pix, ast3_1_pix, ast3_2_pix, ast3_3_pix,
@@ -207,7 +198,6 @@ int main()
     };
 
     Texture2D ast_sprites[16] = {
-    // ast_sprites = (Texture2D*){
         tex_ast1, tex_ast1_1, tex_ast1_2, tex_ast1_3,
         tex_ast2, tex_ast2_1, tex_ast2_2, tex_ast2_3,
         tex_ast3, tex_ast3_1, tex_ast3_2, tex_ast3_3,
@@ -325,7 +315,7 @@ int main()
     float rota_offset_x;
     float rota_offset_y;
     float top_speed = 50.0f;
-    float thrust_force = 0.1f;
+    float thrust_force = 0.2f;
     float friction = 0.99f;
     float drag = 0.01f;  
     float speed;
@@ -414,43 +404,56 @@ int main()
         // if (ship.active) 
         //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
-        if (IsKeyDown(KEY_RIGHT)) 
-            ship.rotation += rotation_speed;
-        if (IsKeyDown(KEY_LEFT))  
-            ship.rotation -= rotation_speed;
+        // if (IsKeyDown(KEY_RIGHT)) 
+        //     ship.rotation += rotation_speed;
+        // if (IsKeyDown(KEY_LEFT))  
+        //     ship.rotation -= rotation_speed;
 
-        if (IsKeyDown(KEY_UP) && ship.active) {
+        // THRUST
+        if (game_state==GAME_TRANSIT || game_state==GAME_ACTIVE) {
+            if (IsKeyDown(KEY_RIGHT)) 
+                ship.rotation += rotation_speed;
+            if (IsKeyDown(KEY_LEFT))  
+                ship.rotation -= rotation_speed;
 
-            // Recalculate thrust direction based on the ship's current rotation
-            thrust = ship.dir;
-            Vector2Normalize(thrust);  // Normalize to get direction only
+            if (IsKeyDown(KEY_UP) && ship.active) {
 
-            // Apply thrust to velocity (incremental acceleration)
-            ship.vel.x += thrust.x * thrust_force;
-            ship.vel.y += thrust.y * thrust_force;
+                // Recalculate thrust direction based on the ship's current rotation
+                thrust = ship.dir;
+                Vector2Normalize(thrust);  // Normalize to get direction only
 
-            // Optional: Cap the velocity to top speed
-            speed = Vector2Length(ship.vel);
-            if (speed > top_speed) {
-                Vector2Normalize(ship.vel);
-                ship.vel.x *= ship.lowSpeed;
-                ship.vel.y *= ship.lowSpeed;
+                // Apply thrust to velocity (incremental acceleration)
+                ship.vel.x += thrust.x * thrust_force;
+                ship.vel.y += thrust.y * thrust_force;
+
+                // Optional: Cap the velocity to top speed
+                speed = Vector2Length(ship.vel);
+                if (speed > top_speed) {
+                    Vector2Normalize(ship.vel);
+                    ship.vel.x *= ship.lowSpeed;
+                    ship.vel.y *= ship.lowSpeed;
+                }
+            } else {
+                // No thrust, but apply slight friction to slow down gradually
+                ship.vel.x *= friction;
+                ship.vel.y *= friction;
             }
-        } else {
-            // No thrust, but apply slight friction to slow down gradually
-            ship.vel.x *= friction;
-            ship.vel.y *= friction;
+
+            // // Update the ship's position based on velocity
+            ship.pos.x += ship.vel.x;
+            ship.pos.y += ship.vel.y;
+
+            // update ship's bounds to match the new position
+            ship.bounds.x = ship.pos.x - ship.center.x;
+            ship.bounds.y = ship.pos.y - ship.center.y;
+
+            ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
+
+            if (ship.active) 
+                DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
         }
-
-        // Update the ship's position based on velocity
-        ship.pos.x += ship.vel.x;
-        ship.pos.y += ship.vel.y;
-
-        // update ship's bounds to match the new position
-        ship.bounds.x = ship.pos.x - ship.center.x;
-        ship.bounds.y = ship.pos.y - ship.center.y;
-
-        ship.circle_center = (Vector2){ship.pos.x-ship.tex.width/2, ship.pos.y-ship.tex.height/2};
+        
+        ///////////////////////////////////////////////////
 
         // wrap-around
         if (ship.pos.x-ship.size.x >= screen_width) 
@@ -516,8 +519,8 @@ int main()
                     DrawText(TextFormat("game state: %d", game_state), 20, screen_height-140, 20, RAYWHITE);
 
                 if (first_level) {
-                    // lives = 3;
-                    // score = 0;
+                    lives = 3;
+                    score = 0;
                     ast_num = 4;
                     ship.vel.x = 0;
                     ship.vel.y = 0;
@@ -628,8 +631,8 @@ int main()
                 break;
             }
             case GAME_TRANSIT: {
-                if (ship.active) 
-                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+                // if (ship.active) 
+                //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
 
                 if (TimerDone(init_timer)) {
                     // ship.active = true;
@@ -726,8 +729,6 @@ int main()
                         DrawTexturePro(tex_torp, ship_torps[i].source, ship_torps[i].dest, ship_torps[i].center, 0.0f, WHITE);
 
                         // torp dissapears after 1.5 seconds
-                        // if (getElapsed(shot_timers[i]) >= shot_time)
-                        //     ship_torps[i].active = false;
                         if (TimerDone(ship_torps[i].timer))
                             ship_torps[i].active = false;
                     }
@@ -784,8 +785,8 @@ int main()
                 // for some reason, drawing twice (here or line 658)
                 // somewhat remediates this ugly stuttering the ship has.
                 // maybe Im just imagining it...
-                if (ship.active) 
-                    DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
+                // if (ship.active) 
+                //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
                 
                 // if (ship.active) 
                 //     DrawTexturePro(ship.tex, ship.rect, ship.bounds, ship.center, ship.rotation, RAYWHITE);
@@ -1179,15 +1180,15 @@ int main()
                         if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
                             collision_found = false;
                             DrawText("Collision!", 10, 50, 40, RED);
-                            active_asteroids--;
-                            asteroids[i].active = false;
-                            AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                            desint(ship, sticks, &ship_spawn_time);
-                            pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
-                            lives--;
-                            dummy_ships[lives].active = false;     // lives display
-                            ship.active = false;
-                            startTimer(&ship_spawn_timer, ship_spawn_time);
+                            // active_asteroids--;
+                            // asteroids[i].active = false;
+                            // AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                            // desint(ship, sticks, &ship_spawn_time);
+                            // pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
+                            // lives--;
+                            // dummy_ships[lives].active = false;                                      // lives display
+                            // ship.active = false;
+                            // startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1450,13 +1451,44 @@ int main()
                 }
 
                 // level progression
-                if (!player_dead && active_asteroids==0 && 
-                    (!ufo->onscreen || 
-                    ufo->state==UFO_DEAD || 
+                if (!player_dead && active_asteroids==0 && !ufo->onscreen &&
+                    (ufo->state==UFO_DEAD || 
                     ufo->state==UFO_SPAWNING)) {
+                    // !anyUFOActive) {
                     first_level = false;
                     level++;
                     game_state = GAME_INIT;
+                }
+
+                // new game
+                if (player_dead) {
+                    DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
+                    DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
+                    if (IsKeyPressed(KEY_ENTER))  {
+                        if (score > high_score)
+                            high_score = score;
+                        
+                        // lives = 3;
+                        // score = 0;
+                        level = 1;
+                        first_level = true;
+                        player_dead = false;
+                        free(asteroids);
+                        free(mid_asts);
+                        free(lil_asts);
+                        free(all_asts);
+
+                        for (i = 0; i < MAX_SHIP_TORPS; i++)
+                            ship_torps[i].active = false;
+                        for (i = 0; i < MAX_UFO_TORPS; i++)
+                            ufo_torps[i].active = false;
+                        for (i = 0; i < particle_number; i++)
+                            particles[i].active = false;
+                        for (i = 0; i < NUM_STICKS; i++)
+                            sticks[i].active = false;
+                        
+                        game_state = GAME_INIT;
+                    }                         
                 }
 
                 /////////////// DEBUGGING DISPLAY ///////////////
@@ -1543,35 +1575,35 @@ int main()
                 ///////////////////////////////////////////
 
                 // new game logic
-                if (player_dead) {
-                    DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
-                    DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
-                    if (IsKeyPressed(KEY_ENTER))  {
-                        if (score > high_score)
-                            high_score = score;
+                // if (player_dead) {
+                //     DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
+                //     DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
+                //     if (IsKeyPressed(KEY_ENTER))  {
+                //         if (score > high_score)
+                //             high_score = score;
                         
-                        lives = 3;
-                        score = 0;
-                        level = 1;
-                        first_level = true;
-                        player_dead = false;
-                        free(asteroids);
-                        free(mid_asts);
-                        free(lil_asts);
-                        free(all_asts);
+                //         // lives = 3;
+                //         // score = 0;
+                //         level = 1;
+                //         first_level = true;
+                //         player_dead = false;
+                //         free(asteroids);
+                //         free(mid_asts);
+                //         free(lil_asts);
+                //         free(all_asts);
 
-                        for (i = 0; i < MAX_SHIP_TORPS; i++)
-                            ship_torps[i].active = false;
-                        for (i = 0; i < MAX_UFO_TORPS; i++)
-                            ufo_torps[i].active = false;
-                        for (i = 0; i < particle_number; i++)
-                            particles[i].active = false;
-                        for (i = 0; i < NUM_STICKS; i++)
-                            sticks[i].active = false;
+                //         for (i = 0; i < MAX_SHIP_TORPS; i++)
+                //             ship_torps[i].active = false;
+                //         for (i = 0; i < MAX_UFO_TORPS; i++)
+                //             ufo_torps[i].active = false;
+                //         for (i = 0; i < particle_number; i++)
+                //             particles[i].active = false;
+                //         for (i = 0; i < NUM_STICKS; i++)
+                //             sticks[i].active = false;
                         
-                        game_state = GAME_INIT;
-                    }                         
-                }
+                //         game_state = GAME_INIT;
+                //     }                         
+                // }
                 break;
             } 
         }  
