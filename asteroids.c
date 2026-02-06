@@ -1452,8 +1452,8 @@ int main()
 
                 // level progression
                 if (!player_dead && active_asteroids==0 && !ufo->onscreen &&
-                    (ufo->state==UFO_DEAD || 
-                    ufo->state==UFO_SPAWNING)) {
+                    (ufo->state == UFO_DEAD || 
+                    ufo->state == UFO_SPAWNING)) {
                     // !anyUFOActive) {
                     first_level = false;
                     level++;

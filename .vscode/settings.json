@@ -3,5 +3,6 @@
         "stdlib.h": "c",
         "typeinfo": "c",
         "time.h": "c"
-    }
+    },
+    "C_Cpp.default.compilerPath": "C:/raylib/w64devkit/bin/gcc.exe"
 }
