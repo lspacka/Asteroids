@@ -55,7 +55,7 @@ int main()
     // const float ufo_speed = 0.9f; 
     const float ufo_speed = 2.5f;                                  // units per frame, balanced for UFO difficulty
     const float ast_scale =  0.703125f;                             // scales asteroid textures for visual balance
-    const int particle_number = 42;                                 // number of particles for explosion, tuned for visual effect
+    const int particle_number = 42;                                 // number of particles per explosion, tuned for visual effect
 
     // asteroid quantities
     int ast_num;
@@ -1178,17 +1178,17 @@ int main()
                     // vs ship
                     if (asteroids[i].active && ship.active) {
                         if (CheckCollisionCircles(asteroids[i].pos, asteroids[i].radius, ship.circle_center, ship.radius*1.7)) {
+                            // DrawText("Collision!", 10, 50, 40, RED);
                             collision_found = false;
-                            DrawText("Collision!", 10, 50, 40, RED);
-                            // active_asteroids--;
-                            // asteroids[i].active = false;
-                            // AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
-                            // desint(ship, sticks, &ship_spawn_time);
-                            // pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
-                            // lives--;
-                            // dummy_ships[lives].active = false;                                      // lives display
-                            // ship.active = false;
-                            // startTimer(&ship_spawn_timer, ship_spawn_time);
+                            active_asteroids--;
+                            asteroids[i].active = false;
+                            AstBlast(asteroids[i], mid_asts, mid_ast_ptr, ast_sprites);
+                            desint(ship, sticks, &ship_spawn_time);
+                            pof(asteroids[i].pos, asteroids[i].radius, particles, particle_number);
+                            lives--;
+                            dummy_ships[lives].active = false;                                      // lives display
+                            ship.active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, asteroids, ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1284,15 +1284,15 @@ int main()
                     if (mid_asts[i].active && ship.active) {
                         if (CheckCollisionCircles(mid_asts[i].pos, mid_asts[i].radius, ship.circle_center, ship.radius)) {
                             // DrawText("Collision!", 10, 50, 40, RED);
-                            // active_asteroids--;
-                            // mid_asts[i].active = false;
-                            // pof(mid_asts[i].pos, mid_asts[i].radius, particles, particle_number);
-                            // desint(ship, sticks, &ship_spawn_time);
-                            // AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
-                            // lives--;
-                            // ship.active = false;
-                            // dummy_ships[lives].active = false;
-                            // startTimer(&ship_spawn_timer, ship_spawn_time);
+                            active_asteroids--;
+                            mid_asts[i].active = false;
+                            pof(mid_asts[i].pos, mid_asts[i].radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
+                            AstBlast(mid_asts[i], lil_asts, lil_ast_ptr, ast_sprites);
+                            lives--;
+                            ship.active = false;
+                            dummy_ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, mid_asts, mid_ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1346,14 +1346,14 @@ int main()
                     if (lil_asts[i].active && ship.active) {
                         if (CheckCollisionCircles(lil_asts[i].pos, lil_asts[i].radius, ship.circle_center, ship.radius)) {
                             // DrawText("Collision!", 10, 50, 40, RED);
-                            // active_asteroids--;
-                            // lil_asts[i].active = false;
-                            // pof(lil_asts[i].pos, lil_asts[i].radius, particles, particle_number);
-                            // desint(ship, sticks, &ship_spawn_time);
-                            // lives--;
-                            // ship.active = false;
-                            // dummy_ships[lives].active = false;
-                            // startTimer(&ship_spawn_timer, ship_spawn_time);
+                            active_asteroids--;
+                            lil_asts[i].active = false;
+                            pof(lil_asts[i].pos, lil_asts[i].radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
+                            lives--;
+                            ship.active = false;
+                            dummy_ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     ShipSpawn(&ship, lives, lil_asts, lil_ast_num, ship_spawn_timer, spawn_point, &player_dead);
@@ -1404,13 +1404,13 @@ int main()
                     if (ufos[i].state==UFO_ACTIVE && ship.active) {
                         if (CheckCollisionCircles(ufos[i].pos, ufos[i].radius, ship.pos, ship.radius)) {
                             // DrawText("UFO Collision!", 10, 50, 40, ORANGE);
-                            // ufos[i].state = UFO_DEAD;
-                            // pof(ufos[i].pos, ufos[i].radius, particles, particle_number);
-                            // desint(ship, sticks, &ship_spawn_time);
-                            // lives--;
-                            // ship.active = false;
-                            // dummy_ships[lives].active = false;
-                            // startTimer(&ship_spawn_timer, ship_spawn_time);
+                            ufos[i].state = UFO_DEAD;
+                            pof(ufos[i].pos, ufos[i].radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
+                            lives--;
+                            ship.active = false;
+                            dummy_ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                     // ShipSpawn2(&ship, lives, ufos, 2, ship_spawn_timer, spawn_point, &game_state);
@@ -1439,13 +1439,13 @@ int main()
                     if (ufo_torps[i].active && ship.active) {
                         if (CheckCollisionCircles(ufo_torps[i].pos, ufo_torps[i].radius, ship.circle_center, ship.radius)) {
                             // DrawText("Collision!", 10, 50, 40, RED);
-                            // ufo_torps[i].active = false;
-                            // pof(ship.pos, ship.radius, particles, particle_number);
-                            // desint(ship, sticks, &ship_spawn_time);
-                            // ship.active = false;
-                            // lives--;
-                            // dummy_ships[lives].active = false;
-                            // startTimer(&ship_spawn_timer, ship_spawn_time);
+                            ufo_torps[i].active = false;
+                            pof(ship.pos, ship.radius, particles, particle_number);
+                            desint(ship, sticks, &ship_spawn_time);
+                            ship.active = false;
+                            lives--;
+                            dummy_ships[lives].active = false;
+                            startTimer(&ship_spawn_timer, ship_spawn_time);
                         }
                     }
                 }
@@ -1575,35 +1575,35 @@ int main()
                 ///////////////////////////////////////////
 
                 // new game logic
-                // if (player_dead) {
-                //     DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
-                //     DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
-                //     if (IsKeyPressed(KEY_ENTER))  {
-                //         if (score > high_score)
-                //             high_score = score;
+                if (player_dead) {
+                    DrawText("GAME OVER", spawn_point.x-200, spawn_point.y, 70.0f, RAYWHITE);
+                    DrawText("Press ENTER to play again, or ESC to quit", spawn_point.x-300, spawn_point.y+100, 30.0f, RAYWHITE);
+                    if (IsKeyPressed(KEY_ENTER))  {
+                        if (score > high_score)
+                            high_score = score;
                         
-                //         // lives = 3;
-                //         // score = 0;
-                //         level = 1;
-                //         first_level = true;
-                //         player_dead = false;
-                //         free(asteroids);
-                //         free(mid_asts);
-                //         free(lil_asts);
-                //         free(all_asts);
+                        // lives = 3;
+                        // score = 0;
+                        level = 1;
+                        first_level = true;
+                        player_dead = false;
+                        free(asteroids);
+                        free(mid_asts);
+                        free(lil_asts);
+                        free(all_asts);
 
-                //         for (i = 0; i < MAX_SHIP_TORPS; i++)
-                //             ship_torps[i].active = false;
-                //         for (i = 0; i < MAX_UFO_TORPS; i++)
-                //             ufo_torps[i].active = false;
-                //         for (i = 0; i < particle_number; i++)
-                //             particles[i].active = false;
-                //         for (i = 0; i < NUM_STICKS; i++)
-                //             sticks[i].active = false;
+                        for (i = 0; i < MAX_SHIP_TORPS; i++)
+                            ship_torps[i].active = false;
+                        for (i = 0; i < MAX_UFO_TORPS; i++)
+                            ufo_torps[i].active = false;
+                        for (i = 0; i < particle_number; i++)
+                            particles[i].active = false;
+                        for (i = 0; i < NUM_STICKS; i++)
+                            sticks[i].active = false;
                         
-                //         game_state = GAME_INIT;
-                //     }                         
-                // }
+                        game_state = GAME_INIT;
+                    }                         
+                }
                 break;
             } 
         }  
